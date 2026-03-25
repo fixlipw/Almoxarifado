@@ -1,0 +1,346 @@
+databaseChangeLog:
+  - changeSet:
+      id: 1774468867276-1
+
+      author: desou
+      comment: Cria tabela bloqueios
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_bloqueios
+                  name: id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: usuario_id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: admin_block_id
+                  type: UUID
+              - column:
+                  name: admin_unblock_id
+                  type: UUID
+              - column:
+                  name: motivo_desbloqueio
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: motivo_bloqueio
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: data_bloqueio
+                  type: DATETIME
+              - column:
+                  name: data_desbloqueio
+                  type: DATETIME
+            tableName: bloqueios
+  - changeSet:
+      id: 1774468867276-2
+      author: desou
+      comment: Cria tabela estoque
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_estoque
+                  name: id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: nome
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: quantidade
+                  type: INT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: tipo
+                  type: VARCHAR(255)
+              - column:
+                  name: is_ativado
+                  type: BOOLEAN
+            tableName: estoque
+  - changeSet:
+      id: 1774468867276-3
+      author: desou
+      comment: Cria tabela itens_pedido
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_itens_pedido
+                  name: id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: pedido_id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: estoque_id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: quantidade_item
+                  type: INT
+            tableName: itens_pedido
+  - changeSet:
+      id: 1774468867276-4
+      author: desou
+      comment: Cria tabela pedidos
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_pedidos
+                  name: id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: codigo_pedido
+                  type: VARCHAR(255)
+              - column:
+                  name: feedback
+                  type: TEXT
+              - column:
+                  constraints:
+                    nullable: false
+                  name: solicitante_id
+                  type: UUID
+              - column:
+                  name: aprovador_id
+                  type: UUID
+              - column:
+                  name: finalizador_id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: data_pedido
+                  type: DATETIME
+              - column:
+                  name: data_finalizado
+                  type: DATETIME
+              - column:
+                  name: aprovado
+                  type: BOOLEAN
+              - column:
+                  name: finalizado
+                  type: BOOLEAN
+              - column:
+                  name: emprestimo_especial
+                  type: BOOLEAN
+              - column:
+                  name: hash
+                  type: VARCHAR(255)
+            tableName: pedidos
+  - changeSet:
+      id: 1774468867276-5
+      author: desou
+      comment: Cria tabela usuarios
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - createTable:
+            columns:
+              - column:
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+                    primaryKeyName: pk_usuarios
+                  name: id
+                  type: UUID
+              - column:
+                  constraints:
+                    nullable: false
+                  name: email
+                  type: VARCHAR(255)
+              - column:
+                  name: matricula
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: senha
+                  type: VARCHAR(255)
+              - column:
+                  name: nome
+                  type: VARCHAR(255)
+              - column:
+                  name: sobrenome
+                  type: VARCHAR(255)
+              - column:
+                  name: curso
+                  type: VARCHAR(255)
+              - column:
+                  name: foto_perfil
+                  type: VARCHAR(255)
+              - column:
+                  constraints:
+                    nullable: false
+                  name: acesso
+                  type: VARCHAR(255)
+              - column:
+                  name: is_ativada
+                  type: BOOLEAN
+              - column:
+                  name: is_bloqueado
+                  type: BOOLEAN
+            tableName: usuarios
+  - changeSet:
+      id: 1774468867276-6
+      author: desou
+      comment: Adiciona unicidade para codigo_pedido em pedidos
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: codigo_pedido
+            constraintName: uc_pedidos_codigopedido
+            tableName: pedidos
+  - changeSet:
+      id: 1774468867276-7
+      author: desou
+      comment: Adiciona unicidade para email em usuarios
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: email
+            constraintName: uc_usuarios_email
+            tableName: usuarios
+  - changeSet:
+      id: 1774468867276-8
+      author: desou
+      comment: Adiciona unicidade para matricula em usuarios
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addUniqueConstraint:
+            columnNames: matricula
+            constraintName: uc_usuarios_matricula
+            tableName: usuarios
+  - changeSet:
+      id: 1774468867276-9
+      author: desou
+      comment: Cria FK bloqueios.admin_block_id para usuarios.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: admin_block_id
+            baseTableName: bloqueios
+            constraintName: FK_BLOQUEIOS_ON_ADMIN_BLOCK
+            referencedColumnNames: id
+            referencedTableName: usuarios
+  - changeSet:
+      id: 1774468867276-10
+      author: desou
+      comment: Cria FK bloqueios.admin_unblock_id para usuarios.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: admin_unblock_id
+            baseTableName: bloqueios
+            constraintName: FK_BLOQUEIOS_ON_ADMIN_UNBLOCK
+            referencedColumnNames: id
+            referencedTableName: usuarios
+  - changeSet:
+      id: 1774468867276-11
+      author: desou
+      comment: Cria FK bloqueios.usuario_id para usuarios.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: usuario_id
+            baseTableName: bloqueios
+            constraintName: FK_BLOQUEIOS_ON_USUARIO
+            referencedColumnNames: id
+            referencedTableName: usuarios
+  - changeSet:
+      id: 1774468867276-12
+      author: desou
+      comment: Cria FK itens_pedido.estoque_id para estoque.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: estoque_id
+            baseTableName: itens_pedido
+            constraintName: FK_ITENS_PEDIDO_ON_ESTOQUE
+            referencedColumnNames: id
+            referencedTableName: estoque
+  - changeSet:
+      id: 1774468867276-13
+      author: desou
+      comment: Cria FK itens_pedido.pedido_id para pedidos.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: pedido_id
+            baseTableName: itens_pedido
+            constraintName: FK_ITENS_PEDIDO_ON_PEDIDO
+            referencedColumnNames: id
+            referencedTableName: pedidos
+  - changeSet:
+      id: 1774468867276-14
+      author: desou
+      comment: Cria FK pedidos.aprovador_id para usuarios.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: aprovador_id
+            baseTableName: pedidos
+            constraintName: FK_PEDIDOS_ON_APROVADOR
+            referencedColumnNames: id
+            referencedTableName: usuarios
+  - changeSet:
+      id: 1774468867276-15
+      author: desou
+      comment: Cria FK pedidos.finalizador_id para usuarios.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: finalizador_id
+            baseTableName: pedidos
+            constraintName: FK_PEDIDOS_ON_FINALIZADOR
+            referencedColumnNames: id
+            referencedTableName: usuarios
+  - changeSet:
+      id: 1774468867276-16
+      author: desou
+      comment: Cria FK pedidos.solicitante_id para usuarios.id
+      objectQuotingStrategy: QUOTE_ONLY_RESERVED_WORDS
+      changes:
+        - addForeignKeyConstraint:
+            baseColumnNames: solicitante_id
+            baseTableName: pedidos
+            constraintName: FK_PEDIDOS_ON_SOLICITANTE
+            referencedColumnNames: id
+            referencedTableName: usuarios
+
