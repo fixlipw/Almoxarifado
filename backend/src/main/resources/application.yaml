@@ -1,3 +1,29 @@
+server:
+  port: 8090
+
 spring:
   application:
-    name: backend
+    name: almoxarifado_backend
+
+  profiles:
+    default: dev
+
+  mvc:
+    servlet:
+      path: /api
+
+  jpa:
+    open-in-view: false
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 2MB
+      max-request-size: 6MB
+
+logging:
+  pattern:
+    console: "%clr(%d{yyyy-MM-dd'T'HH:mm:ss.SSS}){faint} %clr([%-5level]) %clr(${AEC:- }){magenta} %clr([%15.15t]){faint} %clr(%-40.40logger{36}){cyan} %clr([%file:%line]){green} %clr(:){faint} %m%n"
