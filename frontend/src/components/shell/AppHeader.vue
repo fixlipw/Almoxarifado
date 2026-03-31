@@ -13,8 +13,8 @@
       </v-avatar>
 
       <div v-if="!mobile" class="brand-copy">
-        <div class="text-subtitle-1 font-weight-bold" :class="mobile ? 'text-body-2' : ''">Almoxarifado UFC</div>
-        <div class="text-caption text-medium-emphasis">Campus Quixadá</div>
+        <div class="text-title-medium font-weight-bold" :class="mobile ? 'text-body-medium' : ''">Almoxarifado UFC</div>
+        <div class="text-body-small text-medium-emphasis">Campus Quixadá</div>
       </div>
     </div>
 
@@ -74,10 +74,10 @@
 </template>
 
 <script lang="ts" setup>
-  import { onMounted } from 'vue'
   import type { NavItem, NavSection } from './types'
-  import AppButton from '@/components/ui/AppButton.vue'
+  import { onMounted } from 'vue'
   import { useTheme } from 'vuetify'
+  import AppButton from '@/components/ui/AppButton.vue'
 
   const theme = useTheme()
 

@@ -1,7 +1,7 @@
 <template>
   <v-container class="d-flex align-center justify-center" fill-height fluid>
     <v-card class="pa-4" width="400">
-      <v-card-title class="text-center text-h5">Login</v-card-title>
+      <v-card-title class="text-center text-headline-medium">Login</v-card-title>
       <v-card-text>
         <v-form @submit.prevent>
           <v-text-field label="E-mail" required type="email" />

@@ -44,7 +44,7 @@ export default createVuetify({
           'background': '#121212',
           'surface': '#1e1e1e',
         },
-      }
+      },
     },
   },
 })

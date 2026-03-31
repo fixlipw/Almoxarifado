@@ -47,8 +47,8 @@
 <template>
   <div class="w-100">
     <div v-if="props.label || props.showText" class="d-flex align-center justify-space-between mb-1">
-      <span v-if="props.label" class="text-body-2 text-grey-darken-1">{{ props.label }}</span>
-      <span v-if="props.showText" class="text-body-2 font-weight-medium">{{ progressText }}</span>
+      <span v-if="props.label" class="text-body-medium text-grey-darken-1">{{ props.label }}</span>
+      <span v-if="props.showText" class="text-body-medium font-weight-medium">{{ progressText }}</span>
     </div>
 
     <v-progress-linear

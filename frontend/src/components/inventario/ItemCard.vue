@@ -47,8 +47,8 @@
             <v-icon :color="props.iconColor">{{ props.icon }}</v-icon>
           </v-avatar>
           <div>
-            <div class="text-subtitle-1 font-weight-bold" style="line-height: 1.2;">{{ props.title }}</div>
-            <div v-if="props.category" class="text-caption text-medium-emphasis">{{ props.category }}</div>
+            <div class="text-title-medium font-weight-bold" style="line-height: 1.2;">{{ props.title }}</div>
+            <div v-if="props.category" class="text-body-small text-medium-emphasis">{{ props.category }}</div>
           </div>
         </div>
         <v-chip
@@ -64,14 +64,14 @@
     </template>
 
     <div class="d-flex flex-column flex-grow-1">
-      <div v-if="props.description" class="text-body-2 text-medium-emphasis mb-4">
+      <div v-if="props.description" class="text-body-medium text-medium-emphasis mb-4">
         {{ props.description }}
       </div>
 
       <div class="mt-auto">
         <div class="d-flex justify-space-between align-center mb-2">
-          <span class="text-body-2 text-medium-emphasis">Disponível</span>
-          <span class="text-body-2 font-weight-bold">{{ props.available }} / {{ props.total }}</span>
+          <span class="text-body-medium text-medium-emphasis">Disponível</span>
+          <span class="text-body-medium font-weight-bold">{{ props.available }} / {{ props.total }}</span>
         </div>
         <AppProgressBar
           class="mb-3"

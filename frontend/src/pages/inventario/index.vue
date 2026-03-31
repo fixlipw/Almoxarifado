@@ -71,7 +71,6 @@
         <ItemCard
           :available="Math.floor(Math.random() * 201)"
           category="Componente Eletrônico"
-          description="Resistor de 10kΩ, ideal para circuitos de baixa potência."
           title="Resistor 10kΩ"
           :total="Math.floor(Math.random() * 200) + 201"
         />
@@ -88,7 +87,6 @@
         <ItemCard
           :available="Math.floor(Math.random() * 11)"
           category="Equipamento de Medição"
-          description="Multímetro digital com funções de medição de tensão, corrente e resistência."
           icon="mdi-devices"
           icon-color="orange"
           title="Multímetro Digital"

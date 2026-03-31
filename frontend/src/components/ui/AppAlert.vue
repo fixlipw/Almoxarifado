@@ -37,11 +37,11 @@
     <v-icon class="align-self-center" :color="tone" :icon="iconName" size="20" />
 
     <div>
-      <div class="text-subtitle-1 font-weight-bold mb-1">
+      <div class="text-title-medium font-weight-bold mb-1">
         {{ title }}
       </div>
 
-      <div v-if="$slots.default || description" class="text-body-1 text-medium-emphasis">
+      <div v-if="$slots.default || description" class="text-body-large text-medium-emphasis">
         <slot>
           {{ description }}
         </slot>

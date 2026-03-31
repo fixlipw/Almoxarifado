@@ -48,7 +48,7 @@
         >
           <template #header>
             <div class="d-flex justify-space-between align-start w-100">
-              <div class="text-subtitle-1 font-weight-medium text-info">Empréstimos Ativos</div>
+              <div class="text-title-medium font-weight-medium text-info">Empréstimos Ativos</div>
               <v-avatar color="info" rounded="lg" size="32">
                 <v-icon color="white" icon="mdi-trending-up" size="20" />
               </v-avatar>
@@ -72,7 +72,7 @@
         >
           <template #header>
             <div class="d-flex justify-space-between align-start w-100">
-              <div class="text-subtitle-1 font-weight-medium text-warning">Aguardando Aprovação</div>
+              <div class="text-title-medium font-weight-medium text-warning">Aguardando Aprovação</div>
               <v-avatar color="warning" rounded="lg" size="32">
                 <v-icon color="white" icon="mdi-clock-outline" size="20" />
               </v-avatar>
@@ -96,7 +96,7 @@
         >
           <template #header>
             <div class="d-flex justify-space-between align-start w-100">
-              <div class="text-subtitle-1 font-weight-medium text-success">Itens Disponíveis</div>
+              <div class="text-title-medium font-weight-medium text-success">Itens Disponíveis</div>
               <v-avatar color="success" rounded="lg" size="32">
                 <v-icon color="white" icon="mdi-package-variant-closed" size="20" />
               </v-avatar>

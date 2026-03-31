@@ -1,7 +1,7 @@
 <template>
   <v-container class="pa-5 h-90 overflow-hidden" fluid>
     <AppCard
-      v-if="subtitle"
+      v-if="subtitle || title"
       card-class="w-100"
       content-class="pa-4"
       :subtitle="subtitle"

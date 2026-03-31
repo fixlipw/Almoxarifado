@@ -31,23 +31,27 @@
         <div class="flex-grow-1">
           <slot name="header">
             <div>
-              <div class="text-h6 font-weight-bold">
+              <div class="text-headline-small font-weight-bold">
                 {{ title }}
               </div>
 
-              <div v-if="subtitle" class="text-body-2 text-grey-darken-1">
+              <div v-if="subtitle" class="text-body-medium text-grey-darken-1">
                 {{ subtitle }}
               </div>
             </div>
           </slot>
         </div>
 
-        <div v-if="$slots.button" class="d-flex justify-end align-self-center ml-3">
+        <div v-if="$slots.button" class="d-flex justify-end align-self-center ml-3 ga-2">
           <slot name="button" />
         </div>
       </div>
 
       <slot />
+
+      <div v-if="$slots.actions" class="d-flex justify-end align-self-end mt-4 ga-2">
+        <slot name="actions" />
+      </div>
     </div>
   </v-card>
 </template>
