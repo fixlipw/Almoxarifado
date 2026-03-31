@@ -198,7 +198,7 @@ meta:
   display: flex;
   flex-direction: column;
   position: relative;
-  background: linear-gradient(rgba(18, 18, 18, 0.4), rgba(0, 0, 0, 0.8)), url("public/ufc_panorama.jpeg") no-repeat center center;
+  background: linear-gradient(rgba(18, 18, 18, 0.4), rgba(0, 0, 0, 0.8)), url('/ufc_panorama.jpeg') no-repeat center center;
   background-size: cover;
   background-attachment: fixed;
 }
