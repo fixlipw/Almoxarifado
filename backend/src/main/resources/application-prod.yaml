@@ -10,7 +10,7 @@ spring:
     driver-class-name: org.postgresql.Driver
     url: jdbc:postgresql://localhost:5432/almoxarifado_prod
     username: postgres
-    password: postgres
+    password: 7797
     hikari:
       maximum-pool-size: 10
 
