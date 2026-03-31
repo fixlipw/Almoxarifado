@@ -1,0 +1,53 @@
+<script setup lang="ts">
+  interface CardProps {
+    title?: string
+    subtitle?: string
+    cardClass?: string
+    contentClass?: string
+    headerClass?: string
+    color?: string
+  }
+
+  withDefaults(defineProps<CardProps>(), {
+    title: '',
+    subtitle: '',
+    cardClass: '',
+    contentClass: '',
+    headerClass: '',
+  })
+</script>
+
+<template>
+  <v-card
+    border
+    class="mb-4"
+    :class="cardClass"
+    :color="color"
+    rounded="lg"
+    variant="flat"
+  >
+    <div class="pa-5" :class="contentClass">
+      <div v-if="$slots.header || title || subtitle || $slots.button" class="d-flex align-start" :class="headerClass">
+        <div class="flex-grow-1">
+          <slot name="header">
+            <div>
+              <div class="text-h6 font-weight-bold">
+                {{ title }}
+              </div>
+
+              <div v-if="subtitle" class="text-body-2 text-grey-darken-1">
+                {{ subtitle }}
+              </div>
+            </div>
+          </slot>
+        </div>
+
+        <div v-if="$slots.button" class="d-flex justify-end align-center ml-3">
+          <slot name="button" />
+        </div>
+      </div>
+
+      <slot />
+    </div>
+  </v-card>
+</template>

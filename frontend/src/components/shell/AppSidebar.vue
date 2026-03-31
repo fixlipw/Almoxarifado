@@ -1,7 +1,8 @@
 <template>
   <v-navigation-drawer
     v-if="mobile"
-    class="border-0"
+    class="app-top-drawer border-0"
+    height="auto"
     location="top"
     :model-value="drawer"
     temporary
@@ -39,3 +40,16 @@
     'select-section': [section: NavSection]
   }>()
 </script>
+
+<style scoped>
+.app-top-drawer {
+  inline-size: 100%;
+  max-inline-size: 100%;
+  block-size: auto !important;
+  max-block-size: min(80dvh, 360px);
+}
+
+.app-top-drawer:deep(.v-navigation-drawer__content) {
+  overflow-y: auto;
+}
+</style>

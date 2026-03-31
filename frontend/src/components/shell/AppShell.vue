@@ -30,12 +30,15 @@
 <script lang="ts" setup>
   import type { NavItem, NavSection } from './types'
   import { ref, watch } from 'vue'
+  import { useRoute, useRouter } from 'vue-router'
   import { useDisplay } from 'vuetify'
   import AppFooter from './AppFooter.vue'
   import AppHeader from './AppHeader.vue'
   import AppSidebar from './AppSidebar.vue'
 
   const { mobile } = useDisplay()
+  const router = useRouter()
+  const route = useRoute()
   const drawer = ref(false)
   const activeSection = ref<NavSection>('dashboard')
 
@@ -51,9 +54,20 @@
     }
   })
 
+  watch(route, newRoute => {
+    const path = newRoute.path.split('/')[1] || 'dashboard'
+    activeSection.value = path as NavSection
+  }, { immediate: true })
+
   function selectSection (section: NavSection) {
     activeSection.value = section
     drawer.value = false
+
+    if (section === 'dashboard') {
+      router.push('/dashboard')
+    } else {
+      router.push(`/${section}`)
+    }
   }
 </script>
 

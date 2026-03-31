@@ -21,7 +21,7 @@
     <v-spacer />
 
     <div v-if="!mobile" class="d-flex align-center ga-1 ml-10">
-      <v-btn
+      <AppButton
         v-for="item in navItems"
         :key="item.value"
         class="text-none px-4"
@@ -32,12 +32,24 @@
         @click="emit('select-section', item.value)"
       >
         {{ item.label }}
-      </v-btn>
+      </AppButton>
     </div>
 
     <v-spacer />
 
     <div class="d-flex align-center ga-2 mr-2">
+      <v-tooltip location="bottom">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
+            icon="mdi-cart-outline"
+            rounded="md"
+            variant="text"
+            @click="emit('open-cart')"
+          />
+        </template>
+        <span>Carrinho</span>
+      </v-tooltip>
       <v-chip prepend-icon="mdi-account-outline" size="small" variant="outlined">
         Aluno
       </v-chip>
@@ -50,6 +62,7 @@
 
 <script lang="ts" setup>
   import type { NavItem, NavSection } from './types'
+  import AppButton from '@/components/ui/AppButton.vue'
 
   defineProps<{
     drawer?: boolean
@@ -59,6 +72,7 @@
   }>()
 
   const emit = defineEmits<{
+    'open-cart': []
     'toggle-menu': []
     'select-section': [section: NavSection]
   }>()
