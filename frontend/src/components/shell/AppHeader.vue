@@ -9,10 +9,10 @@
 
     <div class="d-flex align-center ga-3" :class="mobile ? 'ml-1' : 'ml-2'">
       <v-avatar color="primary" rounded="lg" size="36">
-        <span class="logo-text">UFC</span>
+        <v-icon icon="mdi-package-variant-closed" />
       </v-avatar>
 
-      <div class="brand-copy">
+      <div v-if="!mobile" class="brand-copy">
         <div class="text-subtitle-1 font-weight-bold" :class="mobile ? 'text-body-2' : ''">Almoxarifado UFC</div>
         <div class="text-caption text-medium-emphasis">Campus Quixadá</div>
       </div>
@@ -42,6 +42,19 @@
         <template #activator="{ props }">
           <v-btn
             v-bind="props"
+            :icon="theme.global.current.value.dark ? 'mdi-weather-night' : 'mdi-weather-sunny'"
+            rounded="md"
+            variant="text"
+            @click="toggleTheme"
+          />
+        </template>
+        <span>Alternar Tema</span>
+      </v-tooltip>
+
+      <v-tooltip location="bottom">
+        <template #activator="{ props }">
+          <v-btn
+            v-bind="props"
             icon="mdi-cart-outline"
             rounded="md"
             variant="text"
@@ -61,8 +74,27 @@
 </template>
 
 <script lang="ts" setup>
+  import { onMounted } from 'vue'
   import type { NavItem, NavSection } from './types'
   import AppButton from '@/components/ui/AppButton.vue'
+  import { useTheme } from 'vuetify'
+
+  const theme = useTheme()
+
+  onMounted(() => {
+    const savedTheme = localStorage.getItem('almoxarifado-theme')
+    if (savedTheme) {
+      theme.global.name.value = savedTheme
+    } else {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      theme.global.name.value = prefersDark ? 'dark' : 'light'
+    }
+  })
+
+  function toggleTheme () {
+    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
+    localStorage.setItem('almoxarifado-theme', theme.global.name.value)
+  }
 
   defineProps<{
     drawer?: boolean
@@ -79,12 +111,6 @@
 </script>
 
 <style scoped>
-.logo-text {
-  color: rgb(var(--v-theme-on-primary));
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
 .brand-copy {
   line-height: 1.15;
 }

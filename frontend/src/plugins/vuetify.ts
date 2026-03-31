@@ -16,11 +16,13 @@ export default createVuetify({
     defaultTheme: 'light',
     themes: {
       light: {
+        dark: false,
         colors: {
-          'primary': '#0066cc',
+          'primary': '#1976D2', // Azul UFC ou similar
+          'secondary': '#424242',
           'info': '#0ea5e9',
           'info-light': '#e0f2fe',
-          'warning': '#f59e0b',
+          'warning': '#FFC107', // Amarelo presente na hero
           'warning-light': '#fef3c7',
           'success': '#10b981',
           'success-light': '#d1fae5',
@@ -28,6 +30,21 @@ export default createVuetify({
           'surface': '#ffffff',
         },
       },
+      dark: {
+        dark: true,
+        colors: {
+          'primary': '#1976D2',
+          'secondary': '#424242',
+          'info': '#0ea5e9',
+          'info-light': '#0c4a6e',
+          'warning': '#FFC107',
+          'warning-light': '#451a03',
+          'success': '#10b981',
+          'success-light': '#064e3b',
+          'background': '#121212',
+          'surface': '#1e1e1e',
+        },
+      }
     },
   },
 })

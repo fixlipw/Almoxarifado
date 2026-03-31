@@ -42,7 +42,7 @@
           </slot>
         </div>
 
-        <div v-if="$slots.button" class="d-flex justify-end align-center ml-3">
+        <div v-if="$slots.button" class="d-flex justify-end align-self-center ml-3">
           <slot name="button" />
         </div>
       </div>
