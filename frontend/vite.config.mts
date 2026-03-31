@@ -7,6 +7,7 @@ import VueRouter from 'vue-router/vite'
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: process.env.VITE_PUBLIC_BASE_PATH ?? '/',
   plugins: [VueRouter({ dts: 'src/typed-router.d.ts' }), Vue({
     template: { transformAssetUrls },
   }), // https://github.com/vuetifyjs/vuetify-loader/tree/master/packages/vite-plugin#readme
