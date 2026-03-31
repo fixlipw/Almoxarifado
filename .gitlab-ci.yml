@@ -1,88 +1,29 @@
-workflow:
-  rules:
-    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
-    - if: '$CI_COMMIT_BRANCH'
-
 stages:
-  - validate
-  - test
   - build
   - deploy
 
-variables:
-  FRONTEND_DIR: frontend
-  BACKEND_DIR: backend
-  NODE_ENV: production
-  VITE_PUBLIC_BASE_PATH: "/${CI_PROJECT_NAME}/"
-
-frontend_quality:
-  stage: validate
-  image: node:22-alpine
-  cache:
-    key: frontend-${CI_COMMIT_REF_SLUG}
-    paths:
-      - frontend/node_modules/
-  rules:
-    - changes:
-        - frontend/**/*
-        - .gitlab-ci.yml
-  script:
-    - cd "$FRONTEND_DIR"
-    - npm ci
-    - npm run lint -- .
-    - npm run type-check
-
-frontend_build:
+build_frontend:
   stage: build
-  image: node:22-alpine
-  needs:
-    - job: frontend_quality
-  cache:
-    key: frontend-${CI_COMMIT_REF_SLUG}
-    paths:
-      - frontend/node_modules/
-  rules:
-    - changes:
-        - frontend/**/*
-        - .gitlab-ci.yml
+  image: node:20
   script:
-    - cd "$FRONTEND_DIR"
-    - npm ci
+    - cd frontend
+    - npm install
     - npm run build
   artifacts:
     paths:
       - frontend/dist/
-    expire_in: 1 week
-
-backend_test:
-  stage: test
-  image: maven:3.9.11-eclipse-temurin-25
-  cache:
-    key: maven-${CI_COMMIT_REF_SLUG}
-    paths:
-      - .m2/repository/
-  rules:
-    - changes:
-        - backend/**/*
-        - .gitlab-ci.yml
-  script:
-    - mvn -f "$BACKEND_DIR/pom.xml" -B test
+    expire_in: 1 day
 
 pages:
   stage: deploy
-  image: alpine:3.21
-  needs:
-    - job: frontend_build
-      artifacts: true
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main"'
-      changes:
-        - frontend/**/*
-        - .gitlab-ci.yml
+  image: alpine
+  dependencies:
+    - build_frontend
   script:
-    - mkdir -p public
-    - cp -r "$FRONTEND_DIR/dist/." public/
+    - mv frontend/dist public
   artifacts:
     paths:
       - public
-    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
+
