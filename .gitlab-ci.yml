@@ -14,16 +14,6 @@ build_frontend:
       - frontend/dist/
     expire_in: 1 day
 
-serve_backend:
-  stage: deploy
-  image: node:20
-  script:
-    - cd frontend
-    - npm install
-    - npm run server
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
-
 pages:
   stage: deploy
   image: alpine
