@@ -13,7 +13,7 @@
   const cartStore = useCartStore()
 
   const showQuantityModal = ref(false)
-  const selectedItemForQuantity = ref<(QuantityDialogItem & { full: any }) | null>(null)
+  const selectedItemForQuantity = ref<(QuantityDialogItem & { full: any }) | undefined>(undefined)
 
   const typeItems = [
     { label: 'Todos os tipos', value: 'todos' },
@@ -76,6 +76,7 @@
     const item = selectedItemForQuantity.value.full
     if (item.icon) {
       cartStore.addItem({
+        quantity,
         title: item.title,
         category: item.category,
         available: item.available,
@@ -85,6 +86,7 @@
       }, quantity)
     } else {
       cartStore.addItem({
+        quantity,
         title: item.title,
         category: item.category,
         available: item.available,
@@ -92,7 +94,7 @@
       }, quantity)
     }
 
-    selectedItemForQuantity.value = null
+    selectedItemForQuantity.value = undefined
   }
 </script>
 

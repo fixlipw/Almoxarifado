@@ -5,7 +5,7 @@
   import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
-  import { useCartStore } from '@/stores/cart'
+  import { type CartItem, useCartStore } from '@/stores/cart'
 
   interface Props {
     modelValue: boolean
@@ -63,12 +63,15 @@
       await new Promise(resolve => setTimeout(resolve, 500))
 
       for (const item of props.emprestimo.itens) {
-        cartStore.addItem({
-          quantity: 0,
+        const cartItem: Omit<CartItem, 'id'> = {
+          quantity: item.quantity,
           title: item.name,
           category: 'Empréstimo Devolvido',
           available: item.quantity,
-        }, item.quantity)
+          total: item.quantity,
+        }
+
+        cartStore.addItem(cartItem, item.quantity)
       }
 
       // Fechar diálogos

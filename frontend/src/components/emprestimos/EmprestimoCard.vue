@@ -4,7 +4,7 @@
   import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
-  import { useCartStore } from '@/stores/cart'
+  import { type CartItem, useCartStore } from '@/stores/cart'
 
   export interface EmprestimoItem {
     id?: string | number
@@ -53,7 +53,7 @@
     statusColor: '',
     personIcon: 'mdi-account-outline',
     items: () => [],
-    codigo: item => item.id || '',
+    codigo: '',
     itemsLabel: 'Itens',
     requestedAt: '',
     requestedAtLabel: 'Solicitado em',
@@ -108,13 +108,16 @@
 
   function handleEdit () {
     for (const item of props.items) {
-      cartStore.addItem({
+      const cartItem: Omit<CartItem, 'id'> = {
+        quantity: item.quantity,
         title: item.name,
         category: 'Empréstimo',
         available: item.quantity,
         total: item.quantity,
         emprestimoId: props.codigo,
-      }, item.quantity)
+      }
+
+      cartStore.addItem(cartItem, item.quantity)
     }
 
     // Navegar para inventário
