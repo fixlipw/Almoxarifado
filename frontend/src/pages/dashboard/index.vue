@@ -37,7 +37,7 @@
 
 <template>
   <AppPage subtitle="Acompanhe seus empréstimos e solicite novos itens" :title="'Bem vindo(a), ' + user.name">
-    <v-row class="mb-6" dense>
+    <v-row class="mb-6" density="comfortable">
       <v-col cols="12" md="4">
         <AppCard
           card-class="fill-height border-info"
@@ -111,7 +111,7 @@
       </v-col>
     </v-row>
 
-    <v-row class="mb-6" dense>
+    <v-row class="mb-6" density="comfortable">
       <!-- Quick Start -->
       <v-col cols="12" md="6">
         <AppCard

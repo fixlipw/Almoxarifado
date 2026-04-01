@@ -53,13 +53,19 @@
 
       <v-tooltip location="bottom">
         <template #activator="{ props }">
-          <v-btn
+          <v-badge
             v-bind="props"
-            icon="mdi-cart-outline"
-            rounded="md"
-            variant="text"
-            @click="emit('open-cart')"
-          />
+            color="primary"
+            :content="cartItemCount"
+            :model-value="cartItemCount > 0"
+          >
+            <v-btn
+              icon="mdi-cart-outline"
+              rounded="md"
+              variant="text"
+              @click="emit('open-cart')"
+            />
+          </v-badge>
         </template>
         <span>Carrinho</span>
       </v-tooltip>
@@ -75,19 +81,23 @@
 
 <script lang="ts" setup>
   import type { NavItem, NavSection } from './types'
-  import { onMounted } from 'vue'
+  import { computed, onMounted } from 'vue'
   import { useTheme } from 'vuetify'
   import AppButton from '@/components/ui/AppButton.vue'
+  import { useCartStore } from '@/stores/cart'
 
   const theme = useTheme()
+  const cartStore = useCartStore()
+
+  const cartItemCount = computed(() => cartStore.itemCount)
 
   onMounted(() => {
     const savedTheme = localStorage.getItem('almoxarifado-theme')
     if (savedTheme) {
-      theme.global.name.value = savedTheme
+      useTheme().change(savedTheme)
     } else {
       const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-      theme.global.name.value = prefersDark ? 'dark' : 'light'
+      useTheme().change(prefersDark ? 'dark' : 'light')
     }
   })
 

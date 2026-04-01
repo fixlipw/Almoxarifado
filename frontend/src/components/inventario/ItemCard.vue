@@ -28,7 +28,7 @@
   })
 
   const emit = defineEmits<{
-    (e: 'action'): void
+    (e: 'action' | 'add-to-cart' | 'request-quantity'): void
   }>()
 
   const isOutOfStock = computed(() => props.available === 0)
@@ -91,7 +91,7 @@
           class="text-none"
           color="primary"
           elevation="0"
-          @click="emit('action')"
+          @click="emit('request-quantity')"
         >
           {{ props.buttonText }}
         </AppButton>

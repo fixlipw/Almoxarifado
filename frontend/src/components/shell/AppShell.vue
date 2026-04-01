@@ -5,6 +5,7 @@
       :drawer="drawer"
       :mobile="mobile"
       :nav-items="navItems"
+      @open-cart="showCartDialog = true"
       @select-section="selectSection"
       @toggle-menu="drawer = !drawer"
     />
@@ -23,6 +24,11 @@
       </v-container>
     </v-main>
 
+    <CartDialog
+      v-model="showCartDialog"
+      @checkout="handleCheckout"
+    />
+
     <AppFooter />
   </v-app>
 </template>
@@ -32,6 +38,8 @@
   import { ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useDisplay } from 'vuetify'
+  import CartDialog from '@/components/inventario/CartDialog.vue'
+  import { useCartStore } from '@/stores/cart'
   import AppFooter from './AppFooter.vue'
   import AppHeader from './AppHeader.vue'
   import AppSidebar from './AppSidebar.vue'
@@ -39,13 +47,15 @@
   const { mobile } = useDisplay()
   const router = useRouter()
   const route = useRoute()
+  const cartStore = useCartStore()
   const drawer = ref(false)
+  const showCartDialog = ref(false)
   const activeSection = ref<NavSection>('dashboard')
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', value: 'dashboard', icon: 'mdi-view-dashboard-outline' },
     { label: 'Inventário', value: 'inventario', icon: 'mdi-cube-outline' },
-    { label: 'Meus Empréstimos', value: 'emprestimos', icon: 'mdi-clipboard-text-outline' },
+    { label: 'Empréstimos', value: 'emprestimos', icon: 'mdi-clipboard-text-outline' },
   ]
 
   watch(mobile, () => {
@@ -69,6 +79,11 @@
       router.push(`/${section}`)
     }
   }
+
+  function handleCheckout () {
+    console.log('Pedido finalizado:', cartStore.items)
+  }
+
 </script>
 
 <style scoped>

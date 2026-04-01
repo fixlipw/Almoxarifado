@@ -1,9 +1,12 @@
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import { computed, ref } from 'vue'
+  import { useRouter } from 'vue-router'
+  import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
+  import { useCartStore } from '@/stores/cart'
 
-  interface EmprestimoItem {
+  export interface EmprestimoItem {
     id?: string | number
     name: string
     quantity: number
@@ -20,12 +23,17 @@
     status?: string
     statusColor?: string
     personIcon?: string
+    codigo?: string
     items?: EmprestimoItem[]
     itemsLabel?: string
     requestedAt?: string
     requestedAtLabel?: string
+    approvedAt?: string
+    approvedAtLabel?: string
     returnedAt?: string
     returnedAtLabel?: string
+    updatedAt?: string
+    updatedAtLabel?: string
     notes?: string
     notesLabel?: string
     buttonText?: string
@@ -45,6 +53,7 @@
     statusColor: '',
     personIcon: 'mdi-account-outline',
     items: () => [],
+    codigo: item => item.id || '',
     itemsLabel: 'Itens',
     requestedAt: '',
     requestedAtLabel: 'Solicitado em',
@@ -59,10 +68,12 @@
   })
 
   const emit = defineEmits<{
-    (e: 'details'): void
-    (e: 'edit'): void
-    (e: 'delete'): void
+    (e: 'details' | 'edit' | 'delete'): void
   }>()
+
+  const router = useRouter()
+  const cartStore = useCartStore()
+  const showConfirm = ref(false)
 
   const emprestimoStatus = computed(() => {
     if (!props.status) return 'Pendente'
@@ -94,6 +105,31 @@
 
     return 'primary'
   })
+
+  function handleEdit () {
+    for (const item of props.items) {
+      cartStore.addItem({
+        title: item.name,
+        category: 'Empréstimo',
+        available: item.quantity,
+        total: item.quantity,
+        emprestimoId: props.codigo,
+      }, item.quantity)
+    }
+
+    // Navegar para inventário
+    router.push('/inventario')
+    emit('edit')
+  }
+
+  function openDeleteConfirm () {
+    showConfirm.value = true
+  }
+
+  function handleConfirmDelete () {
+    emit('delete')
+    showConfirm.value = false
+  }
 </script>
 
 <template>
@@ -148,7 +184,7 @@
       </v-list-item>
       <v-list-item v-if="emprestimoStatus === 'Finalizado' && props.returnedAt" class="pa-0" min-height="0">
         <template #prepend>
-          <v-icon color="info" size="18">mdi-calendar-check</v-icon>
+          <v-icon class="mt-1" size="18">mdi-calendar-check</v-icon>
         </template>
         <v-list-item-subtitle class="text-body-large">{{ props.returnedAtLabel }}</v-list-item-subtitle>
         <v-list-item-title class="text-body-small font-weight-bold">{{ props.returnedAt }}</v-list-item-title>
@@ -176,7 +212,7 @@
                 icon
                 size="small"
                 variant="text"
-                @click="$emit('edit')"
+                @click="handleEdit"
               >
                 <v-icon size="18">mdi-pencil</v-icon>
               </AppButton>
@@ -191,7 +227,7 @@
                 icon
                 size="small"
                 variant="text"
-                @click="$emit('delete')"
+                @click="openDeleteConfirm"
               >
                 <v-icon size="18">mdi-delete</v-icon>
               </AppButton>
@@ -200,5 +236,15 @@
         </div>
       </div>
     </template>
+
+    <ConfirmDialog
+      v-model="showConfirm"
+      cancel-text="Cancelar"
+      confirm-text="Excluir"
+      message="Tem certeza que deseja excluir este empréstimo?"
+      title="Excluir Empréstimo"
+      @cancel="showConfirm = false"
+      @confirm="handleConfirmDelete"
+    />
   </AppCard>
 </template>
