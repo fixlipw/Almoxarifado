@@ -8,10 +8,7 @@ build_frontend:
   script:
     - cd frontend
     - npm install
-    - npm run build
-  variables:
-    VITE_SUPABASE_URL: $VITE_SUPABASE_URL
-    VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: $VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
+    - VITE_SUPABASE_URL=$VITE_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=$VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY npm run build
   artifacts:
     paths:
       - frontend/dist/
