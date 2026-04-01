@@ -1,21 +1,9 @@
 <script setup lang="ts">
+  import type { ItemCardProps } from '@/types'
   import { computed } from 'vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
   import AppProgressBar from '@/components/ui/AppProgressBar.vue'
-
-  interface ItemCardProps {
-    title: string
-    category?: string
-    description?: string
-    available: number
-    total: number
-    status?: string
-    statusColor?: string
-    icon?: string
-    iconColor?: string
-    buttonText?: string
-  }
 
   const props = withDefaults(defineProps<ItemCardProps>(), {
     category: '',

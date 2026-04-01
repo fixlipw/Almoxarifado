@@ -179,7 +179,6 @@
                 :disabled="cartStore.items.length === 0"
                 @click="showClearConfirm = true"
               >
-                <v-icon size="18" start>mdi-delete-outline</v-icon>
                 Limpar Carrinho
               </AppButton>
             </v-col>
@@ -199,10 +198,18 @@
             <v-col cols="12">
               <AppButton
                 block
+                color="warning"
+                @click="handleCheckout"
+              >
+                Finalizar Atualização
+              </AppButton>
+            </v-col>
+            <v-col cols="12">
+              <AppButton
+                block
                 class="text-error"
                 @click="showClearConfirm = true"
               >
-                <v-icon size="18" start>mdi-close</v-icon>
                 Cancelar Pedido
               </AppButton>
             </v-col>

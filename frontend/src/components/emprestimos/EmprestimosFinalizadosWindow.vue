@@ -1,58 +1,59 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import type { EmprestimoVisual } from '@/types'
+  import { onMounted, ref } from 'vue'
+  import { api } from '@/api'
   import EmprestimoCard from '@/components/emprestimos/EmprestimoCard.vue'
   import EmprestimoDetalhesDialog from '@/components/emprestimos/EmprestimoDetalhesDialog.vue'
   import AppPage from '@/components/ui/AppPage.vue'
 
-  const nomes = [
-    'Maria Silva',
-  ]
+  const emprestimos = ref<EmprestimoVisual[]>([])
+  const dialogAberto = ref(false)
+  const emprestimoSelecionado = ref<EmprestimoVisual | null>(null)
 
-  const itensExemplo = [
-    { id: 1, name: 'Resistor 10kΩ', quantity: 2 },
-    { id: 2, name: 'Protoboard 830 pontos', quantity: 1 },
-    { id: 3, name: 'Kit Arduino Uno', quantity: 1 },
-    { id: 4, name: 'Sensor ultrassônico', quantity: 1 },
-    { id: 5, name: 'Alicate de corte', quantity: 1 },
-    { id: 6, name: 'Resistor 1kΩ', quantity: 3 },
-    { id: 7, name: 'Resistor 100Ω', quantity: 2 },
-    { id: 8, name: 'Resistor 470Ω', quantity: 1 },
-    { id: 9, name: 'Capacitor 100µF', quantity: 2 },
-    { id: 10, name: 'LED Vermelho 5mm', quantity: 5 },
-    { id: 11, name: 'Transistor 2N2222', quantity: 1 },
-    { id: 12, name: 'Diodo 1N4007', quantity: 3 },
-  ]
+  onMounted(async () => {
+    try {
+      const [todosPedidos, todosUsuarios, todoEstoque] = await Promise.all([
+        api.getPedidos(),
+        api.getUsuarios(),
+        api.getEstoque(),
+      ])
 
-  const emprestimos = Array.from({ length: 7 }, (_, index) => {
-    const diasAtras = Math.floor(Math.random() * 30) + 5 // 5 a 35 dias atrás
-    const diasAprovacao = Math.floor(Math.random() * 3) + 1 // 1 a 3 dias após a solicitação
-    const diasDevolucao = Math.floor(Math.random() * 7) + 2 // 2 a 8 dias após a aprovação
-    const dataSolicitacao = new Date(2026, 3, 1 - diasAtras)
-    const dataAprovacao = new Date(dataSolicitacao.getTime() + diasAprovacao * 24 * 60 * 60 * 1000)
-    const dataDevolucao = new Date(dataAprovacao.getTime() + diasDevolucao * 24 * 60 * 60 * 1000)
-    const nomeUsuario = nomes[0]
+      // Pedidos finalizados
+      const pedidosFinalizados = todosPedidos.filter(p => p.finalizado)
 
-    return {
-      id: index + 1,
-      items: itensExemplo,
-      nome: nomeUsuario,
-      matricula: `202${Math.floor(Math.random() * 9)}${Math.floor(Math.random() * 100_000).toString().padStart(5, '0')}`,
-      solicitadoEm: dataSolicitacao.toISOString().split('T')[0],
-      aprovadoEm: dataAprovacao.toISOString().split('T')[0],
-      devolvidaEm: dataDevolucao.toISOString().split('T')[0],
-      email: nomeUsuario.toLowerCase().replace(' ', '.') + '@alu.ufc.br',
-      curso: 'Ciência da Computação',
-      tipo: 'Aluno',
-      status: 'Ativo',
-      codigo: `#emp${index + 1}`,
-      observacoes: 'Necessário para projeto da disciplina de Sistemas Embarcados',
+      emprestimos.value = await Promise.all(
+        pedidosFinalizados.map(async (pedido): Promise<EmprestimoVisual> => {
+          const solicitante = todosUsuarios.find(u => u.id === pedido.solicitanteId)
+          const itens = await api.getItensPedido(pedido.id)
+
+          return {
+            id: pedido.id,
+            items: itens.map(ip => {
+              const est = todoEstoque.find(e => e.id === ip.estoqueId)
+              return { id: ip.id, name: est?.nome || ip.estoqueId, quantity: ip.quantidadeItem }
+            }),
+            nome: solicitante?.nome + ' ' + (solicitante?.sobrenome || ''),
+            matricula: solicitante?.matricula || '',
+            solicitadoEm: pedido.dataSolicitacao.split('T')[0],
+            aprovadoEm: pedido.dataAprovacao?.split('T')[0] || '',
+            finalizadoEm: pedido.dataFinalizado?.split('T')[0] || '',
+            email: solicitante?.email || '',
+            curso: solicitante?.curso || '',
+            tipo: solicitante?.acesso === 'ALUNO' ? 'Aluno' : 'Professor',
+            status: pedido.aprovado === false ? 'Rejeitado' : 'Finalizado',
+            statusColor: pedido.aprovado === false ? 'error' : 'grey',
+            codigo: pedido.codigoPedido,
+            observacoes: pedido.feedback,
+            dataAtualizacao: pedido.dataAtualizacao?.split('T')[0] || '',
+          }
+        }),
+      )
+    } catch (error) {
+      console.error('Erro ao buscar pedidos finalizados', error)
     }
   })
 
-  const dialogAberto = ref(false)
-  const emprestimoSelecionado = ref<any | null>(null)
-
-  function abrirDetalhes (emprestimo: any) {
+  function abrirDetalhes (emprestimo: EmprestimoVisual) {
     emprestimoSelecionado.value = emprestimo
     dialogAberto.value = true
   }
@@ -60,54 +61,64 @@
 
 <template>
   <AppPage>
-    <v-row class="mb-5" density="comfortable">
-      <v-col
-        v-for="emprestimo in emprestimos"
-        :key="emprestimo.id"
-        cols="12"
-        lg="3"
-        md="4"
-        sm="6"
-        xl="2"
-      >
-        <EmprestimoCard
-          button-text="Ver Detalhes"
-          :codigo="emprestimo.codigo"
-          :items="emprestimo.items"
-          items-label="Itens devolvidos"
-          :requested-at="emprestimo.solicitadoEm"
-          requested-at-label="Data da solicitação"
-          :returned-at="emprestimo.devolvidaEm"
-          returned-at-label="Data da devolução"
-          :show-button="true"
-          status="Finalizado"
-          status-color="info"
-          :title="`${emprestimo.nome}`"
-          @details="abrirDetalhes(emprestimo)"
-        />
-      </v-col>
-    </v-row>
+    <div class="h-100">
+      <div v-if="emprestimos.length === 0" class="text-center text-medium-emphasis my-10">
+        Nenhum empréstimo finalizado no momento.
+      </div>
 
-    <EmprestimoDetalhesDialog
-      v-if="emprestimoSelecionado"
-      v-model="dialogAberto"
-      :emprestimo="{
-        codigo: emprestimoSelecionado.codigo,
-        status: emprestimoSelecionado.status,
-        solicitante: {
-          nome: emprestimoSelecionado.nome,
-          email: emprestimoSelecionado.email,
-          matricula: emprestimoSelecionado.matricula,
-          curso: emprestimoSelecionado.curso,
-          tipo: emprestimoSelecionado.tipo,
-        },
-        itens: emprestimoSelecionado.items,
-        dataSolicitacao: emprestimoSelecionado.solicitadoEm,
-        dataAprovacao: emprestimoSelecionado.aprovadoEm,
-        dataDevolucao: emprestimoSelecionado.devolvidaEm,
-        observacoes: emprestimoSelecionado.observacoes,
-      }"
-      @update:model-value="val => { dialogAberto = val; if (!val) emprestimoSelecionado.value = null }"
-    />
+      <v-row v-else class="mb-5" density="comfortable">
+        <v-col
+          v-for="emprestimo in emprestimos"
+          :key="emprestimo.id"
+          cols="12"
+          lg="3"
+          md="4"
+          sm="6"
+          xl="2"
+        >
+          <EmprestimoCard
+            button-text="Ver Detalhes"
+            :items="emprestimo.items"
+            items-label="Itens do pedido"
+            :requested-at="emprestimo.finalizadoEm || ''"
+            requested-at-label="Data da devolução"
+            :show-button="true"
+            :status="emprestimo.status"
+            :status-color="emprestimo.statusColor"
+            :subtitle="`Matrícula: ${emprestimo.matricula}`"
+            :title="emprestimo.nome"
+            @details="abrirDetalhes(emprestimo)"
+          />
+        </v-col>
+      </v-row>
+
+      <EmprestimoDetalhesDialog
+        v-if="emprestimoSelecionado"
+        v-model="dialogAberto"
+        :emprestimo="{
+          codigo: emprestimoSelecionado.codigo,
+          status: emprestimoSelecionado.status,
+          solicitante: {
+            nome: emprestimoSelecionado.nome,
+            email: emprestimoSelecionado.email,
+            matricula: emprestimoSelecionado.matricula,
+            curso: emprestimoSelecionado.curso,
+            tipo: emprestimoSelecionado.tipo,
+          },
+          itens: emprestimoSelecionado.items.map(i => ({
+            id: i.id,
+            estoqueId: i.id.toString(),
+            nomeItem: i.name,
+            quantidadeItem: i.quantity
+          })),
+          dataSolicitacao: emprestimoSelecionado.solicitadoEm,
+          dataAprovacao: emprestimoSelecionado.aprovadoEm ?? undefined,
+          dataDevolucao: emprestimoSelecionado.finalizadoEm ?? undefined,
+          dataAtualizacao: emprestimoSelecionado.dataAtualizacao,
+          observacoes: emprestimoSelecionado.observacoes,
+        }"
+        @update:model-value="val => { dialogAberto = val; if (!val) emprestimoSelecionado = null }"
+      />
+    </div>
   </AppPage>
 </template>

@@ -1,37 +1,23 @@
 <script setup lang="ts">
-  import type { EmprestimoItem } from './EmprestimoCard.vue'
+  import type { EmprestimoDetalhes } from '@/types'
   import { ref } from 'vue'
   import { useRouter } from 'vue-router'
+  import { api } from '@/api'
   import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
-  import { type CartItem, useCartStore } from '@/stores/cart'
+  import { useCartStore } from '@/stores/cart'
 
   interface Props {
     modelValue: boolean
-    emprestimo: {
-      codigo: string
-      status: string
-      solicitante: {
-        nome: string
-        email: string
-        matricula: string
-        curso: string
-        tipo: string
-      }
-      itens: EmprestimoItem[]
-      dataSolicitacao: string
-      dataAprovacao?: string
-      dataDevolucao?: string
-      dataAtualizacao?: string
-      observacoes: string
-    }
+    emprestimo: EmprestimoDetalhes
   }
 
   const props = defineProps<Props>()
 
   const emit = defineEmits<{
     'update:modelValue': [value: boolean]
+    'action': [action: 'approve' | 'reject' | 'return']
   }>()
 
   const router = useRouter()
@@ -39,6 +25,7 @@
 
   const showConfirm = ref(false)
   const isLoading = ref(false)
+  const isAluno = props.emprestimo.solicitante.tipo.toLowerCase() === 'aluno'
 
   function statusColor (status: string) {
     const normalized = status.toLowerCase()
@@ -49,12 +36,9 @@
     return 'primary'
   }
 
-  function canEditItems (): boolean {
-    return props.emprestimo.status.toLowerCase().includes('pendente')
-  }
-
-  function openEditConfirm () {
-    showConfirm.value = true
+  function handleAction (actionType: 'approve' | 'reject' | 'return') {
+    emit('action', actionType)
+    emit('update:modelValue', false)
   }
 
   async function handleConfirmEdit () {
@@ -62,23 +46,30 @@
     try {
       await new Promise(resolve => setTimeout(resolve, 500))
 
-      for (const item of props.emprestimo.itens) {
-        const cartItem: Omit<CartItem, 'id'> = {
-          quantity: item.quantity,
-          title: item.name,
-          category: 'Empréstimo Devolvido',
-          available: item.quantity,
-          total: item.quantity,
-        }
+      cartStore.clearCart()
 
-        cartStore.addItem(cartItem, item.quantity)
+      for (const item of props.emprestimo.itens) {
+        cartStore.addItem({
+          id: item.estoqueId,
+          quantity: item.quantidadeItem,
+          title: item.nomeItem ?? item.estoqueId,
+          category: 'Empréstimo',
+          available: item.quantidadeItem,
+          total: item.quantidadeItem,
+          emprestimoId: props.emprestimo.codigo,
+        }, item.quantidadeItem)
+      }
+
+      try {
+        await api.deletePedido(props.emprestimo.codigo)
+      } catch (error) {
+        console.error('Não foi possível excluir pedido durante edição', error)
       }
 
       // Fechar diálogos
       showConfirm.value = false
       emit('update:modelValue', false)
 
-      // Redirecionar para inventário
       await router.push('/inventario')
     } finally {
       isLoading.value = false
@@ -123,23 +114,13 @@
               <v-col cols="auto">
                 <v-list-item-title class="font-weight-bold mb-1" style="font-size: 1rem;">Itens Solicitados ({{ emprestimo.itens.length }})</v-list-item-title>
               </v-col>
-              <v-col v-if="canEditItems()" cols="auto">
-                <v-btn
-                  flat
-                  icon
-                  size="x-small"
-                  @click="openEditConfirm"
-                >
-                  <v-icon size="18">mdi-pencil-outline</v-icon>
-                </v-btn>
-              </v-col>
             </v-row>
             <v-list class="pa-0" density="compact">
-              <v-list-item v-for="item in emprestimo.itens" :key="item.name" class="pa-0">
+              <v-list-item v-for="item in emprestimo.itens" :key="item.id" class="pa-0">
                 <v-row align="center" class="ga-2" no-gutters>
                   <v-col cols="auto"><v-icon size="16">mdi-cube-outline</v-icon></v-col>
-                  <v-col cols="auto" style="font-size: 0.95rem;">{{ item.name }}</v-col>
-                  <v-col class="ml-auto" cols="auto" style="font-size: 0.9rem;">Qtd: {{ item.quantity }}</v-col>
+                  <v-col cols="auto" style="font-size: 0.95rem;">{{ item.nomeItem || item.estoqueId }}</v-col>
+                  <v-col class="ml-auto" cols="auto" style="font-size: 0.9rem;">Qtd: {{ item.quantidadeItem }}</v-col>
                 </v-row>
               </v-list-item>
             </v-list>
@@ -189,16 +170,49 @@
         </v-list>
       </v-card-text>
       <template #actions>
-        <AppButton block color="primary" @click="$emit('update:modelValue', false)">Fechar</AppButton>
+        <div class="d-flex ga-2 w-100 px-2 pb-2">
+          <AppButton
+            v-if="emprestimo.status.toLowerCase().includes('pendente') && !isAluno"
+            class="flex-grow-1"
+            color="success"
+            @click="handleAction('approve')"
+          >
+            Aprovar
+          </AppButton>
+          <AppButton
+            v-if="emprestimo.status.toLowerCase().includes('pendente') && !isAluno"
+            class="flex-grow-1"
+            color="error"
+            @click="handleAction('reject')"
+          >
+            Rejeitar
+          </AppButton>
+          <AppButton
+            v-if="emprestimo.status.toLowerCase().includes('ativo') && !isAluno"
+            class="flex-grow-1"
+            color="info"
+            @click="handleAction('return')"
+          >
+            Registrar Devolução
+          </AppButton>
+          <AppButton
+            :class="!emprestimo.status.toLowerCase().includes('pendente') && !emprestimo.status.toLowerCase().includes('ativo') ? 'block w-100' : 'flex-grow-1'"
+            color="primary"
+            variant="outlined"
+            @click="$emit('update:modelValue', false)"
+          >
+            Fechar
+          </AppButton>
+        </div>
       </template>
 
       <ConfirmDialog
         v-model="showConfirm"
         cancel-text="Cancelar"
-        confirm-text="Devolver ao Carrinho"
+        confirm-text="Continuar"
         :is-loading="isLoading"
-        message="Tem certeza que deseja devolver os itens deste empréstimo ao carrinho?"
-        title="Confirmar Devolução"
+        message="Ao devolver os itens e editar este empréstimo, o pedido de empréstimo atual será excluído. Deseja continuar?"
+        title="Confirmar Devolução e Exclusão"
         @cancel="showConfirm = false"
         @confirm="handleConfirmEdit"
       />

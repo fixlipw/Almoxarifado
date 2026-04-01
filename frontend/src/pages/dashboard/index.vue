@@ -1,12 +1,54 @@
 <script lang="ts" setup>
+  import { onMounted, ref } from 'vue'
+  import { api } from '@/api'
   import AppAlert from '@/components/ui/AppAlert.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
   import AppPage from '@/components/ui/AppPage.vue'
 
-  const user = {
-    name: 'Maria Silva',
-  }
+  const user = ref({
+    name: 'Carregando...',
+  })
+
+  const dashboardData = ref({
+    emprestimosAtivos: 0,
+    aguardandoAprovacao: 0,
+    itensDisponiveis: 0,
+  })
+
+  onMounted(async () => {
+    try {
+      // Mock do usuário logado pegando o primeiro aluno
+      const usuarios = await api.getUsuarios()
+      const u = usuarios.find(u => u.acesso === 'ALUNO')
+      if (u) {
+        user.value.name = `${u.nome} ${u.sobrenome}`
+      }
+
+      // Busca dados para os cards
+      const [pedidos, estoque] = await Promise.all([
+        api.getPedidos(),
+        api.getEstoque(),
+      ])
+
+      const uId = u?.id
+
+      // Empréstimos ativos do usuário (aprovado = true, finalizado = false)
+      dashboardData.value.emprestimosAtivos = pedidos.filter(
+        p => p.solicitanteId === uId && p.aprovado === true && !p.finalizado,
+      ).length
+
+      // Aguardando aprovação (aprovado = null)
+      dashboardData.value.aguardandoAprovacao = pedidos.filter(
+        p => p.solicitanteId === uId && (p.aprovado === null || p.aprovado === undefined) && !p.finalizado,
+      ).length
+
+      // Todos os itens de estoque disponíveis e não bloqueados
+      dashboardData.value.itensDisponiveis = estoque.filter(e => e.isAtivado && e.quantidade > 0).length
+    } catch (error) {
+      console.error('Erro ao buscar dados do dashboard', error)
+    }
+  })
 
   const quickActions = [
     { label: 'Ver Meus Empréstimos', icon: 'mdi-clipboard-text-outline', to: '/emprestimos' },
@@ -56,7 +98,7 @@
           </template>
 
           <div class="mt-auto">
-            <div class="text-headline-medium font-weight-bold text-info mb-1">0</div>
+            <div class="text-headline-medium font-weight-bold text-info mb-1">{{ dashboardData.emprestimosAtivos }}</div>
             <div class="text-body-small text-info font-weight-medium text-medium-emphasis">Em andamento</div>
           </div>
         </AppCard>
@@ -80,7 +122,7 @@
           </template>
 
           <div class="mt-auto">
-            <div class="text-headline-medium font-weight-bold text-warning mb-1">1</div>
+            <div class="text-headline-medium font-weight-bold text-warning mb-1">{{ dashboardData.aguardandoAprovacao }}</div>
             <div class="text-body-small text-warning font-weight-medium text-medium-emphasis">Solicitações pendentes</div>
           </div>
         </AppCard>
@@ -104,8 +146,8 @@
           </template>
 
           <div class="mt-auto">
-            <div class="text-headline-medium font-weight-bold text-success mb-1">8</div>
-            <div class="text-body-small text-success font-weight-medium text-medium-emphasis">Prontas para empréstimo</div>
+            <div class="text-headline-medium font-weight-bold text-success mb-1">{{ dashboardData.itensDisponiveis }}</div>
+            <div class="text-body-small text-success font-weight-medium text-medium-emphasis">Tipos disponíveis</div>
           </div>
         </AppCard>
       </v-col>

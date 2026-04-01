@@ -1,16 +1,9 @@
 <script lang="ts" setup>
+  import type { AppAlertProps } from '@/types'
+
   import { computed } from 'vue'
 
-  type AlertTone = 'info' | 'warning' | 'success'
-
-  interface AlertProps {
-    title: string
-    description?: string
-    icon?: string
-    tone?: AlertTone
-  }
-
-  const props = withDefaults(defineProps<AlertProps>(), {
+  const props = withDefaults(defineProps<AppAlertProps>(), {
     tone: 'info',
     description: '',
     icon: '',

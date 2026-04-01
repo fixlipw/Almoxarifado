@@ -1,14 +1,7 @@
 <script setup lang="ts">
-  interface CardProps {
-    title?: string
-    subtitle?: string
-    cardClass?: string
-    contentClass?: string
-    headerClass?: string
-    color?: string
-  }
+  import type { AppCardProps } from '@/types'
 
-  withDefaults(defineProps<CardProps>(), {
+  withDefaults(defineProps<AppCardProps>(), {
     title: '',
     subtitle: '',
     cardClass: '',

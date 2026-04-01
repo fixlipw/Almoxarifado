@@ -1,82 +1,127 @@
 <script lang="ts" setup>
-  import { ref } from 'vue'
+  import type { EmprestimoVisual } from '@/types'
+  import { onMounted, ref } from 'vue'
+  import { api } from '@/api'
+  import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
   import EmprestimoCard from '@/components/emprestimos/EmprestimoCard.vue'
   import EmprestimoDetalhesDialog from '@/components/emprestimos/EmprestimoDetalhesDialog.vue'
-  import AppAlert from '@/components/ui/AppAlert.vue'
-  import AppPage from '@/components/ui/AppPage.vue'
 
-  type Item = {
-    id: number
-    name: string
-    quantity: number
+  const emprestimos = ref<EmprestimoVisual[]>([])
+  const dialogAberto = ref(false)
+  const emprestimoSelecionado = ref<EmprestimoVisual | null>(null)
+
+  async function fetchPendentes () {
+    try {
+      const [todosPedidos, todosUsuarios, todoEstoque] = await Promise.all([
+        api.getPedidos(),
+        api.getUsuarios(),
+        api.getEstoque(),
+      ])
+
+      // Pedidos pendentes: não aprovados e não finalizados (null é pending no nosso mock)
+      const pedidosPendentes = todosPedidos.filter(p => (p.aprovado === null || p.aprovado === undefined) && !p.finalizado)
+
+      emprestimos.value = await Promise.all(
+        pedidosPendentes.map(async (pedido): Promise<EmprestimoVisual> => {
+          const solicitante = todosUsuarios.find(u => u.id === pedido.solicitanteId)
+          const itens = await api.getItensPedido(pedido.id)
+
+          return {
+            id: pedido.id,
+            items: itens.map(ip => {
+              const est = todoEstoque.find(e => e.id === ip.estoqueId)
+              return { id: ip.estoqueId, name: est?.nome || ip.estoqueId, quantity: ip.quantidadeItem }
+            }),
+            nome: solicitante?.nome + ' ' + (solicitante?.sobrenome || ''),
+            matricula: solicitante?.matricula || '',
+            solicitadoEm: pedido.dataSolicitacao.split('T')[0],
+            aprovadoEm: null,
+            email: solicitante?.email || '',
+            curso: solicitante?.curso || '',
+            tipo: solicitante?.acesso === 'ALUNO' ? 'Aluno' : 'Professor',
+            status: 'Pendente',
+            codigo: pedido.id,
+            observacoes: pedido.feedback,
+            dataAtualizacao: pedido.dataAtualizacao?.split('T')[0] || '',
+          }
+        }),
+      )
+    } catch (error) {
+      console.error('Erro ao buscar pedidos pendentes', error)
+    }
   }
 
-  const nomes = [
-    'Maria Silva',
-  ]
-
-  const itensDisponiveis: Item[] = [
-    { id: 1, name: 'Resistor 10kΩ', quantity: 1 },
-    { id: 2, name: 'Multímetro Digital', quantity: 1 },
-    { id: 3, name: 'Protoboard 830 pontos', quantity: 1 },
-    { id: 4, name: 'Fonte de bancada', quantity: 1 },
-    { id: 5, name: 'Osciloscópio', quantity: 1 },
-    { id: 6, name: 'Kit Arduino Uno', quantity: 1 },
-    { id: 7, name: 'Sensor ultrassônico', quantity: 2 },
-    { id: 8, name: 'Módulo relé 5V', quantity: 2 },
-    { id: 9, name: 'Jumpers macho/fêmea', quantity: 10 },
-    { id: 10, name: 'Alicate de corte', quantity: 1 },
-    { id: 11, name: 'Resistor 1kΩ', quantity: 3 },
-    { id: 12, name: 'Resistor 100Ω', quantity: 2 },
-    { id: 13, name: 'Resistor 470Ω', quantity: 1 },
-    { id: 14, name: 'Resistor 22kΩ', quantity: 2 },
-    { id: 15, name: 'Capacitor 100µF', quantity: 2 },
-    { id: 16, name: 'Capacitor 10µF', quantity: 3 },
-    { id: 17, name: 'LED Vermelho 5mm', quantity: 5 },
-    { id: 18, name: 'LED Verde 5mm', quantity: 5 },
-    { id: 19, name: 'Transistor 2N2222', quantity: 1 },
-    { id: 20, name: 'Diodo 1N4007', quantity: 3 },
-  ]
-
-  const emprestimos = Array.from({ length: 7 }, (_, index) => {
-    const diasAtras = Math.floor(Math.random() * 10) + 1 // 1 a 10 dias atrás
-    const dataPendente = new Date(2026, 3, 1 - diasAtras).toISOString().split('T')[0]
-    const nomeUsuario = nomes[0]
-
-    return {
-      id: index + 1,
-      items: itensDisponiveis,
-      nome: nomeUsuario,
-      matricula: `202${Math.floor(Math.random() * 9)}${Math.floor(Math.random() * 100_000).toString().padStart(5, '0')}`,
-      solicitadoEm: dataPendente,
-      email: nomeUsuario.toLowerCase().replace(' ', '.') + '@alu.ufc.br',
-      curso: 'Ciência da Computação',
-      tipo: 'Aluno',
-      status: 'Ativo',
-      codigo: `#emp${index + 1}`,
-      observacoes: 'Necessário para projeto da disciplina de Sistemas Embarcados',
-    }
+  onMounted(() => {
+    fetchPendentes()
   })
 
-  const dialogAberto = ref(false)
-  const emprestimoSelecionado = ref<any | null>(null)
-
-  function abrirDetalhes (emprestimo: any) {
+  function abrirDetalhes (emprestimo: EmprestimoVisual) {
     emprestimoSelecionado.value = emprestimo
     dialogAberto.value = true
+  }
+
+  async function apagarEmprestimo (id: string) {
+    try {
+      await api.deletePedido(id)
+      await fetchPendentes()
+    } catch (error) {
+      console.error('Erro ao excluir pedido', error)
+      alert('Erro ao excluir pedido')
+    }
+  }
+
+  const confirmAction = ref(false)
+  const isAcaoLoading = ref(false)
+  const acaoAtual = ref<'approve' | 'reject' | 'return'>('approve')
+  const tituloConfirmacao = ref('')
+  const mensagemConfirmacao = ref('')
+
+  function confirmarAcao (acao: 'approve' | 'reject' | 'return') {
+    if (!emprestimoSelecionado.value) return
+    acaoAtual.value = acao
+    if (acao === 'approve') {
+      tituloConfirmacao.value = 'Aprovar Pedido'
+      mensagemConfirmacao.value = 'Tem certeza que deseja aprovar este pedido de empréstimo?'
+    } else if (acao === 'reject') {
+      tituloConfirmacao.value = 'Rejeitar Pedido'
+      mensagemConfirmacao.value = 'Tem certeza que deseja rejeitar e excluir este pedido de empréstimo?'
+    }
+    confirmAction.value = true
+  }
+
+  async function executarAcao () {
+    if (!emprestimoSelecionado.value) return
+    isAcaoLoading.value = true
+    try {
+      if (acaoAtual.value === 'approve') {
+        const agn = new Date().toISOString()
+        await api.updatePedido(emprestimoSelecionado.value.codigo, {
+          aprovado: true,
+          dataAprovacao: agn,
+          dataAtualizacao: agn,
+        })
+      } else if (acaoAtual.value === 'reject') {
+        await api.deletePedido(emprestimoSelecionado.value.codigo)
+      }
+      confirmAction.value = false
+      await fetchPendentes()
+    } catch (error) {
+      console.error('Erro ao executar ação', error)
+      alert('Erro ao processar a ação')
+    } finally {
+      isAcaoLoading.value = false
+      emprestimoSelecionado.value = null
+    }
   }
 </script>
 
 <template>
-  <AppPage>
-    <AppAlert
-      description="Você será notificado quando suas solicitações forem processadas"
-      icon="mdi-timer-sand"
-      title="Aguardando aprovação do administrador"
-      tone="warning"
-    />
+  <div class="h-100">
+    <div v-if="emprestimos.length === 0" class="text-center text-medium-emphasis my-10">
+      Nenhum empréstimo pendente no momento.
+    </div>
 
-    <v-row class="mt-5 mb-5" density="comfortable">
+    <v-row v-else class="mb-5" density="comfortable">
       <v-col
         v-for="emprestimo in emprestimos"
         :key="emprestimo.id"
@@ -89,6 +134,7 @@
       >
         <EmprestimoCard
           button-text="Ver Detalhes"
+          :codigo="emprestimo.id"
           :items="emprestimo.items"
           items-label="Itens solicitados"
           :requested-at="emprestimo.solicitadoEm"
@@ -98,6 +144,7 @@
           status-color="warning"
           :subtitle="`Matrícula: ${emprestimo.matricula}`"
           :title="`${emprestimo.nome}`"
+          @delete="apagarEmprestimo(emprestimo.id)"
           @details="abrirDetalhes(emprestimo)"
         />
       </v-col>
@@ -116,11 +163,29 @@
           curso: emprestimoSelecionado.curso,
           tipo: emprestimoSelecionado.tipo,
         },
-        itens: emprestimoSelecionado.items,
+        itens: emprestimoSelecionado.items.map(i => ({
+          id: i.id,
+          estoqueId: i.id.toString(),
+          nomeItem: i.name,
+          quantidadeItem: i.quantity
+        })),
         dataSolicitacao: emprestimoSelecionado.solicitadoEm,
+        dataAtualizacao: emprestimoSelecionado.dataAtualizacao,
         observacoes: emprestimoSelecionado.observacoes,
       }"
-      @update:model-value="val => { dialogAberto = val; if (!val) emprestimoSelecionado.value = null }"
+      @action="confirmarAcao"
+      @update:model-value="val => { dialogAberto = val; if (!val) emprestimoSelecionado = null }"
     />
-  </AppPage>
+
+    <ConfirmDialog
+      v-model="confirmAction"
+      cancel-text="Cancelar"
+      confirm-text="Confirmar"
+      :is-loading="isAcaoLoading"
+      :message="mensagemConfirmacao"
+      :title="tituloConfirmacao"
+      @cancel="confirmAction = false"
+      @confirm="executarAcao"
+    />
+  </div>
 </template>
