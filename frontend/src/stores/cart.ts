@@ -23,8 +23,8 @@ export const useCartStore = defineStore('cart', () => {
   const totalItems = computed(() => items.value.length)
 
   function addItem (item: Omit<CartItem, 'id'> & { id?: string }, quantity = 1) {
-    // Gera ID baseado em title e category para agrupar itens duplicados
-    const id = `${item.title}-${item.category}`
+    // Usa id passado se houver, senão gera um novo
+    const id = item.id || `${item.title}-${item.category}`
     // Se for empréstimo, inclui o emprestimoId na busca para não agrupar empréstimos diferentes
     const existingItem = items.value.find(i =>
       i.id === id && i.emprestimoId === item.emprestimoId,

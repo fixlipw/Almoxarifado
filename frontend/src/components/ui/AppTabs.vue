@@ -1,11 +1,6 @@
 <script setup lang="ts">
+  import type { TabItem } from '@/types'
   import { computed, useSlots } from 'vue'
-
-  export interface TabItem {
-    label: string
-    value: string | number
-    badge?: string | number
-  }
 
   const props = withDefaults(defineProps<{
     modelValue: string | number
@@ -23,7 +18,7 @@
 
   const tab = computed({
     get: () => props.modelValue,
-    set: value => emit('update:modelValue', value),
+    set: (value: string | number) => emit('update:modelValue', value),
   })
 
   const hasPanelSlots = computed(() => {
@@ -34,7 +29,9 @@
     return props.items.some(item => Boolean(slots[`panel-${String(item.value)}`]))
   })
 
-  const shouldRenderContent = computed(() => props.showContent ?? hasPanelSlots.value)
+  const shouldRenderContent = computed(() => {
+    return props.showContent ?? hasPanelSlots.value
+  })
 </script>
 
 <template>

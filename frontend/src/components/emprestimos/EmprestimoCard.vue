@@ -1,46 +1,11 @@
 <script setup lang="ts">
+  import type { EmprestimoCardProps } from '@/types'
   import { computed, ref } from 'vue'
   import { useRouter } from 'vue-router'
   import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
   import { type CartItem, useCartStore } from '@/stores/cart'
-
-  export interface EmprestimoItem {
-    id?: string | number
-    name: string
-    quantity: number
-    icon?: string
-  }
-
-  interface EmprestimoCardProps {
-    title?: string
-    subtitle?: string
-    cardClass?: string
-    contentClass?: string
-    headerClass?: string
-    color?: string
-    status?: string
-    statusColor?: string
-    personIcon?: string
-    codigo?: string
-    items?: EmprestimoItem[]
-    itemsLabel?: string
-    requestedAt?: string
-    requestedAtLabel?: string
-    approvedAt?: string
-    approvedAtLabel?: string
-    returnedAt?: string
-    returnedAtLabel?: string
-    updatedAt?: string
-    updatedAtLabel?: string
-    notes?: string
-    notesLabel?: string
-    buttonText?: string
-    showButton?: boolean
-    buttonDisabled?: boolean
-    emptyItemsText?: string
-  }
 
   const props = withDefaults(defineProps<EmprestimoCardProps>(), {
     title: '',
@@ -74,6 +39,7 @@
   const router = useRouter()
   const cartStore = useCartStore()
   const showConfirm = ref(false)
+  const showEditConfirm = ref(false)
 
   const emprestimoStatus = computed(() => {
     if (!props.status) return 'Pendente'
@@ -106,9 +72,19 @@
     return 'primary'
   })
 
+  function openEditConfirm () {
+    showEditConfirm.value = true
+  }
+
   function handleEdit () {
+    if (!props.items) return
+
+    // Clear current cart before adding items from loan
+    cartStore.clearCart()
+
     for (const item of props.items) {
-      const cartItem: Omit<CartItem, 'id'> = {
+      const cartItem: Omit<CartItem, 'id'> & { id: string } = {
+        id: item.id.toString(), // Usa o ID real do item
         quantity: item.quantity,
         title: item.name,
         category: 'Empréstimo',
@@ -120,9 +96,11 @@
       cartStore.addItem(cartItem, item.quantity)
     }
 
+    showEditConfirm.value = false
+
     // Navegar para inventário
     router.push('/inventario')
-    emit('edit')
+    emit('delete')
   }
 
   function openDeleteConfirm () {
@@ -215,7 +193,7 @@
                 icon
                 size="small"
                 variant="text"
-                @click="handleEdit"
+                @click="openEditConfirm"
               >
                 <v-icon size="18">mdi-pencil</v-icon>
               </AppButton>
@@ -248,6 +226,16 @@
       title="Excluir Empréstimo"
       @cancel="showConfirm = false"
       @confirm="handleConfirmDelete"
+    />
+
+    <ConfirmDialog
+      v-model="showEditConfirm"
+      cancel-text="Cancelar"
+      confirm-text="Continuar"
+      message="Ao editar este empréstimo, o pedido atual será excluído e seus itens voltarão ao carrinho. Deseja continuar?"
+      title="Editar Empréstimo"
+      @cancel="showEditConfirm = false"
+      @confirm="handleEdit"
     />
   </AppCard>
 </template>

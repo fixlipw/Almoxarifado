@@ -1,7 +1,9 @@
 <script setup lang="ts">
-  import { ref } from 'vue'
+  import type { EstoqueResponse, QuantityDialogItem } from '@/types'
+  import { computed, onMounted, ref } from 'vue'
+  import { api } from '@/api'
   import ItemCard from '@/components/inventario/ItemCard.vue'
-  import QuantityDialog, { type QuantityDialogItem } from '@/components/inventario/QuantityDialog.vue'
+  import QuantityDialog from '@/components/inventario/QuantityDialog.vue'
   import AppPage from '@/components/ui/AppPage.vue'
   import AppSearchBar from '@/components/ui/AppSearchBar.vue'
   import AppSelect from '@/components/ui/AppSelect.vue'
@@ -27,42 +29,47 @@
     { label: 'Inativo', value: 'inativo' },
   ]
 
-  // Componentes Eletrônicos (Resistores e mais)
-  const componentesEletronicos = [
-    { title: 'Resistor 10kΩ', category: 'Componente Eletrônico', available: 150, total: 300 },
-    { title: 'Resistor 1kΩ', category: 'Componente Eletrônico', available: 200, total: 350 },
-    { title: 'Resistor 100Ω', category: 'Componente Eletrônico', available: 175, total: 280 },
-    { title: 'Resistor 470Ω', category: 'Componente Eletrônico', available: 120, total: 250 },
-    { title: 'Resistor 22kΩ', category: 'Componente Eletrônico', available: 90, total: 200 },
-    { title: 'Capacitor 100µF', category: 'Componente Eletrônico', available: 85, total: 150 },
-    { title: 'Capacitor 10µF', category: 'Componente Eletrônico', available: 110, total: 200 },
-    { title: 'LED Vermelho 5mm', category: 'Componente Eletrônico', available: 250, total: 500 },
-    { title: 'LED Verde 5mm', category: 'Componente Eletrônico', available: 180, total: 400 },
-    { title: 'Transistor 2N2222', category: 'Componente Eletrônico', available: 45, total: 100 },
-    { title: 'Diodo 1N4007', category: 'Componente Eletrônico', available: 120, total: 250 },
-    { title: 'Protoboard 830 pontos', category: 'Componente Eletrônico', available: 8, total: 15 },
-  ]
+  const estoque = ref<EstoqueResponse[]>([])
 
-  const equipamentos = [
-    { title: 'Multímetro Digital', category: 'Equipamento de Medição', available: 5, total: 12, icon: 'mdi-devices', iconColor: 'orange' },
-    { title: 'Osciloscópio Digital', category: 'Equipamento de Medição', available: 2, total: 5, icon: 'mdi-wave', iconColor: 'blue' },
-    { title: 'Fonte de Bancada', category: 'Equipamento de Medição', available: 3, total: 8, icon: 'mdi-power-plug', iconColor: 'red' },
-    { title: 'Alicate de Corte', category: 'Ferramenta', available: 6, total: 10, icon: 'mdi-hammer-wrench', iconColor: 'amber' },
-    { title: 'Soldador de Estanho', category: 'Ferramenta', available: 4, total: 7, icon: 'mdi-fire', iconColor: 'orange' },
-    { title: 'Kit Arduino Uno', category: 'Equipamento', available: 7, total: 15, icon: 'mdi-chip', iconColor: 'teal' },
-    { title: 'Sensor Ultrassônico', category: 'Sensor', available: 9, total: 20, icon: 'mdi-radar', iconColor: 'purple' },
-    { title: 'Módulo Relé 5V', category: 'Módulo Eletrônico', available: 11, total: 25, icon: 'mdi-electric-switch', iconColor: 'green' },
-  ]
-
-  function handleAddComponentToCart (item: typeof componentesEletronicos[0]) {
-    selectedItemForQuantity.value = {
-      ...item,
-      full: item,
+  onMounted(async () => {
+    try {
+      estoque.value = await api.getEstoque()
+    } catch (error) {
+      console.error('Erro ao buscar estoque:', error)
     }
-    showQuantityModal.value = true
-  }
+  })
 
-  function handleAddEquipmentToCart (item: typeof equipamentos[0]) {
+  // Listas computadas filtradas
+  const itemsFiltrados = computed(() => {
+    return estoque.value.filter(item => {
+      let matcType = true
+      if (selectedType.value !== 'todos') {
+        matcType = item.tipo === selectedType.value
+      }
+
+      let matchStatus = true
+      if (selectedStatus.value !== 'todos') {
+        matchStatus = selectedStatus.value === 'ativo' ? item.isAtivado : !item.isAtivado
+      }
+
+      let matchSearch = true
+      if (search.value) {
+        matchSearch = item.nome.toLowerCase().includes(search.value.toLowerCase())
+      }
+
+      return matcType && matchStatus && matchSearch
+    }).map(i => ({
+      ...i,
+      title: i.nome,
+      category: i.tipo === 'COMPONENTE' ? 'Componente Eletrônico' : 'Equipamento',
+      available: i.quantidade,
+      total: i.quantidade,
+      icon: i.tipo === 'EQUIPAMENTO' ? 'mdi-devices' : 'mdi-resistor',
+      iconColor: i.tipo === 'EQUIPAMENTO' ? 'blue' : 'orange',
+    }))
+  })
+
+  function handleAddToCart (item: any) {
     selectedItemForQuantity.value = {
       ...item,
       full: item,
@@ -74,25 +81,16 @@
     if (!selectedItemForQuantity.value) return
 
     const item = selectedItemForQuantity.value.full
-    if (item.icon) {
-      cartStore.addItem({
-        quantity,
-        title: item.title,
-        category: item.category,
-        available: item.available,
-        total: item.total,
-        icon: item.icon,
-        iconColor: item.iconColor,
-      }, quantity)
-    } else {
-      cartStore.addItem({
-        quantity,
-        title: item.title,
-        category: item.category,
-        available: item.available,
-        total: item.total,
-      }, quantity)
-    }
+    cartStore.addItem({
+      id: item.id,
+      quantity,
+      title: item.title,
+      category: item.category,
+      available: item.available,
+      total: item.total,
+      icon: item.icon,
+      iconColor: item.iconColor,
+    }, quantity)
 
     selectedItemForQuantity.value = undefined
   }
@@ -135,28 +133,8 @@
 
     <v-row class="mb-6" density="comfortable">
       <v-col
-        v-for="item in componentesEletronicos"
-        :key="item.title"
-        cols="12"
-        lg="3"
-        md="4"
-        sm="6"
-        xl="2"
-      >
-        <ItemCard
-          :available="item.available"
-          :category="item.category"
-          :title="item.title"
-          :total="item.total"
-          @request-quantity="handleAddComponentToCart(item)"
-        />
-      </v-col>
-    </v-row>
-
-    <v-row class="mb-6" density="comfortable">
-      <v-col
-        v-for="item in equipamentos"
-        :key="item.title"
+        v-for="item in itemsFiltrados"
+        :key="item.id"
         cols="12"
         lg="3"
         md="4"
@@ -170,7 +148,7 @@
           :icon-color="item.iconColor"
           :title="item.title"
           :total="item.total"
-          @request-quantity="handleAddEquipmentToCart(item)"
+          @request-quantity="handleAddToCart(item)"
         />
       </v-col>
     </v-row>

@@ -12,7 +12,8 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "mcp": "ruler apply",
-    "mcp:revert": "ruler revert"
+    "mcp:revert": "ruler revert",
+    "server": "json-server --watch db.json --port 3000"
   },
   "dependencies": {
     "@fontsource/plus-jakarta-sans": "^5.2.8",
@@ -35,6 +36,7 @@
     "vue-tsc": "^3.2.5",
     "eslint": "^9.39.4",
     "eslint-config-vuetify": "^4.3.4",
-    "@intellectronica/ruler": "^0.3.37"
+    "@intellectronica/ruler": "^0.3.37",
+    "json-server": "^0.17.4"
   }
 }

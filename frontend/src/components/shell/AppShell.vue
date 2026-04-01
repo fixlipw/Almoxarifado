@@ -27,6 +27,7 @@
     <CartDialog
       v-model="showCartDialog"
       @checkout="handleCheckout"
+      @update-loan="handleUpdateLoan"
     />
 
     <AppFooter />
@@ -38,6 +39,7 @@
   import { ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useDisplay } from 'vuetify'
+  import { api } from '@/api'
   import CartDialog from '@/components/inventario/CartDialog.vue'
   import { useCartStore } from '@/stores/cart'
   import AppFooter from './AppFooter.vue'
@@ -80,8 +82,63 @@
     }
   }
 
-  function handleCheckout () {
-    console.log('Pedido finalizado:', cartStore.items)
+  async function handleCheckout () {
+    try {
+      const pedido = await api.createPedido({
+        feedback: 'Requisitado pelo sistema',
+        solicitanteId: 'u0000000-0000-0000-0000-000000000001', // Mock user for now
+        aprovadorId: null,
+        finalizadorId: null,
+        dataAprovacao: null,
+        dataFinalizado: null,
+        emprestimoEspecial: false,
+      })
+
+      for (const item of cartStore.items) {
+        const estoqueId = item.id
+        await api.createItemPedido({
+          pedidoId: pedido.id,
+          estoqueId: estoqueId,
+          quantidadeItem: item.quantity,
+        })
+      }
+      cartStore.clearCart()
+      alert('Pedido realizado com sucesso!')
+    } catch (error) {
+      console.error(error)
+      alert('Erro ao realizar pedido')
+    }
+  }
+
+  async function handleUpdateLoan () {
+    try {
+      const firstItemWithLoan = cartStore.items.find(i => i.emprestimoId)
+      if (!firstItemWithLoan?.emprestimoId) return
+
+      const pedidoId = firstItemWithLoan.emprestimoId
+
+      // Update feedback or items (mock approach: delete all current items and re-add)
+      const existingItems = await api.getItensPedido(pedidoId)
+
+      // Since it's json-server, we'll delete specific items one by one sequentially
+      for (const item of existingItems) {
+        await fetch(`http://localhost:3000/itensPedido/${item.id}`, { method: 'DELETE' })
+      }
+
+      for (const item of cartStore.items) {
+        await api.createItemPedido({
+          pedidoId: pedidoId,
+          estoqueId: item.id,
+          quantidadeItem: item.quantity,
+        })
+      }
+
+      cartStore.clearCart()
+      alert('Pedido atualizado com sucesso!')
+    } catch (error) {
+      console.error(error)
+      alert('Erro ao atualizar pedido')
+    }
   }
 
 </script>

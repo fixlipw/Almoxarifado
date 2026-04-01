@@ -1,20 +1,8 @@
 <script setup lang="ts">
+  import type { QuantityDialogProps } from '@/types'
   import { ref } from 'vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
-
-  export interface QuantityDialogItem {
-    title: string
-    category: string
-    available: number
-    icon?: string
-    iconColor?: string
-  }
-
-  interface QuantityDialogProps {
-    modelValue: boolean
-    item?: QuantityDialogItem
-  }
 
   const props = withDefaults(defineProps<QuantityDialogProps>(), {
     item: undefined,

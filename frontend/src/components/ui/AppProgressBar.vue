@@ -1,16 +1,7 @@
 <script setup lang="ts">
-  import { computed } from 'vue'
+  import type { AppProgressBarProps } from '@/types'
 
-  interface AppProgressBarProps {
-    total: number
-    value: number
-    color?: string
-    label?: string
-    showText?: boolean
-    valueText?: string
-    height?: number
-    bgColor?: string
-  }
+  import { computed } from 'vue'
 
   const props = withDefaults(defineProps<AppProgressBarProps>(), {
     label: '',

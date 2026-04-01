@@ -1,0 +1,303 @@
+{
+  "estoque": [
+    {
+      "id": "e0000000-0000-0000-0000-000000000001",
+      "nome": "Resistor 10Ω 1/4W",
+      "quantidade": 950,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000002",
+      "nome": "Resistor 47Ω 1/4W",
+      "quantidade": 1000,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000003",
+      "nome": "Resistor 100Ω 1/4W",
+      "quantidade": 1900,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000004",
+      "nome": "Resistor 220Ω 1/4W",
+      "quantidade": 1850,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000005",
+      "nome": "Resistor 330Ω 1/4W",
+      "quantidade": 1420,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000006",
+      "nome": "Resistor 470Ω 1/4W",
+      "quantidade": 980,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000007",
+      "nome": "Resistor 1kΩ 1/4W",
+      "quantidade": 2800,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000008",
+      "nome": "Resistor 2.2kΩ 1/4W",
+      "quantidade": 1500,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000009",
+      "nome": "Resistor 3.3kΩ 1/4W",
+      "quantidade": 950,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000010",
+      "nome": "Resistor 4.7kΩ 1/4W",
+      "quantidade": 1400,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000011",
+      "nome": "Resistor 10kΩ 1/4W",
+      "quantidade": 2850,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000012",
+      "nome": "Resistor 22kΩ 1/4W",
+      "quantidade": 1000,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000013",
+      "nome": "Resistor 47kΩ 1/4W",
+      "quantidade": 920,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000014",
+      "nome": "Resistor 100kΩ 1/4W",
+      "quantidade": 1480,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000015",
+      "nome": "Resistor 1MΩ 1/4W",
+      "quantidade": 490,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000016",
+      "nome": "Resistor 10Ω 1W",
+      "quantidade": 190,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000017",
+      "nome": "Resistor 100Ω 1W",
+      "quantidade": 180,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000018",
+      "nome": "Resistor 1kΩ 1W",
+      "quantidade": 200,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000019",
+      "nome": "LDR 5mm",
+      "quantidade": 85,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    },
+    {
+      "id": "e0000000-0000-0000-0000-000000000020",
+      "nome": "Potenciômetro 10kΩ",
+      "quantidade": 130,
+      "tipo": "CONSUMO",
+      "isAtivado": true
+    }
+  ],
+  "usuarios": [
+    {
+      "id": "u0000000-0000-0000-0000-000000000001",
+      "email": "maria.silva@ufc.br",
+      "matricula": "20230001",
+      "nome": "Maria",
+      "sobrenome": "Silva",
+      "curso": "Engenharia de Computação",
+      "fotoPerfil": null,
+      "acesso": "ALUNO",
+      "isAtivada": true,
+      "isBloqueado": false
+    },
+    {
+      "id": "u0000000-0000-0000-0000-000000000002",
+      "email": "joao.prof@ufc.br",
+      "matricula": "19990002",
+      "nome": "João",
+      "sobrenome": "Professor",
+      "curso": "Engenharia Elétrica",
+      "fotoPerfil": null,
+      "acesso": "PROFESSOR",
+      "isAtivada": true,
+      "isBloqueado": false
+    }
+  ],
+  "pedidos": [
+    {
+      "id": "p0000000-0000-0000-0000-000000000001",
+      "codigoPedido": "PED-001",
+      "feedback": "Prática de Circuitos I",
+      "solicitanteId": "u0000000-0000-0000-0000-000000000001",
+      "aprovadorId": "u0000000-0000-0000-0000-000000000002",
+      "finalizadorId": null,
+      "dataSolicitacao": "2024-03-01T10:00:00Z",
+      "dataAprovacao": "2024-03-01T10:30:00Z",
+      "dataFinalizado": null,
+      "dataAtualizacao": "2024-03-01T10:30:00Z",
+      "aprovado": true,
+      "finalizado": false,
+      "emprestimoEspecial": false,
+      "hash": "abc123hash"
+    },
+    {
+      "id": "p0000000-0000-0000-0000-000000000003",
+      "codigoPedido": "PED-003",
+      "feedback": "Laboratório de Física",
+      "solicitanteId": "u0000000-0000-0000-0000-000000000001",
+      "aprovadorId": "u0000000-0000-0000-0000-000000000002",
+      "finalizadorId": "u0000000-0000-0000-0000-000000000002",
+      "dataSolicitacao": "2024-03-15T14:30:00Z",
+      "dataAprovacao": "2024-03-15T15:00:00Z",
+      "dataFinalizado": "2024-03-16T10:00:00Z",
+      "dataAtualizacao": "2024-03-16T10:00:00Z",
+      "aprovado": true,
+      "finalizado": true,
+      "emprestimoEspecial": false,
+      "hash": "ghi789hash"
+    },
+    {
+      "id": "p0000000-0000-0000-0000-000000000004",
+      "codigoPedido": "PED-004",
+      "feedback": "Pedido duplicado",
+      "solicitanteId": "u0000000-0000-0000-0000-000000000001",
+      "aprovadorId": "u0000000-0000-0000-0000-000000000002",
+      "finalizadorId": "u0000000-0000-0000-0000-000000000002",
+      "dataSolicitacao": "2024-03-20T16:00:00Z",
+      "dataAprovacao": "2024-03-20T16:10:00Z",
+      "dataFinalizado": "2024-03-20T16:10:00Z",
+      "dataAtualizacao": "2024-03-20T16:10:00Z",
+      "aprovado": false,
+      "finalizado": true,
+      "emprestimoEspecial": false,
+      "hash": "jkl012hash"
+    },
+    {
+      "id": "p0000000-0000-0000-0000-000000000005",
+      "codigoPedido": "PED-005",
+      "feedback": "Reposição de componentes",
+      "solicitanteId": "u0000000-0000-0000-0000-000000000001",
+      "aprovadorId": "u0000000-0000-0000-0000-000000000002",
+      "finalizadorId": null,
+      "dataSolicitacao": "2024-03-22T08:00:00Z",
+      "dataAprovacao": "2024-03-22T09:00:00Z",
+      "dataFinalizado": null,
+      "dataAtualizacao": "2024-03-22T09:00:00Z",
+      "aprovado": true,
+      "finalizado": false,
+      "emprestimoEspecial": true,
+      "hash": "mno345hash"
+    },
+    {
+      "feedback": "Requisitado pelo sistema",
+      "solicitanteId": "u0000000-0000-0000-0000-000000000001",
+      "aprovadorId": null,
+      "finalizadorId": null,
+      "dataAprovacao": null,
+      "dataFinalizado": null,
+      "emprestimoEspecial": false,
+      "id": "p1775024686441",
+      "dataSolicitacao": "2026-04-01T06:24:46.441Z"
+    }
+  ],
+  "itensPedido": [
+    {
+      "id": "i0000000-0000-0000-0000-000000000001",
+      "pedidoId": "p0000000-0000-0000-0000-000000000001",
+      "estoqueId": "e0000000-0000-0000-0000-000000000004",
+      "quantidadeItem": 10
+    },
+    {
+      "id": "i0000000-0000-0000-0000-000000000002",
+      "pedidoId": "p0000000-0000-0000-0000-000000000001",
+      "estoqueId": "e0000000-0000-0000-0000-000000000007",
+      "quantidadeItem": 5
+    },
+    {
+      "id": "i0000000-0000-0000-0000-000000000003",
+      "pedidoId": "p0000000-0000-0000-0000-000000000001",
+      "estoqueId": "e0000000-0000-0000-0000-000000000011",
+      "quantidadeItem": 5
+    },
+    {
+      "id": "i0000000-0000-0000-0000-000000000006",
+      "pedidoId": "p0000000-0000-0000-0000-000000000003",
+      "estoqueId": "e0000000-0000-0000-0000-000000000013",
+      "quantidadeItem": 20
+    },
+    {
+      "id": "i0000000-0000-0000-0000-000000000007",
+      "pedidoId": "p0000000-0000-0000-0000-000000000004",
+      "estoqueId": "e0000000-0000-0000-0000-000000000001",
+      "quantidadeItem": 50
+    },
+    {
+      "id": "i0000000-0000-0000-0000-000000000008",
+      "pedidoId": "p0000000-0000-0000-0000-000000000005",
+      "estoqueId": "e0000000-0000-0000-0000-000000000016",
+      "quantidadeItem": 5
+    },
+    {
+      "id": "i0000000-0000-0000-0000-000000000009",
+      "pedidoId": "p0000000-0000-0000-0000-000000000005",
+      "estoqueId": "e0000000-0000-0000-0000-000000000017",
+      "quantidadeItem": 5
+    },
+    {
+      "pedidoId": "p1775024686441",
+      "estoqueId": "e0000000-0000-0000-0000-000000000002",
+      "quantidadeItem": 10,
+      "id": "ip1775024686922_379"
+    },
+    {
+      "pedidoId": "p1775024179325",
+      "estoqueId": "e0000000-0000-0000-0000-000000000002",
+      "quantidadeItem": 6,
+      "id": "ip1775024778662_65"
+    }
+  ]
+}
