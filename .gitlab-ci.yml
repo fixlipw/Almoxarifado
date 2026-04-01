@@ -9,20 +9,13 @@ build_frontend:
     - cd frontend
     - npm install
     - npm run build
+  variables:
+    VITE_SUPABASE_URL: $VITE_SUPABASE_URL
+    VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY: $VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY
   artifacts:
     paths:
       - frontend/dist/
     expire_in: 1 day
-
-serve_backend:
-  stage: deploy
-  image: node:20
-  script:
-    - cd frontend
-    - npm install
-    - npm run server
-  rules:
-    - if: '$CI_COMMIT_BRANCH == "main" || $CI_COMMIT_BRANCH == "master"'
 
 pages:
   stage: deploy

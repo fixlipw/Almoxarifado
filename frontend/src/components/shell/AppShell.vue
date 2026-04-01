@@ -117,12 +117,10 @@
 
       const pedidoId = firstItemWithLoan.emprestimoId
 
-      // Update feedback or items (mock approach: delete all current items and re-add)
       const existingItems = await api.getItensPedido(pedidoId)
 
-      // Since it's json-server, we'll delete specific items one by one sequentially
       for (const item of existingItems) {
-        await fetch(`http://localhost:3000/itensPedido/${item.id}`, { method: 'DELETE' })
+        await api.deleteItemPedido(item.id)
       }
 
       for (const item of cartStore.items) {
