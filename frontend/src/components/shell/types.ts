@@ -1,4 +1,4 @@
-export type NavSection = 'dashboard' | 'inventario' | 'emprestimos'
+export type NavSection = 'dashboard' | 'estoque' | 'pedidos'
 
 export interface NavItem {
   label: string

@@ -1,4 +1,4 @@
-# frontend
+# frontend-dev
 
 Scaffolded with Vuetify CLI.
 
@@ -34,10 +34,7 @@ Scaffolded with Vuetify CLI.
 
 ## ✨ Enabled Features
 
-- ESLint
-- Vuetify MCP
-- Pinia
-- File Router
+- Base setup
 
 ## 💿 Install
 
@@ -67,10 +64,6 @@ npm run build
 - `npm run preview`
 - `npm run build-only`
 - `npm run type-check`
-- `npm run lint`
-- `npm run lint:fix`
-- `npm run mcp`
-- `npm run mcp:revert`
 
 ## 💪 Support Vuetify Development
 

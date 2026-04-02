@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-  import type { AppAlertProps } from '@/types'
+  import type {AppAlertProps} from "@/components/ui/types.ts";
 
   import { computed } from 'vue'
 

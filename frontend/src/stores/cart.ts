@@ -1,71 +1,56 @@
-import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import {defineStore} from 'pinia'
 
 export interface CartItem {
   id: string
   title: string
-  category: string
-  quantity: number
+  category?: string
   available: number
-  total: number
+  quantity: number
   icon?: string
   iconColor?: string
-  emprestimoId?: string
+  emprestimoId?: string | null
 }
 
-export const useCartStore = defineStore('cart', () => {
-  const items = ref<CartItem[]>([])
+export const useCartStore = defineStore('cart', {
+  state: () => ({
+    items: [] as CartItem[],
+  }),
 
-  const itemCount = computed(() =>
-    items.value.reduce((total, item) => total + item.quantity, 0),
-  )
+  getters: {
+    count: (state) => state.items.reduce((s, i) => s + i.quantity, 0),
+    isEmpty: (state) => state.items.length === 0,
+  },
 
-  const totalItems = computed(() => items.value.length)
+  actions: {
+    addItem (item: CartItem) {
+      const existing = this.items.find(i => i.id === item.id)
+      if (existing) {
+        existing.quantity = Math.min(existing.available, existing.quantity + item.quantity)
+      } else {
+        const quantity = Math.max(1, Math.min(item.quantity || 1, item.available))
+        this.items.push({ ...item, quantity })
+      }
+    },
 
-  function addItem (item: Omit<CartItem, 'id'> & { id?: string }, quantity = 1) {
-    // Usa id passado se houver, senão gera um novo
-    const id = item.id || `${item.title}-${item.category}`
-    // Se for empréstimo, inclui o emprestimoId na busca para não agrupar empréstimos diferentes
-    const existingItem = items.value.find(i =>
-      i.id === id && i.emprestimoId === item.emprestimoId,
-    )
+    removeItem (id: string) {
+      this.items = this.items.filter(i => i.id !== id)
+    },
 
-    if (existingItem) {
-      // Se item já existe, incrementa quantidade respeitando máximo
-      const newQuantity = existingItem.quantity + quantity
-      existingItem.quantity = Math.min(newQuantity, item.available)
-    } else {
-      // Se é novo item, adiciona com quantidade especificada
-      items.value.push({
-        ...item,
-        id,
-        quantity: Math.min(quantity, item.available),
-      } as CartItem)
-    }
-  }
+    updateQuantity (id: string, quantity: number) {
+      const item = this.items.find(i => i.id === id)
+      if (!item) return
+      item.quantity = Math.max(1, Math.min(quantity, item.available))
+    },
 
-  function removeItem (id: string) {
-    items.value = items.value.filter(item => item.id !== id)
-  }
+    clearCart () {
+      this.items = []
+    },
 
-  function updateQuantity (id: string, quantity: number) {
-    const item = items.value.find(i => i.id === id)
-    if (item && quantity > 0 && quantity <= item.available) {
-      item.quantity = quantity
-    }
-  }
-
-  function clearCart () {
-    items.value = []
-  }
-
-  return {
-    items,
-    itemCount,
-    totalItems,
-    addItem,
-    removeItem,
-    updateQuantity,
-    clearCart,
-  }
+    setItems (items: CartItem[]) {
+      this.items = items.map(i => ({ ...i, quantity: Math.max(1, Math.min(i.quantity || 1, i.available)) }))
+    },
+  },
 })
+
+export default useCartStore
+

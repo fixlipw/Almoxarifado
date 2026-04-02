@@ -39,25 +39,26 @@
   import { ref, watch } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useDisplay } from 'vuetify'
-  import { api } from '@/api'
-  import CartDialog from '@/components/inventario/CartDialog.vue'
-  import { useCartStore } from '@/stores/cart'
   import AppFooter from './AppFooter.vue'
   import AppHeader from './AppHeader.vue'
   import AppSidebar from './AppSidebar.vue'
+  import CartDialog from '@/components/estoque/CartDialog.vue'
+  import { createPedido } from '@/services/pedidos'
+  import { createItemPedido } from '@/services/itensPedido'
+  import { useCartStore } from '@/stores/cart'
+  import { useNotificationStore } from '@/stores/notifications'
 
   const { mobile } = useDisplay()
   const router = useRouter()
   const route = useRoute()
-  const cartStore = useCartStore()
   const drawer = ref(false)
   const showCartDialog = ref(false)
   const activeSection = ref<NavSection>('dashboard')
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', value: 'dashboard', icon: 'mdi-view-dashboard-outline' },
-    { label: 'Inventário', value: 'inventario', icon: 'mdi-cube-outline' },
-    { label: 'Empréstimos', value: 'emprestimos', icon: 'mdi-clipboard-text-outline' },
+    { label: 'Estoque', value: 'estoque', icon: 'mdi-cube-outline' },
+    { label: 'Pedidos', value: 'pedidos', icon: 'mdi-clipboard-text-outline' },
   ]
 
   watch(mobile, () => {
@@ -70,6 +71,8 @@
     const path = newRoute.path.split('/')[1] || 'dashboard'
     activeSection.value = path as NavSection
   }, { immediate: true })
+
+  const notifications = useNotificationStore()
 
   function selectSection (section: NavSection) {
     activeSection.value = section
@@ -84,61 +87,41 @@
 
   async function handleCheckout () {
     try {
-      const pedido = await api.createPedido({
-        feedback: 'Requisitado pelo sistema',
-        solicitanteId: 'u0000000-0000-0000-0000-000000000001', // Mock user for now
-        aprovadorId: null,
-        finalizadorId: null,
-        dataAprovacao: null,
-        dataFinalizado: null,
-        emprestimoEspecial: false,
+      const cartStore = useCartStore()
+      if (cartStore.items.length === 0) return
+
+      const novoPedido = await createPedido({
+        id: crypto.randomUUID(),
+        solicitante_id: '11111111-1111-1111-1111-111111111111',
+        codigo_pedido: `PED-${Date.now().toString().slice(-6)}`,
+        data_solicitacao: new Date().toISOString(),
       })
 
       for (const item of cartStore.items) {
-        const estoqueId = item.id
-        await api.createItemPedido({
-          pedidoId: pedido.id,
-          estoqueId: estoqueId,
-          quantidadeItem: item.quantity,
+        await createItemPedido({
+          id: crypto.randomUUID(),
+          pedido_id: novoPedido.id,
+          estoque_id: item.id,
+          quantidade_item: item.quantity,
         })
       }
+
       cartStore.clearCart()
-      alert('Pedido realizado com sucesso!')
+      showCartDialog.value = false
+      notifications.success('Pedido finalizado com sucesso!')
+
     } catch (error) {
-      console.error(error)
-      alert('Erro ao realizar pedido')
+      console.error('Erro ao finalizar pedido:', error)
+      notifications.error('Não foi possível finalizar o pedido no momento.')
     }
   }
 
   async function handleUpdateLoan () {
-    try {
-      const firstItemWithLoan = cartStore.items.find(i => i.emprestimoId)
-      if (!firstItemWithLoan?.emprestimoId) return
-
-      const pedidoId = firstItemWithLoan.emprestimoId
-
-      const existingItems = await api.getItensPedido(pedidoId)
-
-      for (const item of existingItems) {
-        await api.deleteItemPedido(item.id)
-      }
-
-      for (const item of cartStore.items) {
-        await api.createItemPedido({
-          pedidoId: pedidoId,
-          estoqueId: item.id,
-          quantidadeItem: item.quantity,
-        })
-      }
-
-      cartStore.clearCart()
-      alert('Pedido atualizado com sucesso!')
-    } catch (error) {
-      console.error(error)
-      alert('Erro ao atualizar pedido')
-    }
+    const cartStore = useCartStore()
+    cartStore.clearCart()
+    showCartDialog.value = false
+    notifications.success('Pedido atualizado com sucesso!')
   }
-
 </script>
 
 <style scoped>

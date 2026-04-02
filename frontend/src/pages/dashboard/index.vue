@@ -1,13 +1,12 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
-  import { api } from '@/api'
   import AppAlert from '@/components/ui/AppAlert.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
   import AppPage from '@/components/ui/AppPage.vue'
 
   const user = ref({
-    name: 'Carregando...',
+    name: 'Maria',
   })
 
   const dashboardData = ref({
@@ -17,41 +16,10 @@
   })
 
   onMounted(async () => {
-    try {
-      // Mock do usuário logado pegando o primeiro aluno
-      const usuarios = await api.getUsuarios()
-      const u = usuarios.find(u => u.acesso === 'ALUNO')
-      if (u) {
-        user.value.name = `${u.nome} ${u.sobrenome}`
-      }
-
-      // Busca dados para os cards
-      const [pedidos, estoque] = await Promise.all([
-        api.getPedidos(),
-        api.getEstoque(),
-      ])
-
-      const uId = u?.id
-
-      // Empréstimos ativos do usuário (aprovado = true, finalizado = false)
-      dashboardData.value.emprestimosAtivos = pedidos.filter(
-        p => p.solicitanteId === uId && p.aprovado === true && !p.finalizado,
-      ).length
-
-      // Aguardando aprovação (aprovado = null)
-      dashboardData.value.aguardandoAprovacao = pedidos.filter(
-        p => p.solicitanteId === uId && (p.aprovado === null || p.aprovado === undefined) && !p.finalizado,
-      ).length
-
-      // Todos os itens de estoque disponíveis e não bloqueados
-      dashboardData.value.itensDisponiveis = estoque.filter(e => e.isAtivado && e.quantidade > 0).length
-    } catch (error) {
-      console.error('Erro ao buscar dados do dashboard', error)
-    }
   })
 
   const quickActions = [
-    { label: 'Ver Meus Empréstimos', icon: 'mdi-clipboard-text-outline', to: '/emprestimos' },
+    { label: 'Ver Meus Empréstimos', icon: 'mdi-clipboard-text-outline', to: '/pedidos' },
     { label: 'Emitir Nada Consta', icon: 'mdi-file-document-outline', to: '/nada-consta' },
   ]
 
@@ -154,7 +122,6 @@
     </v-row>
 
     <v-row class="mb-6" density="comfortable">
-      <!-- Quick Start -->
       <v-col cols="12" md="6">
         <AppCard
           card-class="fill-height"
@@ -171,7 +138,7 @@
               prepend-icon="mdi-plus"
               rounded="md"
               size="large"
-              to="/emprestimos"
+              to="/estoque"
             >
               Solicitar Novo Empréstimo
             </AppButton>

@@ -11,7 +11,7 @@
     isLoading?: boolean
   }
 
-  const _props = withDefaults(defineProps<ConfirmDialogProps>(), {
+  const props = withDefaults(defineProps<ConfirmDialogProps>(), {
     title: 'Confirmação',
     message: 'Tem certeza que deseja prosseguir?',
     confirmText: 'Confirmar',
@@ -45,7 +45,9 @@
       <template #header>
         <v-row align="center" justify="space-between" no-gutters>
           <v-col class="d-flex align-center" cols="auto">
-            <v-card-title class="pa-0 text-subtitle-1 font-weight-bold" style="font-size: 1.1rem;">{{ title }}</v-card-title>
+            <v-card-title class="pa-0 text-title-medium font-weight-bold" style="font-size: 1.1rem;">
+              {{ props.title }}
+            </v-card-title>
           </v-col>
           <v-col cols="auto">
             <v-btn
@@ -64,7 +66,7 @@
       <v-card-text class="py-6">
         <div class="d-flex flex-column align-center text-center">
           <v-icon class="mb-3" color="warning" size="64">mdi-alert-circle-outline</v-icon>
-          <div class="text-body-large">{{ message }}</div>
+          <div class="text-body-large">{{ props.message }}</div>
         </div>
       </v-card-text>
 
@@ -75,7 +77,7 @@
           variant="text"
           @click="handleCancel"
         >
-          {{ cancelText }}
+          {{ props.cancelText }}
         </AppButton>
         <AppButton
           block
@@ -83,7 +85,7 @@
           :loading="isLoading"
           @click="handleConfirm"
         >
-          {{ confirmText }}
+          {{ props.confirmText }}
         </AppButton>
       </template>
     </AppCard>

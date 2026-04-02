@@ -1,5 +1,5 @@
 <script setup lang="ts">
-  import type { AppCardProps } from '@/types'
+  import type {AppCardProps} from "@/components/ui/types.ts";
 
   withDefaults(defineProps<AppCardProps>(), {
     title: '',

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-  import type { TabItem } from '@/types'
+  import type {TabItem} from "@/components/ui/types.ts";
+
   import { computed, useSlots } from 'vue'
 
   const props = withDefaults(defineProps<{

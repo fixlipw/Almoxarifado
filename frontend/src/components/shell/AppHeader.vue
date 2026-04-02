@@ -81,15 +81,15 @@
 
 <script lang="ts" setup>
   import type { NavItem, NavSection } from './types'
-  import { computed, onMounted } from 'vue'
+  import {computed, onMounted} from 'vue'
   import { useTheme } from 'vuetify'
   import AppButton from '@/components/ui/AppButton.vue'
   import { useCartStore } from '@/stores/cart'
 
   const theme = useTheme()
-  const cartStore = useCartStore()
 
-  const cartItemCount = computed(() => cartStore.itemCount)
+  const cart = useCartStore()
+  const cartItemCount = computed(() => cart.count)
 
   onMounted(() => {
     const savedTheme = localStorage.getItem('almoxarifado-theme')
@@ -102,8 +102,9 @@
   })
 
   function toggleTheme () {
-    theme.global.name.value = theme.global.current.value.dark ? 'light' : 'dark'
-    localStorage.setItem('almoxarifado-theme', theme.global.name.value)
+    const nextTheme = theme.global.current.value.dark ? 'light' : 'dark'
+    theme.change(nextTheme)
+    localStorage.setItem('almoxarifado-theme', nextTheme)
   }
 
   defineProps<{

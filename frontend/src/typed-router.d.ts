@@ -48,23 +48,16 @@ declare module 'vue-router/auto-routes' {
       Record<never, never>,
       | never
     >,
-    '/emprestimos/': RouteRecordInfo<
-      '/emprestimos/',
-      '/emprestimos',
+    '/estoque/': RouteRecordInfo<
+      '/estoque/',
+      '/estoque',
       Record<never, never>,
       Record<never, never>,
       | never
     >,
-    '/inventario/': RouteRecordInfo<
-      '/inventario/',
-      '/inventario',
-      Record<never, never>,
-      Record<never, never>,
-      | never
-    >,
-    '/login': RouteRecordInfo<
-      '/login',
-      '/login',
+    '/pedidos/': RouteRecordInfo<
+      '/pedidos/',
+      '/pedidos',
       Record<never, never>,
       Record<never, never>,
       | never
@@ -100,21 +93,15 @@ declare module 'vue-router/auto-routes' {
       views:
         | never
     }
-    'src/pages/emprestimos/index.vue': {
+    'src/pages/estoque/index.vue': {
       routes:
-        | '/emprestimos/'
+        | '/estoque/'
       views:
         | never
     }
-    'src/pages/inventario/index.vue': {
+    'src/pages/pedidos/index.vue': {
       routes:
-        | '/inventario/'
-      views:
-        | never
-    }
-    'src/pages/login.vue': {
-      routes:
-        | '/login'
+        | '/pedidos/'
       views:
         | never
     }

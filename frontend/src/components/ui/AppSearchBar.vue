@@ -1,10 +1,5 @@
 <script setup lang="ts">
-  interface AppSearchBarProps {
-    placeholder?: string
-    clearable?: boolean
-    disabled?: boolean
-    loading?: boolean
-  }
+  import type { AppSearchBarProps } from '@/components/ui/types.ts'
 
   const props = withDefaults(defineProps<AppSearchBarProps>(), {
     placeholder: 'Pesquisar...',
