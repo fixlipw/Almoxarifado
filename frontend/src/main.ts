@@ -14,7 +14,8 @@ import { registerPlugins } from '@/plugins'
 import App from './App.vue'
 
 // Styles
-import 'unfonts.css'
+import '@fontsource/roboto/latin.css'
+import '@fontsource/roboto/latin-ext.css'
 
 const app = createApp(App)
 
