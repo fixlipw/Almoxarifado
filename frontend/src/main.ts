@@ -9,6 +9,7 @@ import { createApp } from 'vue'
 
 // Plugins
 import { registerPlugins } from '@/plugins'
+import router from '@/router'
 
 // Components
 import App from './App.vue'
@@ -24,4 +25,9 @@ const app = createApp(App)
 
 registerPlugins(app)
 
-app.mount('#app')
+async function bootstrap () {
+  await router.isReady()
+  app.mount('#app')
+}
+
+bootstrap()
