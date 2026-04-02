@@ -15,6 +15,7 @@ import { useRouter } from "vue-router";
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
   const pedidoSelecionado = ref<PedidoVisualProps | null>(null)
+  const isLoading = ref(false)
 
   const cartStore = useCartStore()
   const router = useRouter()
@@ -37,11 +38,14 @@ import { useRouter } from "vue-router";
   const acaoPendente = ref<'approve' | 'reject' | null>(null)
 
   onMounted(async () => {
+    isLoading.value = true
     try {
       const data = await getPedidosPendentes()
       pedidos.value = data.map(mapearParaPedidoVisual)
     } catch (e) {
       console.error(e)
+    } finally {
+      isLoading.value = false
     }
   })
 
@@ -116,12 +120,14 @@ import { useRouter } from "vue-router";
 </script>
 
 <template>
-  <AppPage>
-    <div v-if="pedidos.length === 0" class="text-center text-medium-emphasis my-10">
-      Nenhum pedido pendente no momento.
-    </div>
-
-    <v-row v-else class="mb-5" density="comfortable">
+  <AppPage
+    empty-text="Novas solicitações aparecerão aqui para acompanhamento."
+    empty-title="Nenhum pedido pendente"
+    icon="mdi-timer-sand-empty"
+    :is-empty="!isLoading && pedidos.length === 0"
+    :loading="isLoading"
+  >
+    <v-row class="mb-5" density="comfortable">
       <v-col
         v-for="pedido in pedidos"
         :key="pedido.id"

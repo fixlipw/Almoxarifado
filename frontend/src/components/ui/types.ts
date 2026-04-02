@@ -21,6 +21,14 @@ export interface AppProgressBarProps {
   bgColor?: string
 }
 
+export interface AppLoadSpinnerProps {
+  label?: string
+  color?: string
+  size?: number | string
+  width?: number | string
+  minHeight?: number | string
+}
+
 export interface AppAlertProps {
   title?: string
   description: string

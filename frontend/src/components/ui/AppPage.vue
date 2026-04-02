@@ -11,14 +11,9 @@
         <slot name="actions" />
       </template>
     </AppCard>
-    <main class="mt-2" :class="{ 'd-flex align-center justify-center': isEmpty || loading }" :style="(isEmpty || loading) ? 'min-height: 40vh;' : ''">
+    <main class="mt-2">
       <template v-if="loading">
-        <v-progress-circular
-          color="primary"
-          indeterminate
-          size="64"
-          width="5"
-        />
+        <AppLoadSpinner :label="loadingText" />
       </template>
 
       <template v-else-if="!isEmpty">
@@ -44,12 +39,14 @@
   import { computed } from 'vue'
   import { useRoute } from 'vue-router'
   import AppCard from '@/components/ui/AppCard.vue'
+  import AppLoadSpinner from '@/components/ui/AppLoadSpinner.vue'
 
   const props = defineProps({
     title: { type: String, required: false, default: '' },
     subtitle: { type: String, required: false, default: '' },
     saudacao: { type: String, required: false, default: '' },
     loading: { type: Boolean, default: false },
+    loadingText: { type: String, default: 'Carregando dados...' },
     isEmpty: { type: Boolean, default: false },
     emptyTitle: { type: String, default: 'Nenhum registro encontrado' },
     emptyText: { type: String, default: 'Clique no botão abaixo para realizar o cadastro' },

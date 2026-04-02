@@ -11,6 +11,7 @@ import { getPedidosFinalizados } from "@/services/pedidos.ts";
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
   const pedidoSelecionado = ref<PedidoVisualProps | null>(null)
+  const isLoading = ref(false)
 
   const pedidoDetalhesSelecionado = computed(() => {
     if (!pedidoSelecionado.value) return null
@@ -23,23 +24,28 @@ import { getPedidosFinalizados } from "@/services/pedidos.ts";
   }
 
   onMounted(async () => {
+    isLoading.value = true
     try {
       const data = await getPedidosFinalizados()
       pedidos.value = data.map(mapearParaPedidoVisual)
     } catch (e) {
       console.error(e)
+    } finally {
+      isLoading.value = false
     }
   })
 
 </script>
 
 <template>
-  <AppPage>
-    <div v-if="pedidos.length === 0" class="text-center text-medium-emphasis my-10">
-      Nenhum pedido finalizado.
-    </div>
-
-    <v-row v-else class="mb-5" density="comfortable">
+  <AppPage
+    empty-text="Os pedidos concluídos serão listados aqui."
+    empty-title="Nenhum pedido finalizado"
+    icon="mdi-clipboard-text-clock-outline"
+    :is-empty="!isLoading && pedidos.length === 0"
+    :loading="isLoading"
+  >
+    <v-row class="mb-5" density="comfortable">
       <v-col
         v-for="pedido in pedidos"
         :key="pedido.id"

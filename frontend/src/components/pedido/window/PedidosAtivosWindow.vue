@@ -13,6 +13,7 @@ import { useNotificationStore } from "@/stores/notifications.ts";
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
   const pedidoSelecionado = ref<PedidoVisualProps | null>(null)
+  const isLoading = ref(false)
 
   const rules = useNotificationStore()
 
@@ -32,11 +33,14 @@ import { useNotificationStore } from "@/stores/notifications.ts";
   const mensagemConfirmacao = ref('')
 
   onMounted(async () => {
+    isLoading.value = true
     try {
       const data = await getPedidosAtivos()
       pedidos.value = data.map(mapearParaPedidoVisual)
     } catch (e) {
       console.error(e)
+    } finally {
+      isLoading.value = false
     }
   })
 
@@ -64,12 +68,14 @@ import { useNotificationStore } from "@/stores/notifications.ts";
 </script>
 
 <template>
-  <AppPage>
-    <div v-if="pedidos.length === 0" class="text-center text-medium-emphasis my-10">
-      Nenhum empréstimo ativo no momento.
-    </div>
-
-    <v-row v-else class="mb-5" density="comfortable">
+  <AppPage
+    empty-text="Assim que houver um empréstimo em andamento, ele aparecerá aqui."
+    empty-title="Nenhum empréstimo ativo"
+    icon="mdi-clipboard-check-outline"
+    :is-empty="!isLoading && pedidos.length === 0"
+    :loading="isLoading"
+  >
+    <v-row class="mb-5" density="comfortable">
       <v-col
         v-for="pedido in pedidos"
         :key="pedido.id"

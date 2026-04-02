@@ -97,7 +97,15 @@
 </script>
 
 <template>
-  <AppPage subtitle="Consulte itens disponíveis e detalhes de estoque" title="Estoque">
+  <AppPage
+    empty-text="Ajuste os filtros ou tente uma nova busca."
+    empty-title="Nenhum item encontrado"
+    icon="mdi-package-variant-closed-remove"
+    :is-empty="!loading && itemsFiltrados.length === 0"
+    :loading="loading"
+    subtitle="Consulte itens disponíveis e detalhes de estoque"
+    title="Estoque"
+  >
     <v-row class="mb-6" density="comfortable">
       <v-col cols="12" md="6">
         <AppSearchBar
