@@ -7,15 +7,16 @@ public record PedidoResponse(
         UUID id,
         String codigoPedido,
         String feedback,
-        UUID solicitanteId,
-        UUID aprovadorId,
-        UUID finalizadorId,
-        LocalDateTime dataPedido,
+        UsuarioResponse solicitante,
+        UsuarioResponse aprovador,
+        UsuarioResponse finalizador,
+        LocalDateTime dataSolicitacao,
+        LocalDateTime dataAprovacao,
         LocalDateTime dataFinalizado,
+        LocalDateTime dataAtualizacao,
         Boolean aprovado,
         Boolean finalizado,
         Boolean emprestimoEspecial,
         String hash
 ) {
 }
-

@@ -43,9 +43,13 @@ public class Pedido {
     private List<ItemPedido> itens = new ArrayList<>();
 
     @Column(nullable = false, updatable = false)
-    private LocalDateTime dataPedido;
+    private LocalDateTime dataSolicitacao;
+
+    private LocalDateTime dataAprovacao;
 
     private LocalDateTime dataFinalizado;
+
+    private LocalDateTime dataAtualizacao;
 
     private Boolean aprovado = false;
 

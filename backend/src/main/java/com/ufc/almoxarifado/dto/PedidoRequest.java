@@ -12,12 +12,13 @@ public record PedidoRequest(
         @NotNull UUID solicitanteId,
         UUID aprovadorId,
         UUID finalizadorId,
-        LocalDateTime dataPedido,
+        LocalDateTime dataSolicitacao,
+        LocalDateTime dataAprovacao,
         LocalDateTime dataFinalizado,
+        LocalDateTime dataAtualizacao,
         Boolean aprovado,
         Boolean finalizado,
         Boolean emprestimoEspecial,
         String hash
 ) {
 }
-

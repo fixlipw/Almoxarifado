@@ -63,10 +63,13 @@ public class PedidoService {
         entity.setAprovador(getOptionalUser(request.aprovadorId()));
         entity.setFinalizador(getOptionalUser(request.finalizadorId()));
 
-        if (entity.getDataPedido() == null) {
-            entity.setDataPedido(request.dataPedido() != null ? request.dataPedido() : LocalDateTime.now());
+        if (entity.getDataSolicitacao() == null) {
+            entity.setDataSolicitacao(request.dataSolicitacao() != null ? request.dataSolicitacao() : LocalDateTime.now());
         }
+        entity.setDataAprovacao(request.dataAprovacao());
         entity.setDataFinalizado(request.dataFinalizado());
+        entity.setDataAtualizacao(request.dataAtualizacao());
+
         if (request.aprovado() != null) {
             entity.setAprovado(request.aprovado());
         }
@@ -89,16 +92,32 @@ public class PedidoService {
                 entity.getId(),
                 entity.getCodigoPedido(),
                 entity.getFeedback(),
-                entity.getSolicitante() != null ? entity.getSolicitante().getId() : null,
-                entity.getAprovador() != null ? entity.getAprovador().getId() : null,
-                entity.getFinalizador() != null ? entity.getFinalizador().getId() : null,
-                entity.getDataPedido(),
+                entity.getSolicitante() != null ? toUsuarioResponse(entity.getSolicitante()) : null,
+                entity.getAprovador() != null ? toUsuarioResponse(entity.getAprovador()) : null,
+                entity.getFinalizador() != null ? toUsuarioResponse(entity.getFinalizador()) : null,
+                entity.getDataSolicitacao(),
+                entity.getDataAprovacao(),
                 entity.getDataFinalizado(),
+                entity.getDataAtualizacao(),
                 entity.getAprovado(),
                 entity.getFinalizado(),
                 entity.getEmprestimoEspecial(),
                 entity.getHash()
         );
     }
-}
 
+    private com.ufc.almoxarifado.dto.UsuarioResponse toUsuarioResponse(Usuario usuario) {
+        return new com.ufc.almoxarifado.dto.UsuarioResponse(
+                usuario.getId(),
+                usuario.getEmail(),
+                usuario.getMatricula(),
+                usuario.getNome(),
+                usuario.getSobrenome(),
+                usuario.getCurso(),
+                usuario.getFotoPerfil(),
+                usuario.getAcesso(),
+                usuario.getIsAtivada(),
+                usuario.getIsBloqueado()
+        );
+    }
+}
