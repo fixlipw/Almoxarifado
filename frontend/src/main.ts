@@ -14,7 +14,11 @@ import { registerPlugins } from '@/plugins'
 import App from './App.vue'
 
 // Styles
-import 'unfonts.css'
+import '@fontsource/poppins/300.css'
+import '@fontsource/poppins/400.css'
+import '@fontsource/poppins/500.css'
+import '@fontsource/poppins/600.css'
+import '@fontsource/poppins/700.css'
 
 const app = createApp(App)
 
