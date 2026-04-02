@@ -1,4 +1,5 @@
 <script setup lang="ts">
+  import { toRefs } from 'vue'
   import type { AppSearchBarProps } from '@/components/ui/types.ts'
 
   const props = withDefaults(defineProps<AppSearchBarProps>(), {
@@ -7,6 +8,8 @@
     disabled: false,
     loading: false,
   })
+
+  const { loading, clearable, disabled, placeholder } = toRefs(props)
 
   const modelValue = defineModel<string>({ default: '' })
 
@@ -28,11 +31,11 @@
 <template>
   <v-text-field
     v-model="modelValue"
-    :clearable="props.clearable"
-    :disabled="props.disabled"
+    :clearable="clearable"
+    :disabled="disabled"
     hide-details
-    :loading="props.loading"
-    :placeholder="props.placeholder"
+    :loading="loading"
+    :placeholder="placeholder"
     prepend-inner-icon="mdi-magnify"
     rounded="lg"
     variant="outlined"

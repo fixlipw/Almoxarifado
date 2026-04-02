@@ -46,6 +46,7 @@ export interface AppSearchBarProps {
   clearable?: boolean
   hideDetails?: boolean
   disabled?: boolean
+  loading?: boolean
 }
 
 export interface TabItem {
