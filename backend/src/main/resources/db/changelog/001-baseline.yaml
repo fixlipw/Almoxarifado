@@ -147,10 +147,16 @@ databaseChangeLog:
               - column:
                   constraints:
                     nullable: false
-                  name: data_pedido
+                  name: data_solicitacao
+                  type: DATETIME
+              - column:
+                  name: data_aprovacao
                   type: DATETIME
               - column:
                   name: data_finalizado
+                  type: DATETIME
+              - column:
+                  name: data_atualizacao
                   type: DATETIME
               - column:
                   name: aprovado
