@@ -1,5 +1,5 @@
-import { supabase } from '@/plugins/supabase'
-import type { Pedido, UUID } from '@/types/entities'
+import {supabase} from '@/plugins/supabase'
+import type {Pedido, UUID} from '@/types/entities'
 
 export async function getPedidos (): Promise<Pedido[]> {
   const { data, error } = await supabase.from('pedidos').select('*')
@@ -72,4 +72,16 @@ export async function getPedidosFinalizados (): Promise<any[]> {
 
   if (error) throw error
   return data
+}
+
+export async function getPedidosAtrasados (): Promise<any[]> {
+  const pedidosAtivos = await getPedidosAtivos();
+  return pedidosAtivos.filter(pedido => {
+    const aprovadoAtRaw = (pedido as Pedido).data_aprovacao
+    if (!aprovadoAtRaw) return false
+    const aprovadoAt = new Date(aprovadoAtRaw)
+    const prazo = new Date(aprovadoAt)
+    prazo.setHours(18, 0, 0, 0)
+    return Date.now() > prazo.getTime()
+  })
 }

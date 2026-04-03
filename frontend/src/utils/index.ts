@@ -1,4 +1,10 @@
-export function formatDate (input: string | Date, locale = 'pt-BR'): string {
+export const DEFAULT_TIME_ZONE = 'America/Sao_Paulo'
+
+export function formatDate (
+  input: string | Date,
+  locale = 'pt-BR',
+  timeZone = DEFAULT_TIME_ZONE,
+): string {
   try {
     const d = typeof input === 'string' ? new Date(input) : input
     if (Number.isNaN(d.getTime())) return ''
@@ -8,7 +14,8 @@ export function formatDate (input: string | Date, locale = 'pt-BR'): string {
       year: 'numeric',
       hour: '2-digit',
       minute: '2-digit',
-      second: "2-digit"
+      second: '2-digit',
+      timeZone,
     }).format(d)
   } catch {
     return ''

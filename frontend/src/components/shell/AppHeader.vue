@@ -27,6 +27,7 @@
         class="text-none px-4"
         :color="activeSection === item.value ? 'primary' : 'inherit'"
         :prepend-icon="item.icon"
+
         rounded="md"
         :variant="activeSection === item.value ? 'flat' : 'text'"
         @click="emit('select-section', item.value)"

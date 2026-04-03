@@ -7,6 +7,7 @@
   import PedidosAtivosWindow from "@/components/pedido/window/PedidosAtivosWindow.vue";
   import PedidosPendentesWindow from "@/components/pedido/window/PedidosPendentesWindow.vue";
   import PedidosFinalizadosWindow from "@/components/pedido/window/PedidosFinalizadosWindow.vue";
+  import PedidosAtrasadosWindow from "@/components/pedido/window/PedidosAtrasadosWindow.vue";
 
   const abaAtual = ref('ativos')
 
@@ -14,6 +15,7 @@
     { label: 'Ativos', value: 'ativos' },
     { label: 'Pendentes', value: 'pendentes' },
     { label: 'Finalizados', value: 'finalizados' },
+    { label: 'Atrasados', value: 'atrasados' },
   ]
 </script>
 
@@ -38,6 +40,7 @@
           <PedidosAtivosWindow v-if="value === 'ativos'" />
           <PedidosPendentesWindow v-else-if="value === 'pendentes'" />
           <PedidosFinalizadosWindow v-else-if="value === 'finalizados'" />
+          <PedidosAtrasadosWindow v-else-if="value === 'atrasados'" />
         </v-sheet>
       </template>
     </AppTabs>

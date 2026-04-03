@@ -2,7 +2,7 @@
 
 import AppPage from "@/components/ui/AppPage.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import type {PedidoVisualProps} from "@/components/pedido/window/types.ts";
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
@@ -37,7 +37,7 @@ import { useRouter } from "vue-router";
   const mensagemConfirmacao = ref('')
   const acaoPendente = ref<'approve' | 'reject' | null>(null)
 
-  onMounted(async () => {
+  async function carregarPedidos () {
     isLoading.value = true
     try {
       const data = await getPedidosPendentes()
@@ -47,6 +47,14 @@ import { useRouter } from "vue-router";
     } finally {
       isLoading.value = false
     }
+  }
+
+  onMounted(carregarPedidos)
+
+  watch(() => cartStore.checkedOut, async checkedOut => {
+    if (!checkedOut) return
+    await carregarPedidos()
+    cartStore.setCheckout(false)
   })
 
   function confirmarAcaoDetalhes (acao: 'approve' | 'reject' | 'return') {

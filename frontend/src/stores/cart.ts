@@ -14,6 +14,7 @@ export interface CartItem {
 export const useCartStore = defineStore('cart', {
   state: () => ({
     items: [] as CartItem[],
+    checkedOut: false as boolean,
   }),
 
   getters: {
@@ -40,6 +41,10 @@ export const useCartStore = defineStore('cart', {
       const item = this.items.find(i => i.id === id)
       if (!item) return
       item.quantity = Math.max(1, Math.min(quantity, item.available))
+    },
+
+    setCheckout (payload: boolean) {
+      this.checkedOut = payload
     },
 
     clearCart () {

@@ -1,17 +1,19 @@
 <script setup lang="ts">
 
 import AppPage from "@/components/ui/AppPage.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import type {PedidoVisualProps} from "@/components/pedido/window/types.ts";
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import { mapearPedidoDetalhes, mapearParaPedidoVisual } from "@/components/pedido/window/utils.ts";
 import { getPedidosFinalizados } from "@/services/pedidos.ts";
+import { useCartStore } from "@/stores/cart.ts";
 
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
   const pedidoSelecionado = ref<PedidoVisualProps | null>(null)
   const isLoading = ref(false)
+  const cartStore = useCartStore()
 
   const pedidoDetalhesSelecionado = computed(() => {
     if (!pedidoSelecionado.value) return null
@@ -23,7 +25,7 @@ import { getPedidosFinalizados } from "@/services/pedidos.ts";
     dialogAberto.value = true
   }
 
-  onMounted(async () => {
+  async function carregarPedidos () {
     isLoading.value = true
     try {
       const data = await getPedidosFinalizados()
@@ -33,6 +35,14 @@ import { getPedidosFinalizados } from "@/services/pedidos.ts";
     } finally {
       isLoading.value = false
     }
+  }
+
+  onMounted(carregarPedidos)
+
+  watch(() => cartStore.checkedOut, async checkedOut => {
+    if (!checkedOut) return
+    await carregarPedidos()
+    cartStore.setCheckout(false)
   })
 
 </script>

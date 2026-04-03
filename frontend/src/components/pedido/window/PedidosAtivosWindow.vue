@@ -2,12 +2,13 @@
 
 import AppPage from "@/components/ui/AppPage.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
-import {computed, onMounted, ref} from "vue";
+import {computed, onMounted, ref, watch} from "vue";
 import type {PedidoVisualProps} from "@/components/pedido/window/types.ts";
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import { mapearPedidoDetalhes, mapearParaPedidoVisual } from "@/components/pedido/window/utils.ts";
 import { getPedidosAtivos } from "@/services/pedidos.ts";
+import { useCartStore } from "@/stores/cart.ts";
 import { useNotificationStore } from "@/stores/notifications.ts";
 
   const pedidos = ref<any[]>([])
@@ -15,6 +16,7 @@ import { useNotificationStore } from "@/stores/notifications.ts";
   const pedidoSelecionado = ref<PedidoVisualProps | null>(null)
   const isLoading = ref(false)
 
+  const cartStore = useCartStore()
   const rules = useNotificationStore()
 
   const pedidoDetalhesSelecionado = computed(() => {
@@ -32,7 +34,7 @@ import { useNotificationStore } from "@/stores/notifications.ts";
   const tituloConfirmacao = ref('')
   const mensagemConfirmacao = ref('')
 
-  onMounted(async () => {
+  async function carregarPedidos () {
     isLoading.value = true
     try {
       const data = await getPedidosAtivos()
@@ -42,6 +44,14 @@ import { useNotificationStore } from "@/stores/notifications.ts";
     } finally {
       isLoading.value = false
     }
+  }
+
+  onMounted(carregarPedidos)
+
+  watch(() => cartStore.checkedOut, async checkedOut => {
+    if (!checkedOut) return
+    await carregarPedidos()
+    cartStore.setCheckout(false)
   })
 
   function confirmarAcaoDetalhes (acao: 'approve' | 'reject' | 'return') {

@@ -54,11 +54,15 @@
   const drawer = ref(false)
   const showCartDialog = ref(false)
   const activeSection = ref<NavSection>('dashboard')
+  const cartStore = useCartStore()
 
   const navItems: NavItem[] = [
     { label: 'Dashboard', value: 'dashboard', icon: 'mdi-view-dashboard-outline' },
     { label: 'Estoque', value: 'estoque', icon: 'mdi-cube-outline' },
     { label: 'Pedidos', value: 'pedidos', icon: 'mdi-clipboard-text-outline' },
+    // { label: 'Usuários', value: 'usuarios', icon: 'mdi-account-group-outline' },
+    // { label: 'Relatórios', value: 'relatorios', icon: 'mdi-chart-box-outline' },
+
   ]
 
   watch(mobile, () => {
@@ -87,7 +91,6 @@
 
   async function handleCheckout () {
     try {
-      const cartStore = useCartStore()
       if (cartStore.items.length === 0) return
 
       const novoPedido = await createPedido({
@@ -107,6 +110,7 @@
       }
 
       cartStore.clearCart()
+      cartStore.setCheckout(true)
       showCartDialog.value = false
       notifications.success('Pedido finalizado com sucesso!')
 
@@ -117,7 +121,6 @@
   }
 
   async function handleUpdateLoan () {
-    const cartStore = useCartStore()
     cartStore.clearCart()
     showCartDialog.value = false
     notifications.success('Pedido atualizado com sucesso!')
