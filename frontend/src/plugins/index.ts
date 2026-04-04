@@ -10,12 +10,12 @@ import type { App } from 'vue'
 // Plugins
 import vuetify from './vuetify'
 import router from "@/router";
+import pinia from "@/stores";
 import { registerSupabase } from './supabase'
-import { createPinia } from "pinia";
 
 export function registerPlugins (app: App) {
   app.use(vuetify)
   app.use(router)
-  app.use(createPinia())
+  app.use(pinia)
   registerSupabase(app)
 }

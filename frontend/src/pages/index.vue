@@ -1,162 +1,222 @@
-<script setup lang="ts">
-  import { onMounted, onUnmounted, ref } from 'vue'
+<script lang="ts" setup>
+import {computed, onMounted, onUnmounted, ref} from 'vue'
+import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
+import {useThemePreference} from '@/composables/useThemePreference'
 
-  const canvasRef = ref<HTMLCanvasElement | null>(null)
+const canvasRef = ref<HTMLCanvasElement | null>(null)
+const {currentTheme, initializeTheme, toggleTheme} = useThemePreference()
 
-  onMounted(() => {
-    const canvas = canvasRef.value
-    if (!canvas) return
-    const ctx = canvas.getContext('2d')
-    if (!ctx) return
+const heroTheme = computed(() => (
+    currentTheme.value === 'dark'
+        ? {
+          sheetClass: 'landing-shell landing-shell--dark',
+          cardClass: 'hero-panel hero-panel--dark',
+          chipClass: 'hero-chip hero-chip--dark',
+          eyebrowClass: 'hero-eyebrow hero-eyebrow--dark',
+          titleClass: 'hero-title hero-title--dark',
+          subtitleClass: 'hero-subtitle hero-subtitle--dark',
+          statClass: 'hero-stat hero-stat--dark',
+          particleFill: 'rgba(255, 255, 255, 0.45)',
+          particleStroke: '255, 255, 255',
+          accentLabel: 'Visão noturna',
+          accentIcon: 'mdi-weather-night',
+        }
+        : {
+          sheetClass: 'landing-shell landing-shell--light',
+          cardClass: 'hero-panel hero-panel--light',
+          chipClass: 'hero-chip hero-chip--light',
+          eyebrowClass: 'hero-eyebrow hero-eyebrow--light',
+          titleClass: 'hero-title hero-title--light',
+          subtitleClass: 'hero-subtitle hero-subtitle--light',
+          statClass: 'hero-stat hero-stat--light',
+          particleFill: 'rgba(15, 23, 42, 0.28)',
+          particleStroke: '15, 23, 42',
+          accentLabel: 'Aurora acadêmica',
+          accentIcon: 'mdi-white-balance-sunny',
+        }
+))
 
-    let particles: any[] = []
-    let animationFrameId: number | null = null
+const featureCards = [
+  {
+    icon: 'mdi-package-variant-closed',
+    title: 'Inventário',
+    text: 'Controle rigoroso e atualizado de todos os itens cadastrados no almoxarifado em tempo real.',
+  },
+  {
+    icon: 'mdi-hand-extended-outline',
+    title: 'Empréstimos',
+    text: 'Acompanhamento detalhado de retiradas, devoluções e situação pendente dos materiais.',
+  },
+  {
+    icon: 'mdi-chart-timeline-variant-shimmer',
+    title: 'Transparência',
+    text: 'Centralização de operações em um único ambiente acessível a qualquer hora e em qualquer lugar.',
+  },
+]
 
-    const PARTICLE_DENSITY = 12_000
-    const MAX_PARTICLES = 300
-    const BASE_CONNECT_DISTANCE = 120
+onMounted(() => {
+  initializeTheme()
 
-    const getSize = () => {
-      const w = Math.max(1, canvas.clientWidth)
-      const h = Math.max(1, canvas.clientHeight)
-      return { w, h }
+  const canvas = canvasRef.value
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return
+
+  type Particle = {
+    x: number
+    y: number
+    vx: number
+    vy: number
+    radius: number
+  }
+
+  let particles: Particle[] = []
+  let animationFrameId: number | null = null
+
+  const PARTICLE_DENSITY = 12_000
+  const MAX_PARTICLES = 300
+  const BASE_CONNECT_DISTANCE = 120
+
+  const getSize = () => {
+    const w = Math.max(1, canvas.clientWidth)
+    const h = Math.max(1, canvas.clientHeight)
+    return {w, h}
+  }
+
+  const resize = () => {
+    if (animationFrameId != null) {
+      cancelAnimationFrame(animationFrameId)
+      animationFrameId = null
     }
 
-    const resize = () => {
-      if (animationFrameId != null) {
-        cancelAnimationFrame(animationFrameId)
-        animationFrameId = null
+    const dpr = Math.max(1, window.devicePixelRatio || 1)
+    const {w, h} = getSize()
+
+    canvas.width = Math.floor(w * dpr)
+    canvas.height = Math.floor(h * dpr)
+    canvas.style.width = `${w}px`
+    canvas.style.height = `${h}px`
+
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
+
+    initParticles()
+    drawParticles()
+  }
+
+  const initParticles = () => {
+    particles = []
+    const {w, h} = getSize()
+    const rawNum = Math.floor((w * h) / PARTICLE_DENSITY)
+    const numParticles = Math.max(10, Math.min(rawNum, MAX_PARTICLES))
+
+    for (let i = 0; i < numParticles; i++) {
+      particles.push({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.6,
+        vy: (Math.random() - 0.5) * 0.6,
+        radius: Math.random() * 1.5 + 0.5,
+      })
+    }
+  }
+
+  const drawParticles = () => {
+    const {w, h} = getSize()
+    ctx.clearRect(0, 0, w, h)
+    ctx.fillStyle = heroTheme.value.particleFill
+
+    const connectDistance = Math.max(60, Math.min(BASE_CONNECT_DISTANCE, Math.sqrt(w * h) / 8))
+
+    for (let i = 0; i < particles.length; i++) {
+      const particle = particles[i]
+      particle.x += particle.vx
+      particle.y += particle.vy
+
+      if (particle.x < 0) {
+        particle.x = 0
+        particle.vx *= -1
+      }
+      if (particle.x > w) {
+        particle.x = w
+        particle.vx *= -1
+      }
+      if (particle.y < 0) {
+        particle.y = 0
+        particle.vy *= -1
+      }
+      if (particle.y > h) {
+        particle.y = h
+        particle.vy *= -1
       }
 
-      const dpr = Math.max(1, window.devicePixelRatio || 1)
-      const { w, h } = getSize()
+      ctx.beginPath()
+      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
+      ctx.fill()
 
-      canvas.width = Math.floor(w * dpr)
-      canvas.height = Math.floor(h * dpr)
-      canvas.style.width = `${w}px`
-      canvas.style.height = `${h}px`
+      for (let j = i + 1; j < particles.length; j++) {
+        const connectedParticle = particles[j]
+        const dx = particle.x - connectedParticle.x
+        const dy = particle.y - connectedParticle.y
+        const distance = Math.hypot(dx, dy)
 
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-
-      initParticles()
-      drawParticles()
-    }
-
-    const initParticles = () => {
-      particles = []
-      const { w, h } = getSize()
-      const rawNum = Math.floor((w * h) / PARTICLE_DENSITY)
-      const numParticles = Math.max(10, Math.min(rawNum, MAX_PARTICLES))
-
-      for (let i = 0; i < numParticles; i++) {
-        particles.push({
-          x: Math.random() * w,
-          y: Math.random() * h,
-          vx: (Math.random() - 0.5) * 0.6,
-          vy: (Math.random() - 0.5) * 0.6,
-          radius: Math.random() * 1.5 + 0.5,
-        })
-      }
-    }
-
-    const drawParticles = () => {
-      const { w, h } = getSize()
-      ctx.clearRect(0, 0, w, h)
-      ctx.fillStyle = 'rgba(255, 255, 255, 0.4)'
-
-      const connectDistance = Math.max(60, Math.min(BASE_CONNECT_DISTANCE, Math.sqrt(w * h) / 8))
-
-      for (let i = 0; i < particles.length; i++) {
-        const p = particles[i]
-        p.x += p.vx
-        p.y += p.vy
-
-        if (p.x < 0) {
-          p.x = 0
-          p.vx *= -1
-        }
-        if (p.x > w) {
-          p.x = w
-          p.vx *= -1
-        }
-        if (p.y < 0) {
-          p.y = 0
-          p.vy *= -1
-        }
-        if (p.y > h) {
-          p.y = h
-          p.vy *= -1
-        }
-
-        ctx.beginPath()
-        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2)
-        ctx.fill()
-
-        for (let j = i + 1; j < particles.length; j++) {
-          const p2 = particles[j]
-          const dx = p.x - p2.x
-          const dy = p.y - p2.y
-          const dist = Math.hypot(dx, dy)
-
-          if (dist < connectDistance) {
-            const alpha = Math.max(0, 0.12 * (1 - dist / connectDistance))
-            if (alpha <= 0) continue
-            ctx.beginPath()
-            ctx.strokeStyle = `rgba(255, 255, 255, ${alpha})`
-            ctx.moveTo(p.x, p.y)
-            ctx.lineTo(p2.x, p2.y)
-            ctx.stroke()
-          }
+        if (distance < connectDistance) {
+          const alpha = Math.max(0, 0.12 * (1 - distance / connectDistance))
+          if (alpha <= 0) continue
+          ctx.beginPath()
+          ctx.strokeStyle = `rgba(${heroTheme.value.particleStroke}, ${alpha})`
+          ctx.moveTo(particle.x, particle.y)
+          ctx.lineTo(connectedParticle.x, connectedParticle.y)
+          ctx.stroke()
         }
       }
-
-      animationFrameId = requestAnimationFrame(drawParticles)
     }
 
-    window.addEventListener('resize', resize)
-    const ro = new ResizeObserver(() => resize())
-    ro.observe(canvas)
+    animationFrameId = requestAnimationFrame(drawParticles)
+  }
 
-    resize()
+  window.addEventListener('resize', resize)
+  const ro = new ResizeObserver(() => resize())
+  ro.observe(canvas)
 
-    onUnmounted(() => {
-      window.removeEventListener('resize', resize)
-      ro.disconnect()
-      if (animationFrameId != null) cancelAnimationFrame(animationFrameId)
-    })
+  resize()
+
+  onUnmounted(() => {
+    window.removeEventListener('resize', resize)
+    ro.disconnect()
+    if (animationFrameId != null) cancelAnimationFrame(animationFrameId)
   })
+})
 </script>
 
 <template>
   <v-sheet
-    aria-label="Página Inicial do Sistema de Almoxarifado"
-    class="d-flex flex-column position-relative"
-    role="region"
-    style="min-height: 100vh; background: linear-gradient(rgba(0, 0, 0, 0.75), rgba(0, 0, 0, 0.95)), url('/ufc_panorama.jpeg') no-repeat center center fixed; background-size: cover;"
+      :class="heroTheme.sheetClass"
+      aria-label="Página Inicial do Sistema de Almoxarifado"
+      class="d-flex flex-column position-relative"
+      role="region"
   >
     <canvas
-      ref="canvasRef"
-      aria-hidden="true"
-      class="position-absolute top-0 left-0 w-100 h-100"
-      style="pointer-events: none; z-index: 0;"
+        ref="canvasRef"
+        aria-hidden="true"
+        class="landing-canvas"
     />
 
-    <v-toolbar
-      class="position-relative pt-4"
-      color="transparent"
-      flat
-      role="banner"
-      style="z-index: 1; overflow: visible;"
+    <v-toolbar aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
+               class="position-relative pt-4"
+               color="transparent"
+               flat
+               role="banner"
+               style="z-index: 1; overflow: visible;"
     >
       <v-container class="d-flex justify-space-between align-center py-0">
         <div class="d-flex align-center">
           <v-img
-            alt="Brasão da Universidade Federal do Ceará"
-            class="mr-4"
-            contain
-            height="46"
-            src="/brasao.png"
-            width="40"
+              alt="Brasão da Universidade Federal do Ceará"
+              class="mr-4"
+              contain
+              height="46"
+              src="/brasao.png"
+              width="40"
           />
           <div class="d-flex flex-column">
             <span class="text-title-medium text-sm-h6 font-weight-bold text-white lh-1">Almoxarifado UFC</span>
@@ -165,156 +225,232 @@
         </div>
 
         <v-btn
-          aria-label="Acessar o Sistema do Almoxarifado"
-          class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
-          color="warning"
-          elevation="4"
-          size="large"
-          to="/dashboard"
-          variant="flat"
+            aria-label="Acessar o Sistema do Almoxarifado"
+            class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
+            color="warning"
+            elevation="4"
+            size="large"
+            to="/auth/login"
+            variant="flat"
         >
-          Acessar Sistema
+          Entrar no Sistema
         </v-btn>
       </v-container>
     </v-toolbar>
 
-    <v-container class="flex-grow-1 d-flex align-center justify-center position-relative px-4 py-12" role="main" style="z-index: 1;">
-
+    <v-container class="flex-grow-1 d-flex align-center justify-center position-relative px-4 py-12" role="main"
+                 style="z-index: 1;">
       <div class="d-flex flex-column align-center text-center w-100" style="max-width: 1200px;">
-
         <div
-          aria-level="1"
-          class="text-headline-large text-md-display-small text-lg-h2 font-weight-black text-white mb-6 text-wrap w-100"
-          role="heading"
+            :class="heroTheme.titleClass"
+            aria-level="1"
+            class="mb-6 text-wrap w-100"
+            role="heading"
         >
-          Gestão Inteligente de<br class="d-none d-sm-block">
-          <span class="text-warning"> Estoque e Empréstimos</span>
+          Sistema de Gerenciamento de<br class="d-none d-sm-block">
+          <span class="text-warning">Estoque e Empréstimos</span>
         </div>
 
         <div
-          aria-level="2"
-          class="text-body-large text-sm-h6 text-md-headline-medium text-grey-lighten-2 font-weight-regular mb-12 w-100 w-md-75 mx-auto"
-          role="heading"
+            :class="heroTheme.subtitleClass"
+            aria-level="2"
+            class="mb-6 w-100 w-md-75 mx-auto"
+            role="heading"
         >
-          Uma plataforma moderna, 100% web, projetada para simplificar o controle de materiais e a gestão de pedidos na sua instituição.
+          Uma plataforma moderna, 100% web, projetada para simplificar o controle de materiais, organizar pedidos e dar
+          mais clareza à operação do campus.
         </div>
 
         <v-row class="w-100 justify-center">
-          <v-col class="d-flex" cols="12" md="4">
+          <v-col v-for="card in featureCards" :key="card.title" class="d-flex" cols="12" md="4">
             <v-card
-              class="flex-grow-1 text-center pa-8 rounded-xl"
-              color="grey-lighten-1"
-              elevation="0"
-              style="background: rgba(15, 15, 15, 0.1); backdrop-filter: blur(1px);"
-              variant="outlined"
+                :class="heroTheme.cardClass"
+                class="flex-grow-1 text-center pa-8 rounded-xl"
+                elevation="0"
+                variant="outlined"
             >
               <v-icon
-                aria-hidden="true"
-                class="mb-4"
-                color="warning"
-                icon="mdi-package-variant-closed"
-                size="48"
+                  :icon="card.icon"
+                  aria-hidden="true"
+                  class="mb-4"
+                  color="warning"
+                  size="36"
               />
-              <div aria-level="3" class="text-headline-small font-weight-bold mb-3 text-white" role="heading">
-                Inventário
+              <div :class="currentTheme === 'dark' ? 'text-white' : 'text-grey-darken-4'" aria-level="3"
+                   class="text-body-large font-weight-bold mb-3" role="heading">
+                {{ card.title }}
               </div>
-              <div class="text-body-large text-wrap text-grey-lighten-2">
-                Controle rigoroso e atualizado de todos os itens cadastrados no almoxarifado em tempo real.
-              </div>
-            </v-card>
-          </v-col>
-
-          <v-col class="d-flex" cols="12" md="4">
-            <v-card
-              class="flex-grow-1 text-center pa-8 rounded-xl"
-              color="grey-lighten-1"
-              elevation="0"
-              style="background: rgba(15, 15, 15, 0.1); backdrop-filter: blur(1px);"
-              variant="outlined"
-            >
-              <v-icon
-                aria-hidden="true"
-                class="mb-4"
-                color="warning"
-                icon="mdi-hand-extended-outline"
-                size="48"
-              />
-              <div aria-level="3" class="text-headline-small font-weight-bold mb-3 text-white" role="heading">
-                Empréstimos
-              </div>
-              <div class="text-body-large text-wrap text-grey-lighten-2">
-                Acompanhamento detalhado de retiradas, devoluções e situação pendente dos materiais.
-              </div>
-            </v-card>
-          </v-col>
-
-          <v-col class="d-flex" cols="12" md="4">
-            <v-card
-              class="flex-grow-1 text-center pa-8 rounded-xl"
-              color="grey-lighten-1"
-              elevation="0"
-              style="background: rgba(15, 15, 15, 0.1); backdrop-filter: blur(1px);"
-              variant="outlined"
-            >
-              <v-icon
-                aria-hidden="true"
-                class="mb-4"
-                color="warning"
-                icon="mdi-chart-timeline-variant-shimmer"
-                size="48"
-              />
-              <div aria-level="3" class="text-headline-small font-weight-bold mb-3 text-white" role="heading">
-                Transparência
-              </div>
-              <div class="text-body-large text-wrap text-grey-lighten-2">
-                Centralização de operações em um único ambiente acessível a qualquer hora e em qualquer lugar.
+              <div :class="currentTheme === 'dark' ? 'text-grey-lighten-2' : 'text-grey-darken-1'"
+                   class="text-body-medium text-wrap">
+                {{ card.text }}
               </div>
             </v-card>
           </v-col>
         </v-row>
-
       </div>
     </v-container>
 
-    <v-footer class="position-relative py-6 mt-auto" color="transparent" role="contentinfo" style="z-index: 1;">
-      <v-container class="py-0">
-        <v-row align="center" class="px-0" justify="space-between">
-          <v-col class="text-center text-sm-left" cols="12" sm="8">
-            <span class="d-block text-white text-body-large font-weight-bold mb-2">
-              Universidade Federal do Ceará - Campus Quixadá
-            </span>
-            <span class="d-block text-grey-lighten-1 text-body-medium mb-2">
-              Av. José de Freitas Queiroz, 5003 - Cedro, Quixadá - CE, 63902-580
-            </span>
-            <div class="d-flex align-center justify-center justify-sm-start flex-wrap text-grey-lighten-1 text-body-medium">
-              <span>Contato: (88) 3412-0919</span>
-              <v-icon aria-hidden="true" class="mx-2 text-grey-darken-1" icon="mdi-circle-small" size="16" />
-              <span>Site:</span>
-              <v-btn
-                aria-label="Acessar o site do Campus Quixadá em nova guia"
-                class="px-1 py-0 h-auto text-none font-weight-bold text-body-medium"
-                color="warning"
-                href="https://www.quixada.ufc.br"
-                :ripple="false"
-                target="_blank"
-                variant="plain"
-              >
-                www.quixada.ufc.br
-              </v-btn>
-            </div>
-          </v-col>
-
-          <v-col class="text-center text-sm-right mt-4 mt-sm-0" cols="12" sm="4">
-            <span class="text-grey-lighten-1 text-body-medium">
-              &copy; {{ new Date().getFullYear() }} Almoxarifado UFC.<br>
-              Desenvolvido para gestão inteligente.
-            </span>
-          </v-col>
-        </v-row>
-      </v-container>
-    </v-footer>
+    <InstitutionFooter :theme="currentTheme" class="position-relative mt-auto" mode="hero" style="z-index: 1;"/>
   </v-sheet>
 </template>
+
+<style scoped>
+.landing-shell {
+  min-height: 100vh;
+  overflow: hidden;
+  background-repeat: no-repeat;
+  background-position: center center;
+  background-size: cover;
+}
+
+.landing-shell--dark {
+  background-image: linear-gradient(135deg, rgba(2, 6, 23, 0.9), rgba(15, 23, 42, 0.76)),
+  url('/ufc_panorama.jpeg');
+}
+
+.landing-shell--light {
+  background-image: linear-gradient(135deg, rgba(248, 250, 252, 0.9), rgba(226, 232, 240, 0.7)),
+  url('/ufc_panorama.jpeg');
+}
+
+.landing-shell::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 15% 20%, rgba(245, 158, 11, 0.24), transparent 26%),
+  radial-gradient(circle at 85% 18%, rgba(14, 165, 233, 0.2), transparent 30%);
+  pointer-events: none;
+}
+
+.landing-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.hero-panel {
+  backdrop-filter: blur(14px);
+  border-width: 1px;
+}
+
+.hero-panel--dark {
+  background: rgba(15, 23, 42, 0.24);
+  border-color: rgba(255, 255, 255, 0.14);
+}
+
+.hero-panel--light {
+  background: rgba(255, 255, 255, 0.42);
+  border-color: rgba(255, 255, 255, 0.52);
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
+}
+
+.hero-chip {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.hero-chip--dark {
+  background: rgba(15, 23, 42, 0.45);
+  color: #f8fafc;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.hero-chip--light {
+  background: rgba(255, 255, 255, 0.58);
+  color: #0f172a;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+}
+
+.hero-eyebrow {
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.hero-eyebrow--dark {
+  background: rgba(255, 255, 255, 0.08);
+  color: #e2e8f0;
+}
+
+.hero-eyebrow--light {
+  background: rgba(15, 23, 42, 0.08);
+  color: #0f172a;
+}
+
+.hero-title {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 900;
+  line-height: 0.98;
+}
+
+.hero-title--dark {
+  color: #ffffff;
+}
+
+.hero-title--light {
+  color: #0f172a;
+}
+
+.hero-subtitle {
+  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  line-height: 1.6;
+  max-width: 860px;
+}
+
+.hero-subtitle--dark {
+  color: rgba(226, 232, 240, 0.92);
+}
+
+.hero-subtitle--light {
+  color: rgba(15, 23, 42, 0.84);
+}
+
+.hero-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.hero-stat {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 18px 20px;
+  border-radius: 20px;
+  text-align: left;
+  backdrop-filter: blur(14px);
+}
+
+.hero-stat strong {
+  font-size: 1rem;
+}
+
+.hero-stat span {
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.hero-stat--dark {
+  background: rgba(15, 23, 42, 0.28);
+  color: rgba(248, 250, 252, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.hero-stat--light {
+  background: rgba(255, 255, 255, 0.44);
+  color: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.68);
+}
+
+@media (max-width: 959px) {
+  .hero-stats {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 
 <route lang="yaml">
 meta:
