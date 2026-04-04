@@ -31,7 +31,7 @@ export interface AppLoadSpinnerProps {
 
 export interface AppAlertProps {
   title?: string
-  description: string
+  description?: string
   icon?: string
   tone?: 'success' | 'info' | 'warning' | 'error' | 'default'
   closable?: boolean

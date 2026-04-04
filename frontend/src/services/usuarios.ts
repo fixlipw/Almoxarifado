@@ -13,6 +13,18 @@ export async function getUsuarioById (id: UUID): Promise<Usuario | null> {
   return data as Usuario | null
 }
 
+export async function getUsuarioByMatricula (matricula: string): Promise<Usuario | null> {
+  const { data, error } = await supabase.from('usuarios').select('*').eq('matricula', matricula).maybeSingle()
+  if (error) throw error
+  return data as Usuario | null
+}
+
+export async function getUsuarioByEmail (email: string): Promise<Usuario | null> {
+  const { data, error } = await supabase.from('usuarios').select('*').eq('email', email).maybeSingle()
+  if (error) throw error
+  return data as Usuario | null
+}
+
 export async function createUsuario (payload: Partial<Usuario>): Promise<Usuario> {
   const { data, error } = await supabase.from('usuarios').insert(payload).select().single()
   if (error) throw error

@@ -35,5 +35,12 @@ export default defineConfig({
   },
   server: {
     port: 3000,
+    proxy: {
+      '/sigaa-api': {
+        target: 'http://almoxarifadoec.quixada.ufc.br:3000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/sigaa-api/, '')
+      }
+    }
   },
 })

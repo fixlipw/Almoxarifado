@@ -380,9 +380,9 @@ onMounted(() => {
 }
 
 .hero-title {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  font-weight: 900;
-  line-height: 0.98;
+  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .hero-title--dark {
@@ -394,7 +394,7 @@ onMounted(() => {
 }
 
 .hero-subtitle {
-  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  font-size: clamp(0.9rem, 1.25vw, 1rem);
   line-height: 1.6;
   max-width: 860px;
 }
