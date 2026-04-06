@@ -7,6 +7,7 @@ import AppCard from '@/components/ui/AppCard.vue'
 import {deletePedido} from '@/services/pedidos'
 import {useCartStore} from '@/stores/cart'
 import type {PedidoDetalhesProps} from "@/components/pedido/types.ts";
+import {useAuthStore} from '@/stores/auth'
 
 interface Props {
   modelValue: boolean
@@ -22,10 +23,11 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 
 const showConfirm = ref(false)
 const isLoading = ref(false)
-const isAluno = props.emprestimo.solicitante.tipo.toLowerCase() === 'aluno'
+const isAluno = authStore.userRole === 'ALUNO'
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase()
@@ -38,7 +40,6 @@ function statusColor(status: string) {
 
 function handleAction(actionType: 'approve' | 'reject' | 'return') {
   emit('action', actionType)
-  emit('update:modelValue', false)
 }
 
 async function handleConfirmEdit() {
@@ -47,11 +48,6 @@ async function handleConfirmEdit() {
     await new Promise(resolve => setTimeout(resolve, 500))
 
     cartStore.clearCart()
-
-    for (const item of props.emprestimo.itens) {
-
-    }
-
     try {
       await deletePedido(props.emprestimo.codigo)
     } catch (error) {

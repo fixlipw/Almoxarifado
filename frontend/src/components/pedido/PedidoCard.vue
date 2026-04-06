@@ -97,7 +97,7 @@ import { computed, ref } from 'vue'
   >
     <template #header>
       <v-row align="start" class="mb-2" justify="space-between" no-gutters>
-        <v-col class="d-flex align-start ga-2" cols="auto">
+        <v-col class="d-flex align-start ga-2" cols="12">
           <v-icon class="mt-1" size="18">{{ props.personIcon }}</v-icon>
           <v-list-item class="pa-0" min-height="0">
             <v-list-item-title class="font-weight-bold text-wrap">{{ props.title }}</v-list-item-title>
@@ -105,7 +105,7 @@ import { computed, ref } from 'vue'
           </v-list-item>
         </v-col>
 
-        <v-col cols="auto">
+        <v-col cols="12" class="d-flex justify-end">
           <v-chip
             v-if="props.status"
             class="font-weight-bold"

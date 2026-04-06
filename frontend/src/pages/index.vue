@@ -2,9 +2,11 @@
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
 import {useThemePreference} from '@/composables/useThemePreference'
+import { useAuthStore } from '@/stores/auth'
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const {currentTheme, initializeTheme, toggleTheme} = useThemePreference()
+const authStore = useAuthStore()
 
 const heroTheme = computed(() => (
     currentTheme.value === 'dark'
@@ -229,11 +231,10 @@ onMounted(() => {
             class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
             color="warning"
             elevation="4"
-            size="large"
-            to="/auth/login"
+            :to="authStore.isAuthenticated ? '/dashboard' : '/auth/login'"
             variant="flat"
         >
-          Entrar no Sistema
+          {{ authStore.isAuthenticated ? 'Acessar Dashboard' : 'Entrar no Sistema' }}
         </v-btn>
       </v-container>
     </v-toolbar>
@@ -380,9 +381,9 @@ onMounted(() => {
 }
 
 .hero-title {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  font-weight: 900;
-  line-height: 0.98;
+  font-size: clamp(1.25rem, 3.5vw, 1.75rem);
+  font-weight: 800;
+  line-height: 1.3;
 }
 
 .hero-title--dark {
@@ -394,7 +395,7 @@ onMounted(() => {
 }
 
 .hero-subtitle {
-  font-size: clamp(0.95rem, 1.4vw, 1.05rem);
+  font-size: clamp(0.9rem, 1.25vw, 1rem);
   line-height: 1.6;
   max-width: 860px;
 }

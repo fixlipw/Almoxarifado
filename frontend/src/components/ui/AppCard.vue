@@ -20,8 +20,8 @@
     variant="flat"
   >
     <div class="pa-5" :class="contentClass">
-      <div v-if="$slots.header || title || subtitle || $slots.button" class="d-flex align-start" :class="headerClass">
-        <div class="flex-grow-1">
+      <v-row v-if="$slots.header || title || subtitle || $slots.button" :class="headerClass" align="start">
+        <v-col cols="12" sm="" class="flex-grow-1">
           <slot name="header">
             <div>
               <div class="text-headline-small font-weight-bold">
@@ -33,12 +33,12 @@
               </div>
             </div>
           </slot>
-        </div>
+        </v-col>
 
-        <div v-if="$slots.button" class="d-flex justify-end align-self-center ml-3 ga-2">
+        <v-col v-if="$slots.button" cols="12" sm="auto" class="d-flex justify-center justify-sm-end align-center">
           <slot name="button" />
-        </div>
-      </div>
+        </v-col>
+      </v-row>
 
       <slot />
 

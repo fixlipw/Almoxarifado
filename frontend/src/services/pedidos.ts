@@ -1,5 +1,6 @@
 import {supabase} from '@/plugins/supabase'
 import type {Pedido, UUID} from '@/types/entities'
+import {getLocalISOString} from "@/utils";
 
 export async function getPedidos (): Promise<Pedido[]> {
   const { data, error } = await supabase.from('pedidos').select('*')
@@ -31,8 +32,53 @@ export async function deletePedido (id: UUID): Promise<void> {
   if (error) throw error
 }
 
-export async function getPedidosPendentes (): Promise<any[]> {
+export async function approvePedido (id: UUID, aprovadorId: string): Promise<Pedido> {
   const { data, error } = await supabase
+    .from('pedidos')
+    .update({
+      aprovado: true,
+      data_aprovacao: getLocalISOString,
+      aprovador_id: aprovadorId
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Pedido
+}
+
+export async function rejectPedido (id: UUID, aprovadorId: string): Promise<Pedido> {
+  const { data, error } = await supabase
+    .from('pedidos')
+    .update({
+      aprovado: false,
+      data_aprovacao: getLocalISOString,
+      aprovador_id: aprovadorId
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Pedido
+}
+
+export async function returnPedido (id: UUID, finalizadorId: string): Promise<Pedido> {
+  const { data, error } = await supabase
+    .from('pedidos')
+    .update({
+      finalizado: true,
+      data_finalizado: getLocalISOString,
+      finalizador_id: finalizadorId
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Pedido
+}
+
+export async function getPedidosPendentes (userId?: string): Promise<any[]> {
+  let query = supabase
     .from('pedidos')
     .select(`
       *,
@@ -41,12 +87,18 @@ export async function getPedidosPendentes (): Promise<any[]> {
     `)
     .is('aprovado', null)
 
+  if (userId) {
+    query = query.eq('solicitante_id', userId)
+  }
+
+  const { data, error } = await query
+
   if (error) throw error
   return data
 }
 
-export async function getPedidosAtivos (): Promise<any[]> {
-  const { data, error } = await supabase
+export async function getPedidosAtivos (userId?: string): Promise<any[]> {
+  let query = supabase
     .from('pedidos')
     .select(`
       *,
@@ -56,12 +108,18 @@ export async function getPedidosAtivos (): Promise<any[]> {
     .eq('aprovado', true)
     .is('finalizado', null)
 
+  if (userId) {
+    query = query.eq('solicitante_id', userId)
+  }
+
+  const { data, error } = await query
+
   if (error) throw error
   return data
 }
 
-export async function getPedidosFinalizados (): Promise<any[]> {
-  const { data, error } = await supabase
+export async function getPedidosFinalizados (userId?: string): Promise<any[]> {
+  let query = supabase
     .from('pedidos')
     .select(`
       *,
@@ -70,12 +128,18 @@ export async function getPedidosFinalizados (): Promise<any[]> {
     `)
     .eq('finalizado', true)
 
+  if (userId) {
+    query = query.eq('solicitante_id', userId)
+  }
+
+  const { data, error } = await query
+
   if (error) throw error
   return data
 }
 
-export async function getPedidosAtrasados (): Promise<any[]> {
-  const pedidosAtivos = await getPedidosAtivos();
+export async function getPedidosAtrasados (userId?: string): Promise<any[]> {
+  const pedidosAtivos = await getPedidosAtivos(userId);
   return pedidosAtivos.filter(pedido => {
     const aprovadoAtRaw = (pedido as Pedido).data_aprovacao
     if (!aprovadoAtRaw) return false

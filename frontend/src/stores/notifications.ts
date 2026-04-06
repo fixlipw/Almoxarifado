@@ -33,6 +33,10 @@ export const useNotificationStore = defineStore('notifications', {
       this.addNotification(message, 'info', timeout)
     },
 
+    warning(message: string, timeout = 4000) {
+      this.addNotification(message, 'warning', timeout)
+    },
+
     success(message: string, timeout = 3000) {
       this.addNotification(message, 'success', timeout)
     },

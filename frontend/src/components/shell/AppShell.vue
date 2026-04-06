@@ -36,7 +36,7 @@
 
 <script lang="ts" setup>
   import type { NavItem, NavSection } from './types'
-  import { ref, watch } from 'vue'
+  import { ref, watch, computed } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { useDisplay } from 'vuetify'
   import AppFooter from './AppFooter.vue'
@@ -47,6 +47,8 @@
   import { createItemPedido } from '@/services/itensPedido'
   import { useCartStore } from '@/stores/cart'
   import { useNotificationStore } from '@/stores/notifications'
+  import { useAuthStore } from '@/stores/auth'
+  import { getLocalISOString } from '@/utils'
 
   const { mobile } = useDisplay()
   const router = useRouter()
@@ -55,15 +57,24 @@
   const showCartDialog = ref(false)
   const activeSection = ref<NavSection>('dashboard')
   const cartStore = useCartStore()
+  const authStore = useAuthStore()
 
-  const navItems: NavItem[] = [
-    { label: 'Dashboard', value: 'dashboard', icon: 'mdi-view-dashboard-outline' },
-    { label: 'Estoque', value: 'estoque', icon: 'mdi-cube-outline' },
-    { label: 'Pedidos', value: 'pedidos', icon: 'mdi-clipboard-text-outline' },
-    // { label: 'Usuários', value: 'usuarios', icon: 'mdi-account-group-outline' },
-    // { label: 'Relatórios', value: 'relatorios', icon: 'mdi-chart-box-outline' },
+  const isAdministrador = computed(() => authStore.userRole === 'ADMIN')
 
-  ]
+  const navItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+      { label: 'Dashboard', value: 'dashboard', icon: 'mdi-view-dashboard-outline' },
+      { label: 'Estoque', value: 'estoque', icon: 'mdi-cube-outline' },
+      { label: 'Pedidos', value: 'pedidos', icon: 'mdi-clipboard-text-outline' },
+    ]
+
+    if (isAdministrador.value) {
+      items.push({ label: 'Usuários', value: 'usuarios', icon: 'mdi-account-group-outline' })
+      items.push({ label: 'Relatórios', value: 'relatorios', icon: 'mdi-chart-box-outline' })
+    }
+
+    return items
+  })
 
   watch(mobile, () => {
     if (!mobile.value) {
@@ -93,11 +104,16 @@
     try {
       if (cartStore.items.length === 0) return
 
+      if (!authStore.session?.usuario?.id) {
+        notifications.error('Sessão inválida. Por favor, faça login novamente.')
+        return
+      }
+
       const novoPedido = await createPedido({
         id: crypto.randomUUID(),
-        solicitante_id: '11111111-1111-1111-1111-111111111111',
+        solicitante_id: authStore.session.usuario.id,
         codigo_pedido: `PED-${Date.now().toString().slice(-6)}`,
-        data_solicitacao: new Date().toISOString(),
+        data_solicitacao: getLocalISOString(),
       })
 
       for (const item of cartStore.items) {
