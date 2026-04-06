@@ -7,6 +7,7 @@ import AppCard from '@/components/ui/AppCard.vue'
 import {deletePedido} from '@/services/pedidos'
 import {useCartStore} from '@/stores/cart'
 import type {PedidoDetalhesProps} from "@/components/pedido/types.ts";
+import {useAuthStore} from '@/stores/auth'
 
 interface Props {
   modelValue: boolean
@@ -22,10 +23,11 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const cartStore = useCartStore()
+const authStore = useAuthStore()
 
 const showConfirm = ref(false)
 const isLoading = ref(false)
-const isAluno = props.emprestimo.solicitante.tipo.toLowerCase() === 'aluno'
+const isAluno = authStore.userRole === 'ALUNO'
 
 function statusColor(status: string) {
   const normalized = status.toLowerCase()

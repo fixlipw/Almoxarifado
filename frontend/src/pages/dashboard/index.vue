@@ -1,13 +1,16 @@
 <script lang="ts" setup>
   import { onMounted, ref } from 'vue'
+  import { useAuthStore } from '@/stores/auth'
+
   import AppAlert from '@/components/ui/AppAlert.vue'
   import AppButton from '@/components/ui/AppButton.vue'
   import AppCard from '@/components/ui/AppCard.vue'
   import AppPage from '@/components/ui/AppPage.vue'
 
-  const user = ref({
-    name: 'Maria',
-  })
+  const user = {
+    name: useAuthStore().userName || 'Usuário',
+    role: useAuthStore().userRole || 'USUÁRIO',
+  }
 
   const dashboardData = ref({
     emprestimosAtivos: 0,

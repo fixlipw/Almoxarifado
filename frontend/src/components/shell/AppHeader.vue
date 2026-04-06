@@ -70,12 +70,28 @@
         </template>
         <span>Carrinho</span>
       </v-tooltip>
-      <v-chip prepend-icon="mdi-account-outline" size="small" variant="outlined">
-        Aluno
+      <v-chip prepend-icon="mdi-account-outline" size="small" variant="outlined" v-if="authStore.userRole">
+        {{ formatRole(authStore.userRole) }}
       </v-chip>
-      <v-chip prepend-icon="mdi-account" size="small" variant="tonal">
-        Maria
-      </v-chip>
+      <v-menu offset-y>
+        <template #activator="{ props }">
+          <v-chip
+            v-bind="props"
+            class="cursor-pointer"
+            prepend-icon="mdi-account"
+            size="small"
+            variant="tonal"
+          >
+            {{ authStore.userName }}
+            <v-icon icon="mdi-chevron-down" size="small" class="ml-1" />
+          </v-chip>
+        </template>
+        <v-list density="compact" min-width="150">
+          <v-list-item @click="authStore.logout()" prepend-icon="mdi-logout">
+            <v-list-item-title>Sair</v-list-item-title>
+          </v-list-item>
+        </v-list>
+      </v-menu>
     </div>
   </v-app-bar>
 </template>
@@ -86,11 +102,22 @@
   import { useTheme } from 'vuetify'
   import AppButton from '@/components/ui/AppButton.vue'
   import { useCartStore } from '@/stores/cart'
+  import { useAuthStore } from '@/stores/auth'
 
   const theme = useTheme()
+  const authStore = useAuthStore()
 
   const cart = useCartStore()
   const cartItemCount = computed(() => cart.count)
+
+  const formatRole = (role: string) => {
+    switch(role) {
+      case 'ADMIN': return 'Administrador'
+      case 'BOLSISTA': return 'Bolsista'
+      case 'ALUNO': return 'Aluno'
+      default: return 'Usuário'
+    }
+  }
 
   onMounted(() => {
     const savedTheme = localStorage.getItem('almoxarifado-theme')

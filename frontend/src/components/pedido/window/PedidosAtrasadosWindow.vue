@@ -10,6 +10,7 @@ import { mapearPedidoDetalhes, mapearParaPedidoVisual } from "@/components/pedid
 import { getPedidosAtrasados } from "@/services/pedidos.ts";
 import { useCartStore } from "@/stores/cart.ts";
 import { useNotificationStore } from "@/stores/notifications.ts";
+import { useAuthStore } from "@/stores/auth.ts";
 
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
@@ -18,6 +19,7 @@ import { useNotificationStore } from "@/stores/notifications.ts";
 
   const cartStore = useCartStore()
   const rules = useNotificationStore()
+  const authStore = useAuthStore()
 
   const pedidoDetalhesSelecionado = computed(() => {
 	if (!pedidoSelecionado.value) return null
@@ -37,7 +39,8 @@ import { useNotificationStore } from "@/stores/notifications.ts";
   async function carregarPedidos () {
 	isLoading.value = true
 	try {
-	  const data = await getPedidosAtrasados()
+	  const userId = authStore.userRole === 'ALUNO' ? authStore.session?.usuario?.id : undefined
+	  const data = await getPedidosAtrasados(userId)
 	  pedidos.value = data.map(mapearParaPedidoVisual)
 	} catch (e) {
 	  console.error(e)

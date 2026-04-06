@@ -8,12 +8,14 @@ import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import { mapearPedidoDetalhes, mapearParaPedidoVisual } from "@/components/pedido/window/utils.ts";
 import { getPedidosFinalizados } from "@/services/pedidos.ts";
 import { useCartStore } from "@/stores/cart.ts";
+import { useAuthStore } from "@/stores/auth.ts";
 
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
   const pedidoSelecionado = ref<PedidoVisualProps | null>(null)
   const isLoading = ref(false)
   const cartStore = useCartStore()
+  const authStore = useAuthStore()
 
   const pedidoDetalhesSelecionado = computed(() => {
     if (!pedidoSelecionado.value) return null
@@ -28,7 +30,8 @@ import { useCartStore } from "@/stores/cart.ts";
   async function carregarPedidos () {
     isLoading.value = true
     try {
-      const data = await getPedidosFinalizados()
+      const userId = authStore.userRole === 'ALUNO' ? authStore.session?.usuario?.id : undefined
+      const data = await getPedidosFinalizados(userId)
       pedidos.value = data.map(mapearParaPedidoVisual)
     } catch (e) {
       console.error(e)

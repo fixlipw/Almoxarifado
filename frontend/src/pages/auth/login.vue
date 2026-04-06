@@ -1,22 +1,24 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
-import {useThemePreference} from '@/composables/useThemePreference'
-import {clearAuthSession, loadAuthSession, saveAuthSession} from '@/services/auth'
-import {getUsuarios} from '@/services/usuarios'
-import {validarCredenciaisSigaa} from '@/services/sigaa'
-import {useNotificationStore} from '@/stores/notifications'
-import type {SigaaCredentials} from '@/types/auth'
+import { useThemePreference } from '@/composables/useThemePreference'
+import { loadAuthSession } from '@/services/auth'
+import { getUsuarioByLoginOrEmail } from '@/services/usuarios'
+import { useNotificationStore } from '@/stores/notifications'
+import { useAuthStore } from '@/stores/auth'
+import type { SigaaCredentials } from '@/types/auth'
+import { getLocalISOString } from '@/utils'
 
 const router = useRouter()
 const route = useRoute()
 const notifications = useNotificationStore()
-const {currentTheme, initializeTheme} = useThemePreference()
+const authStore = useAuthStore()
+const { currentTheme, initializeTheme } = useThemePreference()
 
 const formRef = ref()
 const isLoading = ref(false)
@@ -27,33 +29,33 @@ const credentials = ref<SigaaCredentials>({
 })
 
 const heroTheme = computed(() => (
-    currentTheme.value === 'dark'
-        ? {
-          shellClass: 'auth-shell auth-shell--dark',
-          cardClass: 'auth-card auth-card--dark',
-          titleClass: 'auth-title auth-title--dark',
-          subtitleClass: 'auth-subtitle auth-subtitle--dark',
-          pillClass: 'auth-pill auth-pill--dark',
-          featureClass: 'auth-feature auth-feature--dark',
-        }
-        : {
-          shellClass: 'auth-shell auth-shell--light',
-          cardClass: 'auth-card auth-card--light',
-          titleClass: 'auth-title auth-title--light',
-          subtitleClass: 'auth-subtitle auth-subtitle--light',
-          pillClass: 'auth-pill auth-pill--light',
-          featureClass: 'auth-feature auth-feature--light',
-        }
+  currentTheme.value === 'dark'
+    ? {
+        shellClass: 'auth-shell auth-shell--dark',
+        cardClass: 'auth-card auth-card--dark',
+        titleClass: 'auth-title auth-title--dark',
+        subtitleClass: 'auth-subtitle auth-subtitle--dark',
+        pillClass: 'auth-pill auth-pill--dark',
+        featureClass: 'auth-feature auth-feature--dark',
+      }
+    : {
+        shellClass: 'auth-shell auth-shell--light',
+        cardClass: 'auth-card auth-card--light',
+        titleClass: 'auth-title auth-title--light',
+        subtitleClass: 'auth-subtitle auth-subtitle--light',
+        pillClass: 'auth-pill auth-pill--light',
+        featureClass: 'auth-feature auth-feature--light',
+      }
 ))
 
-const isCadastroConcluido = computed(() => route.query.cadastro === 'ok')
+const isCadastroConcluido = computed(() => route.query.cadastro === 'cadastro_ok')
 
 const loginRules = [
-  (value: string) => Boolean(value?.trim()) || 'Informe o login SIGAA.',
+  (value: string) => Boolean(value?.trim()) || 'Informe seu usuário ou email.',
 ]
 
 const passwordRules = [
-  (value: string) => Boolean(value?.trim()) || 'Informe a senha do SIGAA.',
+  (value: string) => Boolean(value?.trim()) || 'Informe sua senha.',
 ]
 
 function applyQueryPrefill() {
@@ -76,29 +78,26 @@ async function handleLogin() {
   isLoading.value = true
 
   try {
-    const sigaaUser = await validarCredenciaisSigaa(credentials.value)
-    const usuarios = await getUsuarios()
-    const usuarioLocal = usuarios.find(usuario => usuario.matricula === sigaaUser.matricula)
+    const login = credentials.value.login.trim()
+    const senha = credentials.value.senha
+    const usuarioLocal = await getUsuarioByLoginOrEmail(login)
 
     if (!usuarioLocal) {
-      notifications.addNotification('Seu cadastro ainda não foi finalizado. Conclua o registro antes de entrar.', 'warning')
-      await router.push({
-        path: '/auth/registro',
-        query: {
-          login: sigaaUser.login,
-        },
-      })
+      notifications.addNotification('Não encontramos um usuário com esse login ou email.', 'warning')
       return
     }
 
-    clearAuthSession()
-    saveAuthSession({
+    if (usuarioLocal.senha !== senha) {
+      notifications.error('Senha inválida. Tente novamente.')
+      return
+    }
+
+    authStore.login({
       usuario: usuarioLocal,
-      sigaa: sigaaUser,
-      authenticatedAt: new Date().toISOString(),
+      authenticatedAt: getLocalISOString(),
     })
 
-    notifications.success(`Bem-vindo, ${sigaaUser.nome}!`)
+    notifications.success(`Bem-vindo, ${usuarioLocal.nome || usuarioLocal.usuario}!`)
     await router.push('/dashboard')
   } catch (error) {
     notifications.error(getErrorMessage(error))
@@ -125,23 +124,23 @@ onMounted(() => {
 
 <template>
   <v-sheet :class="heroTheme.shellClass" class="auth-page position-relative d-flex flex-column">
-
-    <v-toolbar aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
-               class="position-relative pt-4"
-               color="transparent"
-               flat
-               role="banner"
-               style="z-index: 1; overflow: visible;"
+    <v-toolbar
+      aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
+      class="position-relative pt-4"
+      color="transparent"
+      flat
+      role="banner"
+      style="z-index: 1; overflow: visible;"
     >
       <v-container class="d-flex justify-space-between align-center py-0">
         <div class="d-flex align-center">
           <v-img
-              alt="Brasão da Universidade Federal do Ceará"
-              class="mr-4"
-              contain
-              height="46"
-              src="/brasao.png"
-              width="40"
+            alt="Brasão da Universidade Federal do Ceará"
+            class="mr-4"
+            contain
+            height="46"
+            src="/brasao.png"
+            width="40"
           />
           <div class="d-flex flex-column">
             <span class="text-title-medium text-sm-h6 font-weight-bold text-white lh-1">Almoxarifado UFC</span>
@@ -150,13 +149,13 @@ onMounted(() => {
         </div>
 
         <v-btn
-            aria-label="Acessar o Sistema do Almoxarifado"
-            class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
-            color="warning"
-            elevation="4"
-            size="large"
-            to="/"
-            variant="flat"
+          aria-label="Acessar o Sistema do Almoxarifado"
+          class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
+          color="warning"
+          elevation="4"
+          size="large"
+          to="/"
+          variant="flat"
         >
           Página Inicial
         </v-btn>
@@ -172,54 +171,54 @@ onMounted(() => {
                 <div class="text-overline text-warning font-weight-bold mb-2">Entrar</div>
                 <div class="text-headline-small font-weight-bold">Acesse sua conta</div>
                 <div class="text-body-medium text-medium-emphasis">
-                  Informe o login e a senha usados no SIGAA.
+                  Entre com seu usuário ou email e a senha cadastrada no sistema.
                 </div>
               </div>
             </template>
 
             <AppAlert
-                v-if="isCadastroConcluido"
-                class="mt-5 mb-5"
-                description="Agora você pode entrar com as credenciais validadas no SIGAA."
-                title="Cadastro concluído"
-                tone="success"
+              v-if="isCadastroConcluido"
+              class="mt-5 mb-5"
+              description="Agora você pode entrar com seu usuário ou email e a senha cadastrada."
+              title="Cadastro concluído"
+              tone="success"
             />
 
             <v-form ref="formRef" class="mt-4" @submit.prevent="handleLogin">
               <v-text-field
-                  v-model="credentials.login"
-                  :rules="loginRules"
-                  autocomplete="username"
-                  class="mb-4"
-                  density="comfortable"
-                  label="Login SIGAA"
-                  placeholder="Informe seu login"
-                  prepend-inner-icon="mdi-account-outline"
-                  variant="outlined"
+                v-model="credentials.login"
+                :rules="loginRules"
+                autocomplete="username"
+                class="mb-4"
+                density="comfortable"
+                label="Usuário ou email"
+                placeholder="Informe seu usuário ou email"
+                prepend-inner-icon="mdi-account-outline"
+                variant="outlined"
               />
 
               <v-text-field
-                  v-model="credentials.senha"
-                  :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-                  :rules="passwordRules"
-                  :type="showPassword ? 'text' : 'password'"
-                  autocomplete="current-password"
-                  class="mb-3"
-                  density="comfortable"
-                  label="Senha"
-                  placeholder="Digite sua senha"
-                  prepend-inner-icon="mdi-lock-outline"
-                  variant="outlined"
-                  @click:append-inner="showPassword = !showPassword"
+                v-model="credentials.senha"
+                :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+                :rules="passwordRules"
+                :type="showPassword ? 'text' : 'password'"
+                autocomplete="current-password"
+                class="mb-3"
+                density="comfortable"
+                label="Senha"
+                placeholder="Digite sua senha"
+                prepend-inner-icon="mdi-lock-outline"
+                variant="outlined"
+                @click:append-inner="showPassword = !showPassword"
               />
 
               <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3 mt-2">
                 <v-btn
-                    class="text-none px-0"
-                    color="warning"
-                    size="small"
-                    to="/auth/registro"
-                    variant="text"
+                  class="text-none px-0"
+                  color="warning"
+                  size="small"
+                  to="/auth/registro"
+                  variant="text"
                 >
                   Primeiro acesso? Registre-se
                 </v-btn>
@@ -347,5 +346,3 @@ onMounted(() => {
 meta:
   layout: blank
 </route>
-
-

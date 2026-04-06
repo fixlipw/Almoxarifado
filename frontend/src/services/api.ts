@@ -5,7 +5,24 @@
 
 export async function apiFetch<T = unknown> (endpoint: string, init?: RequestInit): Promise<T> {
   const base = (import.meta as any).env?.VITE_API_BASE ?? ''
-  const res = await fetch(base + endpoint, init)
+
+  const headers = new Headers(init?.headers)
+  const sessionRaw = localStorage.getItem('almoxarifado-auth-session')
+  if (sessionRaw) {
+    try {
+      const session = JSON.parse(sessionRaw)
+      if (session?.usuario?.id) {
+        headers.set('X-User-Id', session.usuario.id)
+      }
+    } catch (e) {
+      // Ignore parse error
+    }
+  }
+
+  const res = await fetch(base + endpoint, {
+    ...init,
+    headers
+  })
 
   if (!res.ok) {
     const text = await res.text().catch(() => '')

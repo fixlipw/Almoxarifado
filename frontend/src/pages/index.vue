@@ -2,9 +2,11 @@
 import {computed, onMounted, onUnmounted, ref} from 'vue'
 import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
 import {useThemePreference} from '@/composables/useThemePreference'
+import { useAuthStore } from '@/stores/auth'
 
 const canvasRef = ref<HTMLCanvasElement | null>(null)
 const {currentTheme, initializeTheme, toggleTheme} = useThemePreference()
+const authStore = useAuthStore()
 
 const heroTheme = computed(() => (
     currentTheme.value === 'dark'
@@ -230,10 +232,10 @@ onMounted(() => {
             color="warning"
             elevation="4"
             size="large"
-            to="/auth/login"
+            :to="authStore.isAuthenticated ? '/dashboard' : '/auth/login'"
             variant="flat"
         >
-          Entrar no Sistema
+          {{ authStore.isAuthenticated ? 'Acessar Dashboard' : 'Entrar no Sistema' }}
         </v-btn>
       </v-container>
     </v-toolbar>

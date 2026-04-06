@@ -11,6 +11,7 @@ import { getPedidosPendentes, deletePedido } from "@/services/pedidos.ts";
 import { useCartStore } from "@/stores/cart.ts";
 import { useNotificationStore } from "@/stores/notifications.ts";
 import { useRouter } from "vue-router";
+import { useAuthStore } from "@/stores/auth.ts";
 
   const pedidos = ref<any[]>([])
   const dialogAberto = ref(false)
@@ -20,6 +21,7 @@ import { useRouter } from "vue-router";
   const cartStore = useCartStore()
   const router = useRouter()
   const notifications = useNotificationStore()
+  const authStore = useAuthStore()
 
   const pedidoDetalhesSelecionado = computed(() => {
     if (!pedidoSelecionado.value) return null
@@ -40,7 +42,8 @@ import { useRouter } from "vue-router";
   async function carregarPedidos () {
     isLoading.value = true
     try {
-      const data = await getPedidosPendentes()
+      const userId = authStore.userRole === 'ALUNO' ? authStore.session?.usuario?.id : undefined
+      const data = await getPedidosPendentes(userId)
       pedidos.value = data.map(mapearParaPedidoVisual)
     } catch (e) {
       console.error(e)

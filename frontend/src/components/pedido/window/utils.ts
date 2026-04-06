@@ -22,7 +22,7 @@ export function mapearParaPedidoVisual (apiPedido: any): PedidoVisualProps {
   return {
     id: apiPedido.id,
     codigo: apiPedido.codigo_pedido,
-    nome: solicitante.nome ? `${solicitante.nome} ${solicitante.sobrenome || ''}`.trim() : 'Desconhecido',
+    nome: solicitante.nome ? (solicitante.sobrenome && !solicitante.nome.includes(solicitante.sobrenome) ? `${solicitante.nome} ${solicitante.sobrenome}` : solicitante.nome).trim() : 'Desconhecido',
     matricula: solicitante.matricula || '',
     email: solicitante.email || '',
     curso: solicitante.curso || '',

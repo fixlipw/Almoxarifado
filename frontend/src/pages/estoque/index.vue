@@ -1,11 +1,13 @@
 <script setup lang="ts">
   import { computed, onMounted, ref } from 'vue'
   import AppPage from '@/components/ui/AppPage.vue'
+  import AppButton from '@/components/ui/AppButton.vue'
   import AppSearchBar from '@/components/ui/AppSearchBar.vue'
   import AppSelect from '@/components/ui/AppSelect.vue'
   import ItemCard from "@/components/estoque/ItemCard.vue";
   import QuantityDialog from "@/components/estoque/QuantityDialog.vue";
   import { useCartStore } from '@/stores/cart'
+  import { useAuthStore } from '@/stores/auth'
 
   const search = ref('')
   const selectedType = ref('todos')
@@ -94,6 +96,9 @@
     showQuantityModal.value = false
     selectedItemForQuantity.value = undefined
   }
+
+  const authStore = useAuthStore()
+  const isAdministrador = computed(() => authStore.userRole === 'ADMIN' || authStore.userRole === 'BOLSISTA')
 </script>
 
 <template>
@@ -106,6 +111,18 @@
     subtitle="Consulte itens disponíveis e detalhes de estoque"
     title="Estoque"
   >
+    <template #actions v-if="isAdministrador">
+      <AppButton
+        class="text-none"
+        color="primary"
+        prepend-icon="mdi-plus"
+        rounded="md"
+        variant="flat"
+      >
+        Novo Item
+      </AppButton>
+    </template>
+
     <v-row class="mb-6" density="comfortable">
       <v-col cols="12" md="6">
         <AppSearchBar

@@ -30,6 +30,7 @@ export interface SigaaAluno {
 }
 
 export interface RegistroComplementarForm {
+  usuario: string
   email: string
   senha: string
   confirmarSenha: string
@@ -38,7 +39,24 @@ export interface RegistroComplementarForm {
 
 export interface AuthSession {
   usuario: Usuario
-  sigaa: SigaaAluno
+  sigaa?: SigaaAluno
   authenticatedAt: string
 }
 
+export function hasSigaaAlunoError(aluno: SigaaAluno): boolean {
+  if (aluno.error) return true
+
+  const camposObrigatorios = [
+    aluno.login,
+    aluno.nome,
+    aluno.foto,
+    aluno.matricula,
+    aluno.curso,
+    aluno.nivel,
+    aluno.status,
+    aluno.entrada,
+    aluno.semestre
+  ]
+
+  return camposObrigatorios.some(campo => !campo) || !Array.isArray(aluno.cadeiras)
+}

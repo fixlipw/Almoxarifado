@@ -1,5 +1,5 @@
 import {sigaaFetch} from '@/services/api'
-import type { SigaaAluno, SigaaCredentials } from '@/types/auth'
+import {hasSigaaAlunoError, type SigaaAluno, type SigaaCredentials} from '@/types/auth'
 
 export async function validarCredenciaisSigaa(payload: SigaaCredentials): Promise<SigaaAluno> {
   const response = await sigaaFetch<SigaaAluno>('/sigaa', {
@@ -10,8 +10,8 @@ export async function validarCredenciaisSigaa(payload: SigaaCredentials): Promis
 	body: JSON.stringify(payload),
   })
 
-  if (response.error) {
-	throw new Error(response.message || 'Não foi possível validar o acesso no SIGAA.')
+  if (hasSigaaAlunoError(response)) {
+	throw new Error(response.message || 'Não foi possível validar seu acesso. Verifique suas credenciais e tente novamente.')
   }
 
   return response

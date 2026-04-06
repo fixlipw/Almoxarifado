@@ -1,4 +1,3 @@
-// Auto-generated entity types based on the provided migration SQL
 
 export type UUID = string
 
@@ -16,6 +15,7 @@ export interface Usuario {
   nome?: string | null
   senha: string
   sobrenome?: string | null
+  usuario: string
 }
 
 export interface Pedido {

@@ -1,21 +1,21 @@
 <script lang="ts" setup>
-import {computed, onMounted, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
+import { computed, onMounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
-import {useThemePreference} from '@/composables/useThemePreference'
-import {createUsuario, getUsuarioByEmail, getUsuarioByMatricula} from '@/services/usuarios'
-import {validarCredenciaisSigaa} from '@/services/sigaa'
-import {useNotificationStore} from '@/stores/notifications'
-import type {RegistroComplementarForm, SigaaAluno, SigaaCredentials} from '@/types/auth'
+import { useThemePreference } from '@/composables/useThemePreference'
+import { createUsuario, getUsuarioByEmail, getUsuarioByMatricula, getUsuarioByUsername } from '@/services/usuarios'
+import { validarCredenciaisSigaa } from '@/services/sigaa'
+import { useNotificationStore } from '@/stores/notifications'
+import type { RegistroComplementarForm, SigaaAluno, SigaaCredentials } from '@/types/auth'
 
 const router = useRouter()
 const route = useRoute()
 const notifications = useNotificationStore()
-const {currentTheme, initializeTheme} = useThemePreference()
+const { currentTheme, initializeTheme } = useThemePreference()
 
 const sigaaFormRef = ref()
 const cadastroFormRef = ref()
@@ -30,6 +30,7 @@ const sigaaCredentials = ref<SigaaCredentials>({
   senha: '',
 })
 const cadastroComplementar = ref<RegistroComplementarForm>({
+  usuario: '',
   email: '',
   senha: '',
   confirmarSenha: '',
@@ -37,23 +38,23 @@ const cadastroComplementar = ref<RegistroComplementarForm>({
 })
 
 const heroTheme = computed(() => (
-    currentTheme.value === 'dark'
-        ? {
-          shellClass: 'auth-shell auth-shell--dark',
-          cardClass: 'auth-card auth-card--dark',
-            titleClass: 'auth-title auth-title--dark',
-          subtitleClass: 'auth-subtitle auth-subtitle--dark',
-          pillClass: 'auth-pill auth-pill--dark',
-          featureClass: 'auth-feature auth-feature--dark',
-        }
-        : {
-          shellClass: 'auth-shell auth-shell--light',
-          cardClass: 'auth-card auth-card--light',
-          titleClass: 'auth-title auth-title--light',
-          subtitleClass: 'auth-subtitle auth-subtitle--light',
-          pillClass: 'auth-pill auth-pill--light',
-          featureClass: 'auth-feature auth-feature--light',
-        }
+  currentTheme.value === 'dark'
+    ? {
+        shellClass: 'auth-shell auth-shell--dark',
+        cardClass: 'auth-card auth-card--dark',
+        titleClass: 'auth-title auth-title--dark',
+        subtitleClass: 'auth-subtitle auth-subtitle--dark',
+        pillClass: 'auth-pill auth-pill--dark',
+        featureClass: 'auth-feature auth-feature--dark',
+      }
+    : {
+        shellClass: 'auth-shell auth-shell--light',
+        cardClass: 'auth-card auth-card--light',
+        titleClass: 'auth-title auth-title--light',
+        subtitleClass: 'auth-subtitle auth-subtitle--light',
+        pillClass: 'auth-pill auth-pill--light',
+        featureClass: 'auth-feature auth-feature--light',
+      }
 ))
 
 const stepLabel = computed(() => currentStep.value === 1 ? 'Etapa 1 de 2' : 'Etapa 2 de 2')
@@ -65,6 +66,11 @@ const loginRules = [
 
 const sigaaPasswordRules = [
   (value: string) => Boolean(value?.trim()) || 'Informe a senha do SIGAA.',
+]
+
+const usuarioRules = [
+  (value: string) => Boolean(value?.trim()) || 'Informe um nome de usuário.',
+  (value: string) => value.trim().length >= 3 || 'O nome de usuário deve ter pelo menos 3 caracteres.',
 ]
 
 const emailRules = [
@@ -128,6 +134,7 @@ async function validarSigaa() {
     }
 
     sigaaProfile.value = aluno
+    cadastroComplementar.value.usuario = aluno.login
     cadastroComplementar.value.sobrenome = extrairSobrenome(aluno.nome)
     currentStep.value = 2
     notifications.success('Credenciais validadas. Complete os dados para finalizar o cadastro.')
@@ -159,8 +166,15 @@ async function finalizarCadastro() {
   isSaving.value = true
 
   try {
+    const usuario = cadastroComplementar.value.usuario.trim()
     const email = cadastroComplementar.value.email.trim().toLowerCase()
+    const usuarioPorLogin = await getUsuarioByUsername(usuario)
     const usuarioPorEmail = await getUsuarioByEmail(email)
+
+    if (usuarioPorLogin) {
+      notifications.addNotification('Esse nome de usuário já está cadastrado. Escolha outro.', 'warning')
+      return
+    }
 
     if (usuarioPorEmail) {
       notifications.addNotification('Esse email já está cadastrado. Use outro email ou faça login.', 'warning')
@@ -177,6 +191,7 @@ async function finalizarCadastro() {
       nome: sigaaProfile.value.nome,
       senha: cadastroComplementar.value.senha,
       sobrenome: cadastroComplementar.value.sobrenome.trim() || extrairSobrenome(sigaaProfile.value.nome),
+      usuario,
       is_ativada: true,
       is_bloqueado: false,
     })
@@ -185,8 +200,8 @@ async function finalizarCadastro() {
     await router.push({
       path: '/auth/login',
       query: {
-        cadastro: 'ok',
-        login: sigaaProfile.value.login,
+        cadastro: 'cadastro_ok',
+        login: usuario,
       },
     })
   } catch (error) {
@@ -208,23 +223,23 @@ onMounted(() => {
 
 <template>
   <v-sheet :class="heroTheme.shellClass" class="auth-page position-relative d-flex flex-column">
-
-    <v-toolbar aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
-               class="position-relative pt-4"
-               color="transparent"
-               flat
-               role="banner"
-               style="z-index: 1; overflow: visible;"
+    <v-toolbar
+      aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
+      class="position-relative pt-4"
+      color="transparent"
+      flat
+      role="banner"
+      style="z-index: 1; overflow: visible;"
     >
       <v-container class="d-flex justify-space-between align-center py-0">
         <div class="d-flex align-center">
           <v-img
-              alt="Brasão da Universidade Federal do Ceará"
-              class="mr-4"
-              contain
-              height="46"
-              src="/brasao.png"
-              width="40"
+            alt="Brasão da Universidade Federal do Ceará"
+            class="mr-4"
+            contain
+            height="46"
+            src="/brasao.png"
+            width="40"
           />
           <div class="d-flex flex-column">
             <span class="text-title-medium text-sm-h6 font-weight-bold text-white lh-1">Almoxarifado UFC</span>
@@ -233,13 +248,13 @@ onMounted(() => {
         </div>
 
         <v-btn
-            aria-label="Acessar o Sistema do Almoxarifado"
-            class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
-            color="warning"
-            elevation="4"
-            size="large"
-            to="/"
-            variant="flat"
+          aria-label="Acessar o Sistema do Almoxarifado"
+          class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
+          color="warning"
+          elevation="4"
+          size="large"
+          to="/"
+          variant="flat"
         >
           Página Inicial
         </v-btn>
@@ -261,8 +276,8 @@ onMounted(() => {
                     <div class="text-body-medium text-medium-emphasis">
                       {{
                         currentStep === 1
-                            ? 'Digite o login e a senha usados no SIGAA para recuperar seus dados acadêmicos.'
-                            : 'Agora informe os dados de contato e a senha de acesso ao sistema.'
+                          ? 'Digite o login e a senha usados no SIGAA para recuperar seus dados acadêmicos.'
+                          : 'Agora informe seu usuário, os dados de contato e a senha de acesso ao sistema.'
                       }}
                     </div>
                   </div>
@@ -272,8 +287,7 @@ onMounted(() => {
                   </v-chip>
                 </div>
 
-                <v-progress-linear :model-value="progressValue" bg-color="warning-lighten-4" color="warning" height="6"
-                                   rounded/>
+                <v-progress-linear :model-value="progressValue" bg-color="warning-lighten-4" color="warning" height="6" rounded/>
               </div>
             </template>
 
@@ -282,39 +296,39 @@ onMounted(() => {
             <template v-if="currentStep === 1">
               <v-form ref="sigaaFormRef" class="mt-4" @submit.prevent="validarSigaa">
                 <v-text-field
-                    v-model="sigaaCredentials.login"
-                    :rules="loginRules"
-                    autocomplete="username"
-                    class="mb-4"
-                    density="comfortable"
-                    label="Login SIGAA"
-                    placeholder="Informe seu login"
-                    prepend-inner-icon="mdi-account-outline"
-                    variant="outlined"
+                  v-model="sigaaCredentials.login"
+                  :rules="loginRules"
+                  autocomplete="username"
+                  class="mb-4"
+                  density="comfortable"
+                  label="Login SIGAA"
+                  placeholder="Informe seu login"
+                  prepend-inner-icon="mdi-account-outline"
+                  variant="outlined"
                 />
 
                 <v-text-field
-                    v-model="sigaaCredentials.senha"
-                    :append-inner-icon="showSigaaPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-                    :rules="sigaaPasswordRules"
-                    :type="showSigaaPassword ? 'text' : 'password'"
-                    autocomplete="current-password"
-                    class="mb-3"
-                    density="comfortable"
-                    label="Senha do SIGAA"
-                    placeholder="Digite sua senha"
-                    prepend-inner-icon="mdi-lock-outline"
-                    variant="outlined"
-                    @click:append-inner="showSigaaPassword = !showSigaaPassword"
+                  v-model="sigaaCredentials.senha"
+                  :append-inner-icon="showSigaaPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+                  :rules="sigaaPasswordRules"
+                  :type="showSigaaPassword ? 'text' : 'password'"
+                  autocomplete="current-password"
+                  class="mb-3"
+                  density="comfortable"
+                  label="Senha do SIGAA"
+                  placeholder="Digite sua senha"
+                  prepend-inner-icon="mdi-lock-outline"
+                  variant="outlined"
+                  @click:append-inner="showSigaaPassword = !showSigaaPassword"
                 />
 
                 <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3 mt-2">
                   <v-btn
-                      class="text-none px-0"
-                      color="warning"
-                      size="small"
-                      to="/auth/login"
-                      variant="text"
+                    class="text-none px-0"
+                    color="warning"
+                    size="small"
+                    to="/auth/login"
+                    variant="text"
                   >
                     Já tenho cadastro
                   </v-btn>
@@ -346,62 +360,75 @@ onMounted(() => {
                 <v-row>
                   <v-col cols="12">
                     <v-text-field
-                        v-model="cadastroComplementar.email"
-                        :rules="emailRules"
-                        autocomplete="email"
-                        density="comfortable"
-                        label="Email de contato"
-                        placeholder="seu.email@exemplo.com"
-                        prepend-inner-icon="mdi-email-outline"
-                        variant="outlined"
+                      v-model="cadastroComplementar.usuario"
+                      :rules="usuarioRules"
+                      autocomplete="username"
+                      density="comfortable"
+                      label="Nome de usuário"
+                      placeholder="Escolha como deseja entrar no sistema"
+                      prepend-inner-icon="mdi-account-circle-outline"
+                      variant="outlined"
+                    />
+                  </v-col>
+
+                  <v-col cols="12">
+                    <v-text-field
+                      v-model="cadastroComplementar.email"
+                      :rules="emailRules"
+                      autocomplete="email"
+                      density="comfortable"
+                      label="Email de contato"
+                      placeholder="seu.email@exemplo.com"
+                      prepend-inner-icon="mdi-email-outline"
+                      variant="outlined"
                     />
                   </v-col>
 
                   <v-col cols="12" md="6">
                     <v-text-field
-                        v-model="cadastroComplementar.senha"
-                        :append-inner-icon="showLocalPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-                        :rules="senhaRules"
-                        :type="showLocalPassword ? 'text' : 'password'"
-                        autocomplete="new-password"
-                        density="comfortable"
-                        label="Senha de acesso"
-                        placeholder="Crie sua senha"
-                        prepend-inner-icon="mdi-lock-outline"
-                        variant="outlined"
-                        @click:append-inner="showLocalPassword = !showLocalPassword"
+                      v-model="cadastroComplementar.senha"
+                      :append-inner-icon="showLocalPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
+                      :rules="senhaRules"
+                      :type="showLocalPassword ? 'text' : 'password'"
+                      autocomplete="new-password"
+                      density="comfortable"
+                      label="Senha de acesso"
+                      placeholder="Crie sua senha"
+                      prepend-inner-icon="mdi-lock-outline"
+                      variant="outlined"
+                      @click:append-inner="showLocalPassword = !showLocalPassword"
                     />
                   </v-col>
 
                   <v-col cols="12" md="6">
                     <v-text-field
-                        v-model="cadastroComplementar.confirmarSenha"
-                        :rules="confirmarSenhaRules"
-                        :type="showLocalPassword ? 'text' : 'password'"
-                        autocomplete="new-password"
-                        density="comfortable"
-                        label="Confirmar senha"
-                        placeholder="Repita a senha"
-                        prepend-inner-icon="mdi-lock-check-outline"
-                        variant="outlined"
+                      v-model="cadastroComplementar.confirmarSenha"
+                      :rules="confirmarSenhaRules"
+                      :type="showLocalPassword ? 'text' : 'password'"
+                      autocomplete="new-password"
+                      density="comfortable"
+                      label="Confirmar senha"
+                      placeholder="Repita a senha"
+                      prepend-inner-icon="mdi-lock-check-outline"
+                      variant="outlined"
                     />
                   </v-col>
                 </v-row>
 
                 <AppAlert
-                    class="mb-4"
-                    description="O email e a senha serão usados no cadastro local do sistema. Os dados acadêmicos foram validados diretamente no SIGAA."
-                    title="Atenção aos dados de acesso"
-                    tone="success"
+                  class="mb-4"
+                  description="O usuário, o email e a senha serão usados no cadastro local do sistema. Os dados acadêmicos foram validados diretamente no SIGAA."
+                  title="Atenção aos dados de acesso"
+                  tone="success"
                 />
 
                 <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3 mt-2">
                   <v-btn
-                      class="text-none px-0"
-                      color="warning"
-                      size="small"
-                      variant="text"
-                      @click="voltarParaValidacao"
+                    class="text-none px-0"
+                    color="warning"
+                    size="small"
+                    variant="text"
+                    @click="voltarParaValidacao"
                   >
                     Voltar
                   </v-btn>
