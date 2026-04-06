@@ -14,16 +14,14 @@ const router = createRouter({
   routes,
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach((to) => {
   const authStore = useAuthStore()
   const isAuthRoute = to.path.startsWith('/auth')
-  
+
   if (!authStore.isAuthenticated && !isAuthRoute) {
-    next('/auth/login')
+    return '/auth/login'
   } else if (authStore.isAuthenticated && isAuthRoute) {
-    next('/')
-  } else {
-    next()
+    return '/'
   }
 })
 

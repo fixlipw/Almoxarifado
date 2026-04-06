@@ -7,7 +7,7 @@ import type {PedidoVisualProps} from "@/components/pedido/window/types.ts";
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import { mapearPedidoDetalhes, mapearParaPedidoVisual } from "@/components/pedido/window/utils.ts";
-import { getPedidosPendentes, deletePedido } from "@/services/pedidos.ts";
+import { getPedidosPendentes, deletePedido, approvePedido, rejectPedido } from "@/services/pedidos.ts";
 import { useCartStore } from "@/stores/cart.ts";
 import { useNotificationStore } from "@/stores/notifications.ts";
 import { useRouter } from "vue-router";
@@ -75,21 +75,37 @@ import { useAuthStore } from "@/stores/auth.ts";
     }
   }
 
-  function executarAcao () {
+  async function executarAcao () {
     if (!pedidoSelecionado.value || !acaoPendente.value) return
+    const userId = authStore.session?.usuario?.id
+    if (!userId) {
+      notifications.error('Usuário não autenticado.')
+      return
+    }
+
     isAcaoLoading.value = true
-    setTimeout(() => {
-      isAcaoLoading.value = false
+    try {
+      const isApprove = acaoPendente.value === 'approve'
+      if (isApprove) {
+        await approvePedido(pedidoSelecionado.value.id, userId)
+        notifications.success('Pedido aprovado com sucesso!')
+      } else {
+        await rejectPedido(pedidoSelecionado.value.id, userId)
+        notifications.success('Pedido rejeitado com sucesso!')
+      }
+
       confirmarAcaoConfirmar.value = false
       dialogAberto.value = false
-      const isApprove = acaoPendente.value === 'approve'
-
-      if (isApprove) notifications.success('Pedido aprovado com sucesso!')
-      else notifications.success('Pedido rejeitado com sucesso!')
-
       pedidoSelecionado.value = null
       acaoPendente.value = null
-    }, 2000)
+
+      window.location.reload()
+    } catch (e) {
+      console.error('Erro ao executar ação no pedido:', e)
+      notifications.error('Ocorreu um erro ao processar a solicitação.')
+    } finally {
+      isAcaoLoading.value = false
+    }
   }
 
   async function handleEdit (pedido: PedidoVisualProps) {

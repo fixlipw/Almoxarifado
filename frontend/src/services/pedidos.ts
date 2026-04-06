@@ -1,5 +1,6 @@
 import {supabase} from '@/plugins/supabase'
 import type {Pedido, UUID} from '@/types/entities'
+import {getLocalISOString} from "@/utils";
 
 export async function getPedidos (): Promise<Pedido[]> {
   const { data, error } = await supabase.from('pedidos').select('*')
@@ -29,6 +30,51 @@ export async function deletePedido (id: UUID): Promise<void> {
   await supabase.from('itens_pedido').delete().eq('pedido_id', id)
   const { error } = await supabase.from('pedidos').delete().eq('id', id)
   if (error) throw error
+}
+
+export async function approvePedido (id: UUID, aprovadorId: string): Promise<Pedido> {
+  const { data, error } = await supabase
+    .from('pedidos')
+    .update({
+      aprovado: true,
+      data_aprovacao: getLocalISOString,
+      aprovador_id: aprovadorId
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Pedido
+}
+
+export async function rejectPedido (id: UUID, aprovadorId: string): Promise<Pedido> {
+  const { data, error } = await supabase
+    .from('pedidos')
+    .update({
+      aprovado: false,
+      data_aprovacao: getLocalISOString,
+      aprovador_id: aprovadorId
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Pedido
+}
+
+export async function returnPedido (id: UUID, finalizadorId: string): Promise<Pedido> {
+  const { data, error } = await supabase
+    .from('pedidos')
+    .update({
+      finalizado: true,
+      data_finalizado: getLocalISOString,
+      finalizador_id: finalizadorId
+    })
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as Pedido
 }
 
 export async function getPedidosPendentes (userId?: string): Promise<any[]> {

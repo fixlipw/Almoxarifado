@@ -40,7 +40,6 @@ function statusColor(status: string) {
 
 function handleAction(actionType: 'approve' | 'reject' | 'return') {
   emit('action', actionType)
-  emit('update:modelValue', false)
 }
 
 async function handleConfirmEdit() {
@@ -49,11 +48,6 @@ async function handleConfirmEdit() {
     await new Promise(resolve => setTimeout(resolve, 500))
 
     cartStore.clearCart()
-
-    for (const item of props.emprestimo.itens) {
-
-    }
-
     try {
       await deletePedido(props.emprestimo.codigo)
     } catch (error) {

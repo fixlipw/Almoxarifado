@@ -231,7 +231,6 @@ onMounted(() => {
             class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
             color="warning"
             elevation="4"
-            size="large"
             :to="authStore.isAuthenticated ? '/dashboard' : '/auth/login'"
             variant="flat"
         >

@@ -7,7 +7,7 @@ import type {PedidoVisualProps} from "@/components/pedido/window/types.ts";
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import { mapearPedidoDetalhes, mapearParaPedidoVisual } from "@/components/pedido/window/utils.ts";
-import { getPedidosAtivos } from "@/services/pedidos.ts";
+import { getPedidosAtivos, returnPedido } from "@/services/pedidos.ts";
 import { useCartStore } from "@/stores/cart.ts";
 import { useNotificationStore } from "@/stores/notifications.ts";
 import { useAuthStore } from "@/stores/auth.ts";
@@ -66,17 +66,30 @@ import { useAuthStore } from "@/stores/auth.ts";
     }
   }
 
-  function executarDevolucao () {
+  async function executarDevolucao () {
     if (!pedidoSelecionado.value) return
+    const userId = authStore.session?.usuario?.id
+    if (!userId) {
+      rules.error('Usuário não autenticado.')
+      return
+    }
+
     isAcaoLoading.value = true
-    // TODO: implement devolucao in services
-    setTimeout(() => {
-      isAcaoLoading.value = false
+    try {
+      await returnPedido(pedidoSelecionado.value.id, userId)
+      rules.success('Devolução registrada com sucesso!')
+
       confirmarAcaoConfirmar.value = false
       dialogAberto.value = false
-      rules.success('Devolução registrada com sucesso!')
       pedidoSelecionado.value = null
-    }, 2000)
+
+      window.location.reload()
+    } catch (e) {
+      console.error('Erro ao efetuar devolução:', e)
+      rules.error('Erro ao registrar a devolução.')
+    } finally {
+      isAcaoLoading.value = false
+    }
   }
 </script>
 

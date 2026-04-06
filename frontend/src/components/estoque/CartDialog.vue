@@ -45,6 +45,7 @@
       cartStore.removeItem(itemIdToRemove.value)
       showConfirm.value = false
       itemIdToRemove.value = undefined
+      window.location.reload()
     }
   }
 
