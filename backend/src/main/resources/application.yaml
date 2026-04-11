@@ -1,6 +1,9 @@
 server:
   port: 8090
 
+sigaa:
+  base: http://almoxarifadoec.quixada.ufc.br:3000
+
 spring:
   application:
     name: almoxarifado_backend

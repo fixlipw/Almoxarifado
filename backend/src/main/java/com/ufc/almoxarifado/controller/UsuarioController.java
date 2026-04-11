@@ -5,7 +5,6 @@ import com.ufc.almoxarifado.dto.UsuarioResponse;
 import com.ufc.almoxarifado.service.UsuarioService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,11 +18,6 @@ public class UsuarioController {
 
     private final UsuarioService usuarioService;
 
-    @PostMapping
-    public ResponseEntity<UsuarioResponse> create(@Valid @RequestBody UsuarioRequest request) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.create(request));
-    }
-
     @GetMapping
     public ResponseEntity<List<UsuarioResponse>> findAll() {
         return ResponseEntity.ok(usuarioService.findAll());
@@ -32,6 +26,16 @@ public class UsuarioController {
     @GetMapping("/{id}")
     public ResponseEntity<UsuarioResponse> findById(@PathVariable UUID id) {
         return ResponseEntity.ok(usuarioService.findById(id));
+    }
+
+    @GetMapping("/matricula/{matricula}")
+    public ResponseEntity<UsuarioResponse> findByMatricula(@PathVariable String matricula) {
+        return ResponseEntity.ok(usuarioService.findByMatricula(matricula));
+    }
+
+    @GetMapping("/email/{email}")
+    public ResponseEntity<UsuarioResponse> findByEmail(@PathVariable String email) {
+        return ResponseEntity.ok(usuarioService.findByEmail(email));
     }
 
     @PutMapping("/{id}")

@@ -4,6 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record PedidoRequest(
@@ -12,6 +13,7 @@ public record PedidoRequest(
         @NotNull UUID solicitanteId,
         UUID aprovadorId,
         UUID finalizadorId,
+        List<ItemPedidoRequest> itens,
         LocalDateTime dataSolicitacao,
         LocalDateTime dataAprovacao,
         LocalDateTime dataFinalizado,

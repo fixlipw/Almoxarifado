@@ -31,6 +31,18 @@ public class UsuarioService {
         return toResponse(getEntity(id));
     }
 
+    public UsuarioResponse findByMatricula(String matricula) {
+        Usuario entity = usuarioRepository.findByMatricula(matricula)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário nao encontrado para matricula: " + matricula));
+        return toResponse(entity);
+    }
+
+    public UsuarioResponse findByEmail(String email) {
+        Usuario entity = usuarioRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário nao encontrado para email: " + email));
+        return toResponse(entity);
+    }
+
     public UsuarioResponse update(UUID id, UsuarioRequest request) {
         Usuario entity = getEntity(id);
         applyRequest(entity, request);
@@ -39,18 +51,17 @@ public class UsuarioService {
 
     public void delete(UUID id) {
         if (!usuarioRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Usuario nao encontrado para id: " + id);
+            throw new ResourceNotFoundException("Usuário nao encontrado para id: " + id);
         }
         usuarioRepository.deleteById(id);
     }
 
     public Usuario getEntity(UUID id) {
         return usuarioRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado para id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuário nao encontrado para id: " + id));
     }
 
     private void applyRequest(Usuario entity, UsuarioRequest request) {
-        entity.setEmail(request.email());
         entity.setMatricula(request.matricula());
         entity.setSenha(request.senha());
         entity.setNome(request.nome());
@@ -69,7 +80,7 @@ public class UsuarioService {
     private UsuarioResponse toResponse(Usuario entity) {
         return new UsuarioResponse(
                 entity.getId(),
-                entity.getEmail(),
+                entity.getUsuario(),
                 entity.getMatricula(),
                 entity.getNome(),
                 entity.getSobrenome(),
@@ -81,4 +92,3 @@ public class UsuarioService {
         );
     }
 }
-

@@ -1,6 +1,7 @@
 package com.ufc.almoxarifado.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record PedidoResponse(
@@ -10,6 +11,7 @@ public record PedidoResponse(
         UsuarioResponse solicitante,
         UsuarioResponse aprovador,
         UsuarioResponse finalizador,
+        List<ItemPedidoResponse> itens,
         LocalDateTime dataSolicitacao,
         LocalDateTime dataAprovacao,
         LocalDateTime dataFinalizado,
