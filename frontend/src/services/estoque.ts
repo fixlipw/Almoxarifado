@@ -1,32 +1,30 @@
-import { supabase } from '@/plugins/supabase'
-import type { Estoque, UUID } from '@/types/entities'
+import { apiFetch } from '@/services/api'
+import type { EstoqueRequest, EstoqueResponse } from '@/types/dtos'
 
-export async function getEstoques (): Promise<Estoque[]> {
-  const { data, error } = await supabase.from('estoque').select('*')
-  if (error) throw error
-  return data as Estoque[]
+export async function getEstoques (): Promise<EstoqueResponse[]> {
+  return await apiFetch<EstoqueResponse[]>('/estoques')
 }
 
-export async function getEstoqueById (id: UUID): Promise<Estoque | null> {
-  const { data, error } = await supabase.from('estoque').select('*').eq('id', id).maybeSingle()
-  if (error) throw error
-  return data as Estoque | null
+export async function getEstoqueById (id: string): Promise<EstoqueResponse | null> {
+  return await apiFetch<EstoqueResponse>(`/estoques/${id}`)
 }
 
-export async function createEstoque (payload: Partial<Estoque>): Promise<Estoque> {
-  const { data, error } = await supabase.from('estoque').insert(payload).select().single()
-  if (error) throw error
-  return data as Estoque
+export async function createEstoque (payload: EstoqueRequest): Promise<EstoqueResponse> {
+  return await apiFetch<EstoqueResponse>('/estoques', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
 }
 
-export async function updateEstoque (id: UUID, payload: Partial<Estoque>): Promise<Estoque> {
-  const { data, error } = await supabase.from('estoque').update(payload).eq('id', id).select().single()
-  if (error) throw error
-  return data as Estoque
+export async function updateEstoque (id: string, payload: EstoqueRequest): Promise<EstoqueResponse> {
+  return await apiFetch<EstoqueResponse>(`/estoques/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
 }
 
-export async function deleteEstoque (id: UUID): Promise<void> {
-  const { error } = await supabase.from('estoque').delete().eq('id', id)
-  if (error) throw error
+export async function deleteEstoque (id: string): Promise<void> {
+  await apiFetch<void>(`/estoques/${id}`, { method: 'DELETE' })
 }
-

@@ -76,7 +76,7 @@ import { useAuthStore } from "@/stores/auth.ts";
 
 	isAcaoLoading.value = true
 	try {
-      await returnPedido(pedidoSelecionado.value.id, userId)
+      await returnPedido(pedidoSelecionado.value.id)
 	  rules.success('Devolução registrada com sucesso!')
 
 	  confirmarAcaoConfirmar.value = false

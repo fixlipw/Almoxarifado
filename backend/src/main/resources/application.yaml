@@ -2,7 +2,12 @@ server:
   port: 8090
 
 sigaa:
-  base: http://almoxarifadoec.quixada.ufc.br:3000
+  base: http://almoxarifadoec.quixada.ufc.br:3000/sigaa
+
+api:
+  security:
+    token:
+        secret: bagr3SuhjwjEIbdD5Y+e94wuM60JGa/99TDzY6visSw=
 
 spring:
   application:
@@ -26,6 +31,32 @@ spring:
       enabled: true
       max-file-size: 2MB
       max-request-size: 6MB
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: desousafelipe10@gmail.com
+    password: oymv wnea gfne dbuc
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            trust: smtp.gmail.com
+
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method
+    tags-sorter: alpha
+    display-operation-id: true
+    doc-expansion: list
+  api-docs:
+    path: /v3/api-docs
+  show-actuator: false
 
 logging:
   pattern:

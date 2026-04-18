@@ -14,36 +14,36 @@ import org.springframework.web.server.ResponseStatusException;
 @Service
 public class SigaaRestClient {
 
-	private final RestClient restClient;
+    private final RestClient restClient;
 
-	public SigaaRestClient(@Value("${sigaa.base}") String baseUrl) {
-		this.restClient = RestClient.builder()
-				.baseUrl(baseUrl)
-				.build();
-	}
+    public SigaaRestClient(@Value("${sigaa.base}") String baseUrl) {
+        this.restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .build();
+    }
 
-	public SigaaResponse validarCredenciais(SigaaRequest request) {
-		try {
-			SigaaResponse response = restClient.post()
-					.uri("/sigaa")
-					.contentType(MediaType.APPLICATION_JSON)
-					.body(request)
-					.retrieve()
-					.body(SigaaResponse.class);
+    public SigaaResponse validarCredenciais(SigaaRequest request) {
+        try {
+            SigaaResponse response = restClient.post()
+                    .uri("/sigaa")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .body(request)
+                    .retrieve()
+                    .body(SigaaResponse.class);
 
-			if (response == null) {
-				throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "A resposta do SIGAA veio vazia.");
-			}
+            if (response == null) {
+                throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "A resposta do SIGAA veio vazia.");
+            }
 
-			return response;
-		} catch (RestClientResponseException ex) {
-			if (ex.getStatusCode().is4xxClientError()) {
-				throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais do SIGAA invalidas.");
-			}
+            return response;
+        } catch (RestClientResponseException ex) {
+            if (ex.getStatusCode().is4xxClientError()) {
+                throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Credenciais do SIGAA invalidas.");
+            }
 
-			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nao foi possível consultar o SIGAA.");
-		} catch (RestClientException _) {
-			throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nao foi possível consultar o SIGAA.");
-		}
-	}
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nao foi possível consultar o SIGAA.");
+        } catch (RestClientException _) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Nao foi possível consultar o SIGAA.");
+        }
+    }
 }

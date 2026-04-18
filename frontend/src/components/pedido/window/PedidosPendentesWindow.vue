@@ -87,10 +87,10 @@ import { useAuthStore } from "@/stores/auth.ts";
     try {
       const isApprove = acaoPendente.value === 'approve'
       if (isApprove) {
-        await approvePedido(pedidoSelecionado.value.id, userId)
+        await approvePedido(pedidoSelecionado.value.id)
         notifications.success('Pedido aprovado com sucesso!')
       } else {
-        await rejectPedido(pedidoSelecionado.value.id, userId)
+        await rejectPedido(pedidoSelecionado.value.id)
         notifications.success('Pedido rejeitado com sucesso!')
       }
 

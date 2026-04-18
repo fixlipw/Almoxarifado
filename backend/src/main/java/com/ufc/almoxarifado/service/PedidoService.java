@@ -1,9 +1,9 @@
 package com.ufc.almoxarifado.service;
 
 import com.ufc.almoxarifado.dto.*;
-import com.ufc.almoxarifado.entity.Pedido;
-import com.ufc.almoxarifado.entity.ItemPedido;
 import com.ufc.almoxarifado.entity.Estoque;
+import com.ufc.almoxarifado.entity.ItemPedido;
+import com.ufc.almoxarifado.entity.Pedido;
 import com.ufc.almoxarifado.entity.Usuario;
 import com.ufc.almoxarifado.exception.ResourceNotFoundException;
 import com.ufc.almoxarifado.repository.EstoqueRepository;
@@ -25,10 +25,10 @@ public class PedidoService {
     private final EstoqueRepository estoqueRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public PedidoResponse create(PedidoRequest request) {
+    public PedidoResponse create(PedidoRequest request, UUID solicitanteId) {
         Pedido entity = new Pedido();
         entity.setCodigoPedido(request.codigoPedido());
-        applyRequest(entity, request);
+        applyRequest(entity, request, solicitanteId);
         return toResponse(pedidoRepository.save(entity));
     }
 
@@ -121,7 +121,7 @@ public class PedidoService {
 
     public PedidoResponse update(UUID id, PedidoRequest request) {
         Pedido entity = getEntity(id);
-        applyRequest(entity, request);
+        applyRequest(entity, request, entity.getSolicitante() != null ? entity.getSolicitante().getId() : null);
         return toResponse(pedidoRepository.save(entity));
     }
 
@@ -137,14 +137,14 @@ public class PedidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado para id: " + id));
     }
 
-    private void applyRequest(Pedido entity, PedidoRequest request) {
-        Usuario solicitante = usuarioRepository.findById(request.solicitanteId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para id: " + request.solicitanteId()));
+    private void applyRequest(Pedido entity, PedidoRequest request, UUID solicitanteId) {
+        if (solicitanteId != null) {
+            Usuario solicitante = usuarioRepository.findById(solicitanteId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para id: " + solicitanteId));
+            entity.setSolicitante(solicitante);
+        }
 
         entity.setFeedback(request.feedback());
-        entity.setSolicitante(solicitante);
-        entity.setAprovador(getOptionalUser(request.aprovadorId()));
-        entity.setFinalizador(getOptionalUser(request.finalizadorId()));
 
         if (entity.getDataSolicitacao() == null) {
             if (request.dataSolicitacao() != null) {

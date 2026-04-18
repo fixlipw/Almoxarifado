@@ -1,32 +1,30 @@
-import { supabase } from '@/plugins/supabase'
-import type { Bloqueio, UUID } from '@/types/entities'
+import { apiFetch } from '@/services/api'
+import type { HistoricoBloqueiosRequest, HistoricoBloqueiosResponse } from '@/types/dtos'
 
-export async function getBloqueios (): Promise<Bloqueio[]> {
-  const { data, error } = await supabase.from('bloqueios').select('*')
-  if (error) throw error
-  return data as Bloqueio[]
+export async function getBloqueios (): Promise<HistoricoBloqueiosResponse[]> {
+  return await apiFetch<HistoricoBloqueiosResponse[]>('/bloqueios')
 }
 
-export async function getBloqueioById (id: UUID): Promise<Bloqueio | null> {
-  const { data, error } = await supabase.from('bloqueios').select('*').eq('id', id).maybeSingle()
-  if (error) throw error
-  return data as Bloqueio | null
+export async function getBloqueiosByUserId (userId: string): Promise<HistoricoBloqueiosResponse[]> {
+  return await apiFetch<HistoricoBloqueiosResponse[]>(`/bloqueios?userId=${userId}`)
 }
 
-export async function createBloqueio (payload: Partial<Bloqueio>): Promise<Bloqueio> {
-  const { data, error } = await supabase.from('bloqueios').insert(payload).select().single()
-  if (error) throw error
-  return data as Bloqueio
+export async function createBloqueio (payload: HistoricoBloqueiosRequest): Promise<HistoricoBloqueiosResponse> {
+  return await apiFetch<HistoricoBloqueiosResponse>('/bloqueios', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
 }
 
-export async function updateBloqueio (id: UUID, payload: Partial<Bloqueio>): Promise<Bloqueio> {
-  const { data, error } = await supabase.from('bloqueios').update(payload).eq('id', id).select().single()
-  if (error) throw error
-  return data as Bloqueio
+export async function updateBloqueio (id: string, payload: HistoricoBloqueiosRequest): Promise<HistoricoBloqueiosResponse> {
+  return await apiFetch<HistoricoBloqueiosResponse>(`/bloqueios/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+  })
 }
 
-export async function deleteBloqueio (id: UUID): Promise<void> {
-  const { error } = await supabase.from('bloqueios').delete().eq('id', id)
-  if (error) throw error
+export async function deleteBloqueio (id: string): Promise<void> {
+  await apiFetch<void>(`/bloqueios/${id}`, { method: 'DELETE' })
 }
-

@@ -21,9 +21,9 @@ public class HistoricoBloqueiosService {
     private final HistoricoBloqueiosRepository historicoBloqueiosRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public HistoricoBloqueiosResponse create(HistoricoBloqueiosRequest request) {
+    public HistoricoBloqueiosResponse create(HistoricoBloqueiosRequest request, UUID adminId) {
         HistoricoBloqueios entity = new HistoricoBloqueios();
-        applyRequest(entity, request);
+        applyCreationRequest(entity, request, adminId);
         return toResponse(historicoBloqueiosRepository.save(entity));
     }
 
@@ -35,9 +35,9 @@ public class HistoricoBloqueiosService {
         return toResponse(getEntity(id));
     }
 
-    public HistoricoBloqueiosResponse update(UUID id, HistoricoBloqueiosRequest request) {
+    public HistoricoBloqueiosResponse update(UUID id, HistoricoBloqueiosRequest request, UUID adminId) {
         HistoricoBloqueios entity = getEntity(id);
-        applyRequest(entity, request);
+        applyUpdateRequest(entity, request, adminId);
         return toResponse(historicoBloqueiosRepository.save(entity));
     }
 
@@ -53,28 +53,48 @@ public class HistoricoBloqueiosService {
                 .orElseThrow(() -> new ResourceNotFoundException("Histórico de bloqueios nao encontrado para id: " + id));
     }
 
-    private void applyRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request) {
+    private void applyCreationRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request, UUID adminId) {
         Usuario usuario = usuarioRepository.findById(request.usuarioId())
                 .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado para id: " + request.usuarioId()));
 
-        Usuario administradorBloqueio = usuarioRepository.findById(request.administradorBloqueioId())
-                .orElseThrow(() -> new ResourceNotFoundException("Administrador de bloqueio nao encontrado para id: " + request.administradorBloqueioId()));
-
-        Usuario administradorDesbloqueio = null;
-        if (request.administradorDesbloqueioId() != null) {
-            administradorDesbloqueio = usuarioRepository.findById(request.administradorDesbloqueioId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Administrador de desbloqueio nao encontrado para id: " + request.administradorDesbloqueioId()));
-        }
+        Usuario administradorBloqueio = usuarioRepository.findById(adminId)
+                .orElseThrow(() -> new ResourceNotFoundException("Administrador de bloqueio nao encontrado para id: " + adminId));
 
         entity.setUsuario(usuario);
         entity.setAdministradorBloqueio(administradorBloqueio);
-        entity.setAdministradorDesbloqueio(administradorDesbloqueio);
-        entity.setMotivoDesbloqueio(request.motivoDesbloqueio());
         entity.setMotivoBloqueio(request.motivoBloqueio());
-        if (entity.getDataBloqueio() == null) {
-            entity.setDataBloqueio(request.dataBloqueio() != null ? request.dataBloqueio() : LocalDateTime.now());
+        entity.setDataBloqueio(request.dataBloqueio() != null ? request.dataBloqueio() : LocalDateTime.now());
+
+        if (request.motivoDesbloqueio() != null && !request.motivoDesbloqueio().isBlank()) {
+            entity.setMotivoDesbloqueio(request.motivoDesbloqueio());
+            entity.setAdministradorDesbloqueio(administradorBloqueio);
+            entity.setDataDesbloqueio(request.dataDesbloqueio() != null ? request.dataDesbloqueio() : LocalDateTime.now());
         }
-        entity.setDataDesbloqueio(request.dataDesbloqueio());
+    }
+
+    private void applyUpdateRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request, UUID adminId) {
+        Usuario usuario = usuarioRepository.findById(request.usuarioId())
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado para id: " + request.usuarioId()));
+
+        entity.setUsuario(usuario);
+        entity.setMotivoBloqueio(request.motivoBloqueio());
+        if (request.dataBloqueio() != null) {
+            entity.setDataBloqueio(request.dataBloqueio());
+        }
+
+        if (request.motivoDesbloqueio() != null && !request.motivoDesbloqueio().isBlank()) {
+            entity.setMotivoDesbloqueio(request.motivoDesbloqueio());
+            if (entity.getAdministradorDesbloqueio() == null) {
+                Usuario administradorDesbloqueio = usuarioRepository.findById(adminId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Administrador de desbloqueio nao encontrado para id: " + adminId));
+                entity.setAdministradorDesbloqueio(administradorDesbloqueio);
+            }
+            if (entity.getDataDesbloqueio() == null) {
+                entity.setDataDesbloqueio(request.dataDesbloqueio() != null ? request.dataDesbloqueio() : LocalDateTime.now());
+            } else if (request.dataDesbloqueio() != null) {
+                entity.setDataDesbloqueio(request.dataDesbloqueio());
+            }
+        }
     }
 
     private HistoricoBloqueiosResponse toResponse(HistoricoBloqueios entity) {
@@ -90,4 +110,3 @@ public class HistoricoBloqueiosService {
         );
     }
 }
-
