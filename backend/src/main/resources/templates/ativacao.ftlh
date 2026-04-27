@@ -111,7 +111,7 @@
         </div>
 
         <div class="footer">
-            <p>&copy; ${.now?string("yyyy")} Sistema de Almoxarifado Institucional. Todos os direitos reservados.</p>
+            <p>© ${.now?string("yyyy")} Sistema de Almoxarifado Institucional. Todos os direitos reservados.</p>
             <p>Este é um e-mail automático, por favor, não responda.</p>
         </div>
     </div>
