@@ -8,17 +8,21 @@ import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
 import { useThemePreference } from '@/composables/useThemePreference'
 import { loadAuthSession } from '@/services/auth'
-import { getUsuarioByLoginOrEmail } from '@/services/usuarios'
+import { loginApi } from '@/services/auth'
 import { useNotificationStore } from '@/stores/notifications'
 import { useAuthStore } from '@/stores/auth'
 import type { SigaaCredentials } from '@/types/auth'
+import type { LoginRequest } from '@/types/dtos'
 import { getLocalISOString } from '@/utils'
+import {useDisplay} from "vuetify";
 
 const router = useRouter()
 const route = useRoute()
 const notifications = useNotificationStore()
 const authStore = useAuthStore()
 const { currentTheme, initializeTheme } = useThemePreference()
+
+const { smAndUp } = useDisplay()
 
 const formRef = ref()
 const isLoading = ref(false)
@@ -80,24 +84,14 @@ async function handleLogin() {
   try {
     const login = credentials.value.login.trim()
     const senha = credentials.value.senha
-    const usuarioLocal = await getUsuarioByLoginOrEmail(login)
-
-    if (!usuarioLocal) {
-      notifications.addNotification('Não encontramos um usuário com esse login ou email.', 'warning')
-      return
-    }
-
-    if (usuarioLocal.senha !== senha) {
-      notifications.error('Senha inválida. Tente novamente.')
-      return
-    }
-
+    const payload: LoginRequest = { login, senha }
+    const response = await loginApi(payload)
     authStore.login({
-      usuario: usuarioLocal,
+      usuario: response.usuario,
+      token: response.token,
       authenticatedAt: getLocalISOString(),
     })
-
-    notifications.success(`Bem-vindo, ${usuarioLocal.nome || usuarioLocal.usuario}!`)
+    notifications.success(`Bem-vindo, ${response.usuario.nome || response.usuario.usuario}!`)
     await router.push('/dashboard')
   } catch (error) {
     notifications.error(getErrorMessage(error))
@@ -142,23 +136,15 @@ onMounted(() => {
             src="/brasao.png"
             width="40"
           />
-          <div class="d-flex flex-column">
+          <div v-if="smAndUp" class="d-flex flex-column">
             <span class="text-title-medium text-sm-h6 font-weight-bold text-white lh-1">Almoxarifado UFC</span>
             <span class="text-body-small text-sm-body-2 text-grey-lighten-1">Campus Quixadá</span>
           </div>
         </div>
 
-        <v-btn
-          aria-label="Acessar o Sistema do Almoxarifado"
-          class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
-          color="warning"
-          elevation="4"
-          size="large"
-          to="/"
-          variant="flat"
-        >
+        <AppButton :loading="isLoading" color="warning" variant="flat" to="/">
           Página Inicial
-        </v-btn>
+        </AppButton>
       </v-container>
     </v-toolbar>
 

@@ -24,6 +24,9 @@ public class Estoque {
     @Column(nullable = false)
     private Integer quantidade;
 
+    @Column(nullable = false)
+    private Integer quantidadeDisponivel;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private TipoEstoque tipo;

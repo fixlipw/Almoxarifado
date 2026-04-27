@@ -8,6 +8,7 @@ public record UsuarioResponse(
         UUID id,
         String usuario,
         String matricula,
+        String email,
         String nome,
         String sobrenome,
         String curso,

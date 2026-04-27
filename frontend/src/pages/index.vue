@@ -225,17 +225,6 @@ onMounted(() => {
             <span class="text-body-small text-sm-body-2 text-grey-lighten-1">Campus Quixadá</span>
           </div>
         </div>
-
-        <v-btn
-            aria-label="Acessar o Sistema do Almoxarifado"
-            class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4"
-            color="warning"
-            elevation="4"
-            :to="authStore.isAuthenticated ? '/dashboard' : '/auth/login'"
-            variant="flat"
-        >
-          {{ authStore.isAuthenticated ? 'Acessar Dashboard' : 'Entrar no Sistema' }}
-        </v-btn>
       </v-container>
     </v-toolbar>
 
@@ -261,6 +250,17 @@ onMounted(() => {
           Uma plataforma moderna, 100% web, projetada para simplificar o controle de materiais, organizar pedidos e dar
           mais clareza à operação do campus.
         </div>
+
+        <v-btn
+            aria-label="Acessar o Sistema do Almoxarifado"
+            class="text-none font-weight-bold px-6 rounded-pill text-grey-darken-4 mb-6"
+            color="warning"
+            elevation="4"
+            :to="authStore.isAuthenticated ? '/dashboard' : '/auth/login'"
+            variant="flat"
+        >
+          {{ authStore.isAuthenticated ? 'Acessar Dashboard' : 'Entrar no Sistema' }}
+        </v-btn>
 
         <v-row class="w-100 justify-center">
           <v-col v-for="card in featureCards" :key="card.title" class="d-flex" cols="12" md="4">

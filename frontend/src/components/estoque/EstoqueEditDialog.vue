@@ -36,7 +36,7 @@ function syncForm() {
   form.nome = props.item?.nome ?? ''
   form.quantidade = props.item?.quantidade ?? 0
   form.tipo = props.item?.tipo ?? 'COMPONENTE'
-  form.ativo = props.item?.is_ativado ?? props.item?.ativo ?? true
+  form.ativo = props.item?.isAtivado ?? props.item?.ativo ?? true
 }
 
 watch(

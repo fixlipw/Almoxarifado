@@ -24,13 +24,12 @@
       <AppButton
           v-for="item in navItems"
           :key="item.value"
-          :color="activeSection === item.value ? 'primary' : 'inherit'"
+          :color="selectedSection === item.value ? 'primary' : 'inherit'"
           :prepend-icon="item.icon"
-          :variant="activeSection === item.value ? 'flat' : 'text'"
-
+          :variant="selectedSection === item.value ? 'flat' : 'text'"
           class="text-none px-4"
           rounded="md"
-          @click="emit('select-section', item.value)"
+          @click="handleSelect(item.value)"
       >
         {{ item.label }}
       </AppButton>
@@ -106,7 +105,7 @@
 
 <script lang="ts" setup>
 import type {NavItem, NavSection} from './types'
-import {computed, onMounted} from 'vue'
+import {computed, onMounted, ref, watch} from 'vue'
 import {useTheme} from 'vuetify'
 import AppButton from '@/components/ui/AppButton.vue'
 import {useCartStore} from '@/stores/cart'
@@ -117,6 +116,8 @@ const authStore = useAuthStore()
 
 const cart = useCartStore()
 const cartItemCount = computed(() => cart.count)
+
+const selectedSection = ref<NavSection | undefined>(undefined)
 
 const formatRole = (role: string) => {
   switch (role) {
@@ -147,7 +148,7 @@ function toggleTheme() {
   localStorage.setItem('almoxarifado-theme', nextTheme)
 }
 
-defineProps<{
+const props = defineProps<{
   drawer?: boolean
   mobile: boolean
   navItems: NavItem[]
@@ -159,6 +160,15 @@ const emit = defineEmits<{
   'toggle-menu': []
   'select-section': [section: NavSection]
 }>()
+
+watch(() => props.activeSection, (v) => {
+  selectedSection.value = v
+}, { immediate: true })
+
+function handleSelect(section: NavSection) {
+  selectedSection.value = section
+  emit('select-section', section)
+}
 </script>
 
 <style scoped>

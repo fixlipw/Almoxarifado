@@ -9,6 +9,9 @@ import com.ufc.almoxarifado.repository.EstoqueRepository;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
@@ -43,12 +46,25 @@ public class EstoqueService {
         return estoqueRepository.findAll().stream().map(this::toResponse).toList();
     }
 
+    public Page<EstoqueResponse> findAllPaginated(int page, int size) {
+        return estoqueRepository.findAllPaginated(PageRequest.of(page, size).withSort(Sort.by("nome").ascending()))
+                .map(this::toResponse);
+    }
+
     public EstoqueResponse findById(UUID id) {
         return toResponse(getEntity(id));
     }
 
     public EstoqueResponse update(UUID id, EstoqueRequest request) {
         Estoque entity = getEntity(id);
+
+        if (Boolean.FALSE.equals(request.isAtivado()) && Boolean.TRUE.equals(entity.getIsAtivado())) {
+            boolean hasActiveOrders = estoqueRepository.existsActiveOrdersByEstoqueId(id);
+            if (hasActiveOrders) {
+                throw new IllegalStateException("Nao é possível atualizar este item, pois ele está associado a pedidos ativos.");
+            }
+        }
+
         applyRequest(entity, request);
         return toResponse(estoqueRepository.save(entity));
     }
@@ -67,6 +83,7 @@ public class EstoqueService {
 
     private void applyRequest(Estoque entity, EstoqueRequest request) {
         entity.setNome(request.nome());
+        entity.setQuantidadeDisponivel(request.quantidadeDisponivel());
         entity.setQuantidade(request.quantidade());
         entity.setTipo(request.tipo());
         if (request.isAtivado() != null) {
@@ -79,6 +96,7 @@ public class EstoqueService {
                 entity.getId(),
                 entity.getNome(),
                 entity.getQuantidade(),
+                entity.getQuantidadeDisponivel(),
                 entity.getTipo(),
                 entity.getIsAtivado()
         );

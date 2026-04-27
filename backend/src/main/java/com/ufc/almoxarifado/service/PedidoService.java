@@ -10,7 +10,12 @@ import com.ufc.almoxarifado.repository.EstoqueRepository;
 import com.ufc.almoxarifado.repository.PedidoRepository;
 import com.ufc.almoxarifado.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -32,6 +37,7 @@ public class PedidoService {
         return toResponse(pedidoRepository.save(entity));
     }
 
+    @Transactional(readOnly = true)
     public List<PedidoResponse> findAll(UUID userId) {
         if (userId != null) {
             return pedidoRepository.findBySolicitanteId(userId).stream().map(this::toResponse).toList();
@@ -39,6 +45,7 @@ public class PedidoService {
         return pedidoRepository.findAll().stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
     public List<PedidoResponse> findApproved(UUID userId) {
         List<Pedido> pedidos;
         if (userId != null) {
@@ -49,6 +56,18 @@ public class PedidoService {
         return pedidos.stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<PedidoResponse> findApprovedPaginated(UUID userId, Integer page, Integer size) {
+        Page<Pedido> pedidos;
+        if (userId != null) {
+            pedidos = pedidoRepository.findApprovedByUserIdPaginated(userId, PageRequest.of(page, size));
+        } else {
+            pedidos = pedidoRepository.findApprovedPaginated(PageRequest.of(page, size));
+        }
+        return pedidos.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<PedidoResponse> findPending(UUID userId) {
         List<Pedido> pedidos;
         if (userId != null) {
@@ -59,6 +78,18 @@ public class PedidoService {
         return pedidos.stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<PedidoResponse> findPendingPaginated(UUID allowedUserId, Integer page, Integer size) {
+        Page<Pedido> pedidos;
+        if (allowedUserId != null) {
+            pedidos = pedidoRepository.findPendingByUserIdPaginated(allowedUserId, PageRequest.of(page, size));
+        } else {
+            pedidos = pedidoRepository.findPendingPaginated(PageRequest.of(page, size));
+        }
+        return pedidos.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<PedidoResponse> findActive(UUID userId) {
         List<Pedido> pedidos;
         if (userId != null) {
@@ -69,6 +100,40 @@ public class PedidoService {
         return pedidos.stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<PedidoResponse> findActivePaginated(UUID userId, Integer page, Integer size) {
+        Page<Pedido> pedidos;
+        if (userId != null) {
+            pedidos = pedidoRepository.findActiveByUserIdPaginated(userId, PageRequest.of(page, size));
+        } else {
+            pedidos = pedidoRepository.findActivePaginated(PageRequest.of(page, size));
+        }
+        return pedidos.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
+    public List<PedidoResponse> findReturned(UUID userId) {
+        List<Pedido> pedidos;
+        if (userId != null) {
+            pedidos = pedidoRepository.findReturnedByUserId(userId);
+        } else {
+            pedidos = pedidoRepository.findReturned();
+        }
+        return pedidos.stream().map(this::toResponse).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<PedidoResponse> findReturnedPaginated(UUID userId, Integer page, Integer size) {
+        Page<Pedido> pedidos;
+        if (userId != null) {
+            pedidos = pedidoRepository.findReturnedByUserIdPaginated(userId, PageRequest.of(page, size));
+        } else {
+            pedidos = pedidoRepository.findReturnedPaginated(PageRequest.of(page, size));
+        }
+        return pedidos.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<PedidoResponse> findRejected(UUID userId) {
         List<Pedido> pedidos;
         if (userId != null) {
@@ -79,6 +144,18 @@ public class PedidoService {
         return pedidos.stream().map(this::toResponse).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<PedidoResponse> findRejectedPaginated(UUID userId, Integer page, Integer size) {
+        Page<Pedido> pedidos;
+        if (userId != null) {
+            pedidos = pedidoRepository.findRejectedByUserIdPaginated(userId, PageRequest.of(page, size));
+        } else {
+            pedidos = pedidoRepository.findRejectedPaginated(PageRequest.of(page, size));
+        }
+        return pedidos.map(this::toResponse);
+    }
+
+    @Transactional(readOnly = true)
     public List<PedidoResponse> findDelayed(UUID userId) {
         return findActive(userId).stream()
                 .filter(p -> {
@@ -87,18 +164,41 @@ public class PedidoService {
                     }
                     LocalDateTime prazo = p.dataAprovacao().toLocalDate().atTime(18, 0);
                     return LocalDateTime.now().isAfter(prazo);
-                })
-                .toList();
+                }).toList();
     }
 
+    @Transactional(readOnly = true)
+    public Page<PedidoResponse> findDelayedPaginated(UUID userId, Integer page, Integer size) {
+        LocalDateTime threshold = LocalDateTime.now().toLocalDate().atTime(18, 0);
+        Page<Pedido> pedidos;
+        if (userId != null) {
+            pedidos = pedidoRepository.findDelayedByUserIdPaginated(userId, threshold, PageRequest.of(page, size));
+        } else {
+            pedidos = pedidoRepository.findDelayedPaginated(threshold, PageRequest.of(page, size));
+        }
+        return pedidos.map(this::toResponse);
+    }
+
+    @Transactional
     public PedidoResponse approvePedido(UUID id, UUID aprovadorId) {
         Pedido entity = getEntity(id);
         entity.setAprovado(true);
+
+        for (ItemPedido item : entity.getItens()) {
+            Estoque estoque = item.getEstoque();
+            if (estoque.getQuantidadeDisponivel() < item.getQuantidadeItem()) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Estoque insuficiente para o item: " + estoque.getNome());
+            }
+            estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() - item.getQuantidadeItem());
+            estoqueRepository.save(estoque);
+        }
+
         entity.setDataAprovacao(LocalDateTime.now());
         entity.setAprovador(getOptionalUser(aprovadorId));
         return toResponse(pedidoRepository.save(entity));
     }
 
+    @Transactional
     public PedidoResponse rejectPedido(UUID id, UUID finalizadorId) {
         Pedido entity = getEntity(id);
         entity.setAprovado(false);
@@ -107,14 +207,23 @@ public class PedidoService {
         return toResponse(pedidoRepository.save(entity));
     }
 
+    @Transactional
     public PedidoResponse returnPedido(UUID id, UUID finalizadorId) {
         Pedido entity = getEntity(id);
         entity.setFinalizado(true);
+
+        for (ItemPedido item : entity.getItens()) {
+            Estoque estoque = item.getEstoque();
+            estoque.setQuantidadeDisponivel(estoque.getQuantidadeDisponivel() + item.getQuantidadeItem());
+            estoqueRepository.save(estoque);
+        }
+
         entity.setDataFinalizado(LocalDateTime.now());
         entity.setFinalizador(getOptionalUser(finalizadorId));
         return toResponse(pedidoRepository.save(entity));
     }
 
+    @Transactional(readOnly = true)
     public PedidoResponse findById(UUID id) {
         return toResponse(getEntity(id));
     }
@@ -125,6 +234,7 @@ public class PedidoService {
         return toResponse(pedidoRepository.save(entity));
     }
 
+    @Transactional
     public void delete(UUID id) {
         if (!pedidoRepository.existsById(id)) {
             throw new ResourceNotFoundException("Pedido não encontrado para id: " + id);
@@ -132,7 +242,7 @@ public class PedidoService {
         pedidoRepository.deleteById(id);
     }
 
-    public Pedido getEntity(UUID id) {
+    private Pedido getEntity(UUID id) {
         return pedidoRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado para id: " + id));
     }
@@ -196,6 +306,7 @@ public class PedidoService {
                         item.getId(),
                         entity.getId(),
                         item.getEstoque().getId(),
+                        item.getEstoque().getNome(),
                         item.getQuantidadeItem()
                 ))
                 .collect(Collectors.toList());
@@ -279,8 +390,9 @@ public class PedidoService {
     private UsuarioResponse toUsuarioResponse(Usuario usuario) {
         return new UsuarioResponse(
                 usuario.getId(),
-                usuario.getEmail(),
+                usuario.getUsuario(),
                 usuario.getMatricula(),
+                usuario.getEmail(),
                 usuario.getNome(),
                 usuario.getSobrenome(),
                 usuario.getCurso(),

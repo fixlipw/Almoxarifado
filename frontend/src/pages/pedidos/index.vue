@@ -8,7 +8,7 @@
   import PedidosPendentesWindow from "@/components/pedido/window/PedidosPendentesWindow.vue";
   import PedidosFinalizadosWindow from "@/components/pedido/window/PedidosFinalizadosWindow.vue";
   import PedidosAtrasadosWindow from "@/components/pedido/window/PedidosAtrasadosWindow.vue";
-
+  
   const abaAtual = ref('ativos')
 
   const abas = [
@@ -22,16 +22,18 @@
 <template>
   <AppPage subtitle="Acompanhe suas solicitações e devoluções" title="Meus Empréstimos">
     <template #actions>
-      <AppButton
-        class="text-none"
-        color="primary"
-        prepend-icon="mdi-plus"
-        rounded="md"
-        to="/estoque"
-        variant="flat"
-      >
-        Nova Solicitação
-      </AppButton>
+      <div class="d-flex align-center">
+        <AppButton
+          class="text-none mr-2"
+          color="primary"
+          prepend-icon="mdi-plus"
+          rounded="md"
+          to="/estoque"
+          variant="flat"
+        >
+          Solicitar Itens
+        </AppButton>
+      </div>
     </template>
 
     <AppTabs v-model="abaAtual" class="mb-4" :items="abas">

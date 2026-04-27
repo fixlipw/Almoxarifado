@@ -1,7 +1,7 @@
 <script setup lang="ts">
   interface AppSelectProps {
     label?: string
-    items: Array<{ label: string, value: any }>
+      items: Array<{ label: string, value: any } | number>
     disabled?: boolean
     clearable?: boolean
   }
@@ -28,6 +28,7 @@
     v-model="modelValue"
     :clearable="props.clearable"
     :disabled="props.disabled"
+    density="compact"
     hide-details
     :items="props.items"
     :label="props.label"

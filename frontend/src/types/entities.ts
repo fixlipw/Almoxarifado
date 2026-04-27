@@ -1,4 +1,3 @@
-
 export type UUID = string
 
 export type UserRole = 'ALUNO' | 'BOLSISTA' | 'ADMIN'
@@ -46,8 +45,9 @@ export type EstoqueTipo = 'EQUIPAMENTO' | 'COMPONENTE'
 
 export interface Estoque {
   id: UUID
-  is_ativado?: boolean | null
+  isAtivado?: boolean | null
   quantidade: number
+  quantidadeDisponivel: number
   nome: string
   tipo: EstoqueTipo
 }
@@ -62,4 +62,3 @@ export interface Bloqueio {
   motivo_bloqueio: string
   motivo_desbloqueio?: string | null
 }
-

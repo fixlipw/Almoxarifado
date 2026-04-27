@@ -82,6 +82,7 @@ public class UsuarioService {
                 entity.getId(),
                 entity.getUsuario(),
                 entity.getMatricula(),
+                entity.getEmail(),
                 entity.getNome(),
                 entity.getSobrenome(),
                 entity.getCurso(),

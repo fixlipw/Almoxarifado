@@ -33,6 +33,7 @@
     v-model="modelValue"
     :clearable="clearable"
     :disabled="disabled"
+    density="compact"
     hide-details
     :loading="loading"
     :placeholder="placeholder"

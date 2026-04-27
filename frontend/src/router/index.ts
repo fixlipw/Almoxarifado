@@ -17,8 +17,9 @@ const router = createRouter({
 router.beforeEach((to) => {
   const authStore = useAuthStore()
   const isAuthRoute = to.path.startsWith('/auth')
+  const isPublicRoot = to.path === '/'
 
-  if (!authStore.isAuthenticated && !isAuthRoute) {
+  if (!authStore.isAuthenticated && !isAuthRoute && !isPublicRoot) {
     return '/auth/login'
   } else if (authStore.isAuthenticated && isAuthRoute) {
     return '/'

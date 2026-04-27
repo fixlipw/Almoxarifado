@@ -9,9 +9,24 @@ import { createVuetify } from 'vuetify'
 // Styles
 import '@mdi/font/css/materialdesignicons.css'
 import 'vuetify/styles'
+// Components and directives
+import * as components from 'vuetify/components'
+import * as directives from 'vuetify/directives'
+import {VTabs} from "vuetify/components";
 
 // https://vuetifyjs.com/en/introduction/why-vuetify/#feature-guides
 export default createVuetify({
+  components: {
+    ...components,
+    VTabs,
+  },
+  directives,
+  defaults: {
+    global: {
+      ripple: true,
+      density: 'comfortable',
+    }
+  },
   theme: {
     defaultTheme: 'light',
     themes: {

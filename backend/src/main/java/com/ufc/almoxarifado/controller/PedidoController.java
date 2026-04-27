@@ -39,37 +39,74 @@ public class PedidoController {
     }
 
     @GetMapping("/approved")
-    public ResponseEntity<List<PedidoResponse>> findApproved(
+    public ResponseEntity<?> findApproved(
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
             @AuthenticationPrincipal Usuario loggedUser) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(pedidoService.findApprovedPaginated(SecurityUtils.getAllowedUserId(userId, loggedUser), page, size));
+        }
         return ResponseEntity.ok(pedidoService.findApproved(SecurityUtils.getAllowedUserId(userId, loggedUser)));
     }
 
     @GetMapping("/pending")
-    public ResponseEntity<List<PedidoResponse>> findPending(
+    public ResponseEntity<?> findPending(
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
             @AuthenticationPrincipal Usuario loggedUser) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(pedidoService.findPendingPaginated(SecurityUtils.getAllowedUserId(userId, loggedUser), page, size));
+        }
         return ResponseEntity.ok(pedidoService.findPending(SecurityUtils.getAllowedUserId(userId, loggedUser)));
     }
 
     @GetMapping("/active")
-    public ResponseEntity<List<PedidoResponse>> findActive(
+    public ResponseEntity<?> findActive(
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
             @AuthenticationPrincipal Usuario loggedUser) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(pedidoService.findActivePaginated(SecurityUtils.getAllowedUserId(userId, loggedUser), page, size));
+        }
         return ResponseEntity.ok(pedidoService.findActive(SecurityUtils.getAllowedUserId(userId, loggedUser)));
     }
 
-    @GetMapping("/rejected")
-    public ResponseEntity<List<PedidoResponse>> findRejected(
+    @GetMapping("/returned")
+    public ResponseEntity<?> findReturned(
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
             @AuthenticationPrincipal Usuario loggedUser) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(pedidoService.findReturnedPaginated(SecurityUtils.getAllowedUserId(userId, loggedUser), page, size));
+        }
+        return ResponseEntity.ok(pedidoService.findReturned(SecurityUtils.getAllowedUserId(userId, loggedUser)));
+    }
+
+    @GetMapping("/rejected")
+    public ResponseEntity<?> findRejected(
+            @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
+            @AuthenticationPrincipal Usuario loggedUser) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(pedidoService.findRejectedPaginated(SecurityUtils.getAllowedUserId(userId, loggedUser), page, size));
+        }
         return ResponseEntity.ok(pedidoService.findRejected(SecurityUtils.getAllowedUserId(userId, loggedUser)));
     }
 
     @GetMapping("/delayed")
-    public ResponseEntity<List<PedidoResponse>> findDelayed(
+    public ResponseEntity<?> findDelayed(
             @RequestParam(required = false) UUID userId,
+            @RequestParam(required = false, defaultValue = "0") Integer page,
+            @RequestParam(required = false, defaultValue = "10") Integer size,
             @AuthenticationPrincipal Usuario loggedUser) {
+        if (page != null && size != null) {
+            return ResponseEntity.ok(pedidoService.findDelayedPaginated(SecurityUtils.getAllowedUserId(userId, loggedUser), page, size));
+        }
         return ResponseEntity.ok(pedidoService.findDelayed(SecurityUtils.getAllowedUserId(userId, loggedUser)));
     }
 

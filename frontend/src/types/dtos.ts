@@ -1,38 +1,69 @@
 export type TipoEstoque = 'EQUIPAMENTO' | 'COMPONENTE' | string
 export type RoleAcesso = 'ALUNO' | 'BOLSISTA' | 'ADMIN' | string
 
+export interface PageResponse<T> {
+    content: T[]
+    empty: boolean
+    first: boolean
+    last: boolean
+    number: number
+    numberOfElements: number
+    pageable: {
+        offset: number
+        pageNumber: number
+        pageSize: number
+        paged: boolean
+        sort: {
+            empty: boolean
+            sorted: boolean
+            unsorted: boolean
+        }
+        unpaged: boolean
+    }
+    size: number
+    sort: {
+        empty: boolean
+        sorted: boolean
+        unsorted: boolean
+    }
+    totalElements: number
+    totalPages: number
+}
+
 export interface EstoqueRequest {
   nome: string
   quantidade: number
+  quantidadeDisponivel?: number
   tipo: TipoEstoque
-  isAtivado?: boolean | null
+  isAtivado?: boolean
 }
 
 export interface EstoqueResponse {
   id: string
   nome: string
   quantidade: number
+  quantidadeDisponivel: number
   tipo: TipoEstoque
-  isAtivado?: boolean | null
+  isAtivado?: boolean
 }
 
 export interface HistoricoBloqueiosRequest {
   usuarioId: string
-  motivoDesbloqueio?: string | null
+  motivoDesbloqueio?: string
   motivoBloqueio: string
-  dataBloqueio?: string | null
-  dataDesbloqueio?: string | null
+  dataBloqueio?: string
+  dataDesbloqueio?: string
 }
 
 export interface HistoricoBloqueiosResponse {
   id: string
   usuarioId: string
-  administradorBloqueioId?: string | null
-  administradorDesbloqueioId?: string | null
-  motivoDesbloqueio?: string | null
+  administradorBloqueioId?: string
+  administradorDesbloqueioId?: string
+  motivoDesbloqueio?: string
   motivoBloqueio: string
-  dataBloqueio?: string | null
-  dataDesbloqueio?: string | null
+  dataBloqueio?: string
+  dataDesbloqueio?: string
 }
 
 export interface ItemPedidoRequest {
@@ -44,64 +75,66 @@ export interface ItemPedidoResponse {
   id: string
   pedidoId: string
   estoqueId: string
+  nomeItem: string
   quantidadeItem: number
 }
 
 export interface UsuarioRequest {
-  matricula?: string | null
-  senha?: string | null
-  nome?: string | null
-  sobrenome?: string | null
-  curso?: string | null
-  fotoPerfil?: string | null
-  acesso?: RoleAcesso | null
-  isAtivada?: boolean | null
-  isBloqueado?: boolean | null
+  matricula?: string
+  senha: string
+  nome?: string
+  sobrenome?: string
+  curso?: string
+  fotoPerfil?: string
+  acesso: RoleAcesso
+  isAtivada?: boolean
+  isBloqueado?: boolean
 }
 
 export interface UsuarioResponse {
   id: string
-  usuario?: string | null
-  matricula?: string | null
-  nome?: string | null
-  sobrenome?: string | null
-  curso?: string | null
-  fotoPerfil?: string | null
+  usuario?: string,
+  email?: string
+  matricula?: string
+  nome?: string
+  sobrenome?: string
+  curso?: string
+  fotoPerfil?: string
   acesso: RoleAcesso
-  isAtivada?: boolean | null
-  isBloqueado?: boolean | null
+  isAtivada?: boolean
+  isBloqueado?: boolean
 }
 
 export interface PedidoRequest {
   codigoPedido: string
-  feedback?: string | null
-  itens?: ItemPedidoRequest[] | null
-  dataSolicitacao?: string | null
-  dataAprovacao?: string | null
-  dataFinalizado?: string | null
-  dataAtualizacao?: string | null
-  aprovado?: boolean | null
-  finalizado?: boolean | null
-  emprestimoEspecial?: boolean | null
-  hash?: string | null
+  feedback?: string
+  itens: ItemPedidoRequest[]
+  dataSolicitacao?: string
+  dataAprovacao?: string
+  dataFinalizado?: string
+  dataAtualizacao?: string
+  aprovado?: boolean
+  finalizado?: boolean
+  emprestimoEspecial?: boolean
+  hash?: string
 }
 
 export interface PedidoResponse {
   id: string
   codigoPedido: string
-  feedback?: string | null
-  solicitante?: UsuarioResponse | null
-  aprovador?: UsuarioResponse | null
-  finalizador?: UsuarioResponse | null
-  itens?: ItemPedidoResponse[] | null
-  dataSolicitacao?: string | null
-  dataAprovacao?: string | null
-  dataFinalizado?: string | null
-  dataAtualizacao?: string | null
-  aprovado?: boolean | null
-  finalizado?: boolean | null
-  emprestimoEspecial?: boolean | null
-  hash?: string | null
+  feedback?: string
+  solicitante?: UsuarioResponse
+  aprovador?: UsuarioResponse
+  finalizador?: UsuarioResponse
+  itens: ItemPedidoResponse[]
+  dataSolicitacao?: string
+  dataAprovacao?: string
+  dataFinalizado?: string
+  dataAtualizacao?: string
+  aprovado?: boolean
+  finalizado?: boolean
+  emprestimoEspecial?: boolean
+  hash?: string
 }
 
 export interface LoginRequest {

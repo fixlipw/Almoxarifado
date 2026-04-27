@@ -44,11 +44,10 @@
   import AppSidebar from './AppSidebar.vue'
   import CartDialog from '@/components/estoque/CartDialog.vue'
   import { createPedido } from '@/services/pedidos'
-  import { createItemPedido } from '@/services/itensPedido'
   import { useCartStore } from '@/stores/cart'
   import { useNotificationStore } from '@/stores/notifications'
   import { useAuthStore } from '@/stores/auth'
-  import { getLocalISOString } from '@/utils'
+  import type {PedidoRequest} from "@/types/dtos.ts";
 
   const { mobile } = useDisplay()
   const router = useRouter()
@@ -58,6 +57,8 @@
   const activeSection = ref<NavSection>('dashboard')
   const cartStore = useCartStore()
   const authStore = useAuthStore()
+
+  const novoPedido = ref<PedidoRequest>();
 
   const isAdministrador = computed(() => authStore.userRole === 'ADMIN')
 
@@ -109,21 +110,26 @@
         return
       }
 
-      const novoPedido = await createPedido({
-        id: crypto.randomUUID(),
-        solicitante_id: authStore.session.usuario.id,
-        codigo_pedido: `PED-${Date.now().toString().slice(-6)}`,
-        data_solicitacao: getLocalISOString(),
+      novoPedido.value = {
+        codigoPedido: crypto.randomUUID(),
+        itens: []
+      }
+
+      cartStore.items.forEach(item => {
+        novoPedido.value?.itens.push({
+          estoqueId: item.id,
+          quantidadeItem: item.quantity
+        })
       })
 
-      for (const item of cartStore.items) {
-        await createItemPedido({
-          id: crypto.randomUUID(),
-          pedido_id: novoPedido.id,
-          estoque_id: item.id,
-          quantidade_item: item.quantity,
-        })
-      }
+      await createPedido(novoPedido.value).then(() => {
+        notifications.success('Pedido criado com sucesso!')
+      }).catch(error => {
+        console.error('Erro ao criar pedido:', error)
+        notifications.error('Não foi possível criar o novo pedido')
+      }).finally(() => {
+        novoPedido.value = undefined
+      })
 
       cartStore.clearCart()
       cartStore.setCheckout(true)

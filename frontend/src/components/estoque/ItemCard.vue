@@ -36,7 +36,7 @@ const statusChipColor = computed(() => {
 })
 
 const unavailableMessage = computed(() => {
-  return isBlocked.value ? 'Item bloqueado no momento' : 'Indisponivel no momento'
+  return isBlocked.value ? 'Item bloqueado' : 'Indisponível'
 })
 </script>
 
@@ -72,7 +72,7 @@ const unavailableMessage = computed(() => {
 
       <div class="mt-auto">
         <div class="d-flex justify-space-between align-center mb-2">
-          <span class="text-body-medium text-medium-emphasis">Disponivel</span>
+          <span class="text-body-medium text-medium-emphasis">Disponível</span>
           <span class="text-body-medium font-weight-bold">{{ props.available }} / {{ props.total }}</span>
         </div>
         <AppProgressBar
@@ -83,18 +83,15 @@ const unavailableMessage = computed(() => {
         />
         <v-row density="comfortable">
           <v-col v-if="!isBolsistaOrAdmin" cols="12">
-            <div v-if="isUnavailable" class="text-error font-weight-bold text-center py-2">
-              {{ unavailableMessage }}
-            </div>
             <AppButton
-              v-else
               block
-              class="text-none"
-              color="primary"
+              :class="isUnavailable ? 'text-error' : ''"
+              :color="isUnavailable ? 'error' : 'primary'"
+              :disabled="isUnavailable"
               elevation="0"
-              @click="emit('request-quantity')"
+              @click="!isUnavailable && emit('request-quantity')"
             >
-              {{ props.buttonText }}
+              {{ isUnavailable ? unavailableMessage : props.buttonText }}
             </AppButton>
           </v-col>
           <v-col v-else cols="12" class="d-flex ga-2" :class="{ 'justify-center': xs }">
@@ -123,8 +120,16 @@ const unavailableMessage = computed(() => {
                 {{ props.buttonText }}
               </AppButton>
             </template>
-            <div v-else class="text-error font-weight-bold text-center py-2 flex-grow-1">
-              {{ unavailableMessage }}
+            <div v-else class="font-weight-bold text-center flex-grow-1">
+               <AppButton
+                block
+                :class="isUnavailable ? 'text-error' : ''"
+                :color="isUnavailable ? 'error' : 'primary'"
+                elevation="0"
+                @click="!isUnavailable && emit('request-quantity')"
+              >
+                {{ isUnavailable ? unavailableMessage : props.buttonText }}
+              </AppButton>
             </div>
 
             <v-tooltip text="Editar Item" location="top">

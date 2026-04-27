@@ -8,6 +8,7 @@ import jakarta.validation.constraints.PositiveOrZero;
 public record EstoqueRequest(
         @NotBlank String nome,
         @NotNull @PositiveOrZero Integer quantidade,
+        @NotNull @PositiveOrZero Integer quantidadeDisponivel,
         @NotNull TipoEstoque tipo,
         Boolean isAtivado
 ) {

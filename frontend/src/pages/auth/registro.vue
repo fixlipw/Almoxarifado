@@ -182,7 +182,6 @@ async function finalizarCadastro() {
     }
 
     await createUsuario({
-      id: crypto.randomUUID(),
       acesso: 'ALUNO',
       curso: sigaaProfile.value.curso,
       email,

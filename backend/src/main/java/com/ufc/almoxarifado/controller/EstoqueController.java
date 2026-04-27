@@ -36,8 +36,11 @@ public class EstoqueController {
     }
 
     @GetMapping
-    public ResponseEntity<List<EstoqueResponse>> findAll() {
-        return ResponseEntity.ok(estoqueService.findAll());
+    public ResponseEntity<Page<EstoqueResponse>> findAllPaginated(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(estoqueService.findAllPaginated(page, size));
     }
 
     @GetMapping("/{id}")

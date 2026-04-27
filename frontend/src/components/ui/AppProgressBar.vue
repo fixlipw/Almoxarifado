@@ -11,26 +11,34 @@
   })
 
   const progressValue = computed(() => {
-    if (props.total === 0) return 0
-    const value = (props.value / props.total) * 100
-    return Math.min(100, Math.max(0, value))
+    const total = Number(props.total ?? 0)
+    const value = Number(props.value ?? 0)
+    if (!isFinite(total) || total <= 0) return 0
+    const pct = (value / total) * 100
+    if (!isFinite(pct)) return 0
+    return Math.min(100, Math.max(0, pct))
   })
 
   const progressColor = computed(() => {
-    if (props.color?.trim()) return props.color
-    if (props.total <= 0) return 'grey'
+    if (props.color && String(props.color).trim()) return props.color
 
-    const ratio = props.value / props.total
+    const total = Number(props.total ?? 0)
+    const value = Number(props.value ?? 0)
+    if (!isFinite(total) || total <= 0) return 'grey'
+
+    const ratio = value / total
+    if (!isFinite(ratio)) return 'grey'
     if (ratio <= 0.2) return 'error'
     if (ratio <= 0.5) return 'warning'
     return 'success'
   })
 
   const progressText = computed(() => {
-    if (props.valueText) {
-      return props.valueText
-    }
-    return `${props.value} / ${props.total}`
+    const total = Number(props.total ?? 0)
+    const value = Number(props.value ?? 0)
+    if (props.valueText) return props.valueText
+    if (props.textFormat) return props.textFormat(value, total)
+    return `${value} / ${total}`
   })
 </script>
 

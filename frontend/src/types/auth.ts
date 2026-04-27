@@ -1,4 +1,5 @@
 import type { Usuario } from '@/types/entities'
+import type {UsuarioResponse} from "@/types/dtos.ts";
 
 export interface SigaaCredentials {
   login: string
@@ -38,7 +39,8 @@ export interface RegistroComplementarForm {
 }
 
 export interface AuthSession {
-  usuario: Usuario
+  usuario: UsuarioResponse
+  token?: string
   sigaa?: SigaaAluno
   authenticatedAt: string
 }

@@ -6,6 +6,7 @@ public record ItemPedidoResponse(
         UUID id,
         UUID pedidoId,
         UUID estoqueId,
+        String nomeItem,
         Integer quantidadeItem
 ) {
 }

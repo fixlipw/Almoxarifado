@@ -35,7 +35,7 @@ export interface EstoqueFormValues {
 
 export interface EstoqueEditDialogItem extends EstoqueFormValues {
   id: string
-  is_ativado?: boolean | null
+  isAtivado?: boolean | null
 }
 
 export interface EstoqueEditDialogProps {

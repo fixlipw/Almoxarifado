@@ -1,38 +1,36 @@
 <template>
-  <v-container class="pa-5 h-90 overflow-hidden" fluid>
-    <AppCard
+  <AppCard
       v-if="subtitle || title"
       card-class="w-100"
       content-class="pa-4"
       :subtitle="subtitle"
       :title="title"
-    >
-      <template v-if="!isEmpty && !loading" #button>
-        <slot name="actions" />
-      </template>
-    </AppCard>
-    <main class="mt-2">
-      <template v-if="loading">
-        <AppLoadSpinner :label="loadingText" />
-      </template>
+  >
+    <template v-if="!isEmpty && !loading" #button>
+      <slot name="actions" />
+    </template>
+  </AppCard>
+  <main class="mt-2">
+    <template v-if="loading">
+      <AppLoadSpinner :label="loadingText" />
+    </template>
 
-      <template v-else-if="!isEmpty">
-        <slot />
-      </template>
+    <template v-else-if="!isEmpty">
+      <slot />
+    </template>
 
-      <v-empty-state
+    <v-empty-state
         v-else
         :icon="icon"
         size="80"
         :text="emptyText"
         :title="emptyTitle"
-      >
-        <template #actions>
-          <slot name="actions" />
-        </template>
-      </v-empty-state>
-    </main>
-  </v-container>
+    >
+      <template #actions>
+        <slot name="actions" />
+      </template>
+    </v-empty-state>
+  </main>
 </template>
 
 <script setup lang="ts">
