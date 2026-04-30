@@ -327,8 +327,3 @@ onMounted(() => {
   border: 1px solid rgba(255, 255, 255, 0.65);
 }
 </style>
-
-<route lang="yaml">
-meta:
-  layout: blank
-</route>

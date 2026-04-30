@@ -9,11 +9,6 @@
   </v-container>
 </template>
 
-<route lang="yaml">
-meta:
-  layout: blank
-</route>
-
 <script setup lang="ts">
   import AppButton from '@/components/ui/AppButton.vue'
 </script>

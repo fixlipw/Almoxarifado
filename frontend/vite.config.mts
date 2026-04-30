@@ -1,12 +1,11 @@
 import { fileURLToPath, URL } from 'node:url'
 import Vue from '@vitejs/plugin-vue'
-import VueRouter from 'vue-router/vite'
 import { defineConfig } from 'vite'
 import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [VueRouter({ dts: 'src/typed-router.d.ts' }),
+  plugins: [
     Vue({
       template: { transformAssetUrls },
     }),

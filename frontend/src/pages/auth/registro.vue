@@ -566,8 +566,3 @@ onMounted(() => {
   }
 }
 </style>
-
-<route lang="yaml">
-meta:
-  layout: blank
-</route>

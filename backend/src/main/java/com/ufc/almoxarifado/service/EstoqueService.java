@@ -113,6 +113,7 @@ public class EstoqueService {
                         Map<String, Object> row = new HashMap<>();
                         row.put("nome", item.getNome());
                         row.put("quantidade", item.getQuantidade());
+                        row.put("quantidadeDisponivel", item.getQuantidadeDisponivel());
                         row.put("tipo", item.getTipo() != null ? item.getTipo().name() : "");
                         row.put("status", Boolean.TRUE.equals(item.getIsAtivado()) ? "Ativo" : "Inativo");
                         return row;

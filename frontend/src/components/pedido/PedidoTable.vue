@@ -6,10 +6,10 @@ import AppTable from '@/components/ui/AppTable.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import {useAuthStore} from '@/stores/auth'
 
-const {pedidos, loading} = withDefaults(defineProps<{
+const {pedidos, loading = false} = defineProps<{
   pedidos: PedidoResponse[]
   loading?: boolean
-}>(), {loading: false})
+}>()
 
 const emit = defineEmits<{
   (e: 'edit', pedido: PedidoResponse): void

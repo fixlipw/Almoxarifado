@@ -31,7 +31,8 @@
             <thead>
             <tr>
                 <th>Item</th>
-                <th>Quantidade</th>
+                <th>Quantidade Total</th>
+                <th>Quantidade Disponível</th>
                 <th>Tipo</th>
                 <th>Status</th>
             </tr>
@@ -41,6 +42,7 @@
                 <tr>
                     <td>${item.nome}</td>
                     <td class="center">${item.quantidade}</td>
+                    <td class="center">${item.quantidadeDisponivel}</td>
                     <td class="center">${item.tipo}</td>
                     <td class="center">${item.status}</td>
                 </tr>
