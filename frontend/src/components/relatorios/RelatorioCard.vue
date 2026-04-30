@@ -15,7 +15,6 @@ const emit = defineEmits<{
 
 function download(format: 'pdf' | 'excel') {
   const viewerUrl = `/relatorios/visualizar?key=${encodeURIComponent(props.keyName)}&format=${format}`
-  // open viewer route in a new tab so the app can render the PDF in a full page
   window.open(viewerUrl, '_blank')
   emit('download', { key: props.keyName, format, url: viewerUrl })
 }

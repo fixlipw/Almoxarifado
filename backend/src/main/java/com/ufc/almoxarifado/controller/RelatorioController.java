@@ -24,8 +24,6 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class RelatorioController {
 
-    private static final MediaType APPLICATION_PDF = MediaType.parseMediaType("application/pdf");
-
     private final RelatorioService relatorioService;
 
     @GetMapping("/{key}")
