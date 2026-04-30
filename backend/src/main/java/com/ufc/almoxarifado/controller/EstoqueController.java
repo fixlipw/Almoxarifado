@@ -48,23 +48,6 @@ public class EstoqueController {
         return ResponseEntity.ok(estoqueService.findById(id));
     }
 
-    @GetMapping("/relatorio/{format}")
-    @PreAuthorize("hasAnyRole('ADMIN', 'BOLSISTA')")
-    public ResponseEntity<ByteArrayResource> getItemReport(@PathVariable String format) {
-        byte[] reportContent = estoqueService.generateItemReport(format);
-        ByteArrayResource resource = new ByteArrayResource(reportContent);
-
-        return ResponseEntity.ok()
-                .contentType(APPLICATION_PDF)
-                .contentLength(resource.contentLength())
-                .header(HttpHeaders.CONTENT_DISPOSITION,
-                        ContentDisposition.attachment()
-                                .filename("almoxarifado-relatorio-estoque.pdf", StandardCharsets.UTF_8)
-                                .build()
-                                .toString())
-                .body(resource);
-    }
-
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'BOLSISTA')")
     public ResponseEntity<EstoqueResponse> update(

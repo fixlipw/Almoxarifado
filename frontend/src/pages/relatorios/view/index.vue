@@ -61,25 +61,6 @@ onUnmounted(() => {
 
 <template>
   <div style="height:100vh; display:flex; flex-direction:column;">
-    <div style="padding:12px; display:flex; align-items:center; gap:8px; border-bottom:1px solid rgba(0,0,0,0.06)">
-      <v-btn icon="mdi-arrow-left" variant="text" @click="$router.back()" />
-      <div style="font-weight:600">Visualizar relatório</div>
-      <v-chip class="ml-2" density="comfortable" size="small" variant="tonal">{{ key }}</v-chip>
-      
-      <v-spacer />
-      
-      <v-btn
-        v-if="!isLoading && !error"
-        color="primary"
-        prepend-icon="mdi-refresh"
-        size="small"
-        variant="text"
-        @click="loadReport"
-      >
-        Recarregar
-      </v-btn>
-    </div>
-
     <div style="flex:1; overflow: hidden; position: relative;">
       <div v-if="isLoading" class="d-flex flex-column align-center justify-center" style="height: 100%;">
         <v-progress-circular indeterminate color="primary" size="64" />

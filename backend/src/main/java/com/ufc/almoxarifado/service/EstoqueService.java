@@ -108,7 +108,13 @@ public class EstoqueService {
         }
 
         try {
-            List<Map<String, Object>> itens = estoqueRepository.findAll().stream()
+            List<Map<String, Object>> itens = estoqueRepository.findAll().stream().sorted(
+                    (o1, o2) -> {
+                        if (o1.getNome() == null && o2.getNome() == null) return 0;
+                        if (o1.getNome() == null) return 1;
+                        if (o2.getNome() == null) return -1;
+                        return o1.getNome().compareToIgnoreCase(o2.getNome());
+                    })
                     .map(item -> {
                         Map<String, Object> row = new HashMap<>();
                         row.put("nome", item.getNome());
