@@ -11,6 +11,7 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "@embedpdf/vue-pdf-viewer": "^2.14.2",
     "@fontsource/poppins": "^5.2.7",
     "@mdi/font": "7.4.47",
     "@supabase/supabase-js": "^2.57.4",
