@@ -1,11 +1,11 @@
 <script setup lang="ts">
-  import { computed, ref } from 'vue'
-  import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-  import AppButton from '@/components/ui/AppButton.vue'
-  import AppCard from '@/components/ui/AppCard.vue'
-  import useCartStore from "@/stores/cart.ts";
+import {computed, ref} from 'vue'
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import AppButton from '@/components/ui/AppButton.vue'
+import AppCard from '@/components/ui/AppCard.vue'
+import useCartStore from "@/stores/cart.ts";
 
-  interface CartDialogProps {
+interface CartDialogProps {
     modelValue: boolean
   }
 
@@ -45,7 +45,7 @@
       cartStore.removeItem(itemIdToRemove.value)
       showConfirm.value = false
       itemIdToRemove.value = undefined
-      window.location.reload()
+      globalThis.window.location.reload()
     }
   }
 

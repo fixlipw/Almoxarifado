@@ -1,5 +1,5 @@
-import { computed } from 'vue'
-import { useTheme } from 'vuetify'
+import {computed} from 'vue'
+import {useTheme} from 'vuetify'
 
 const STORAGE_KEY = 'almoxarifado-theme'
 
@@ -27,7 +27,7 @@ export function useThemePreference() {
       return
     }
 
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      const prefersDark = globalThis.window.matchMedia('(prefers-color-scheme: dark)').matches
     applyTheme(prefersDark ? 'dark' : 'light')
   }
 

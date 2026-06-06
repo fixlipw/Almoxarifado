@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import {computed, onMounted, onUnmounted, ref} from 'vue'
+import {computed, onMounted} from 'vue'
 import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
+import ParticleCanvas from '@/components/ui/ParticleCanvas.vue'
 import {useThemePreference} from '@/composables/useThemePreference'
-import { useAuthStore } from '@/stores/auth'
+import {useAuthStore} from '@/stores/auth'
 
-const canvasRef = ref<HTMLCanvasElement | null>(null)
 const {currentTheme, initializeTheme, toggleTheme} = useThemePreference()
 const authStore = useAuthStore()
 
@@ -22,6 +22,9 @@ const heroTheme = computed(() => (
           particleStroke: '255, 255, 255',
           accentLabel: 'Visão noturna',
           accentIcon: 'mdi-weather-night',
+          brandClass: 'text-white',
+          themeButtonClass: 'text-white',
+          themeIcon: 'mdi-weather-night',
         }
         : {
           sheetClass: 'landing-shell landing-shell--light',
@@ -35,6 +38,9 @@ const heroTheme = computed(() => (
           particleStroke: '15, 23, 42',
           accentLabel: 'Aurora acadêmica',
           accentIcon: 'mdi-white-balance-sunny',
+          brandClass: 'text-black',
+          themeButtonClass: 'text-black',
+          themeIcon: 'mdi-weather-sunny',
         }
 ))
 
@@ -58,135 +64,6 @@ const featureCards = [
 
 onMounted(() => {
   initializeTheme()
-
-  const canvas = canvasRef.value
-  if (!canvas) return
-  const ctx = canvas.getContext('2d')
-  if (!ctx) return
-
-  type Particle = {
-    x: number
-    y: number
-    vx: number
-    vy: number
-    radius: number
-  }
-
-  let particles: Particle[] = []
-  let animationFrameId: number | null = null
-
-  const PARTICLE_DENSITY = 12_000
-  const MAX_PARTICLES = 300
-  const BASE_CONNECT_DISTANCE = 120
-
-  const getSize = () => {
-    const w = Math.max(1, canvas.clientWidth)
-    const h = Math.max(1, canvas.clientHeight)
-    return {w, h}
-  }
-
-  const resize = () => {
-    if (animationFrameId != null) {
-      cancelAnimationFrame(animationFrameId)
-      animationFrameId = null
-    }
-
-    const dpr = Math.max(1, window.devicePixelRatio || 1)
-    const {w, h} = getSize()
-
-    canvas.width = Math.floor(w * dpr)
-    canvas.height = Math.floor(h * dpr)
-    canvas.style.width = `${w}px`
-    canvas.style.height = `${h}px`
-
-    ctx.setTransform(dpr, 0, 0, dpr, 0, 0)
-
-    initParticles()
-    drawParticles()
-  }
-
-  const initParticles = () => {
-    particles = []
-    const {w, h} = getSize()
-    const rawNum = Math.floor((w * h) / PARTICLE_DENSITY)
-    const numParticles = Math.max(10, Math.min(rawNum, MAX_PARTICLES))
-
-    for (let i = 0; i < numParticles; i++) {
-      particles.push({
-        x: Math.random() * w,
-        y: Math.random() * h,
-        vx: (Math.random() - 0.5) * 0.6,
-        vy: (Math.random() - 0.5) * 0.6,
-        radius: Math.random() * 1.5 + 0.5,
-      })
-    }
-  }
-
-  const drawParticles = () => {
-    const {w, h} = getSize()
-    ctx.clearRect(0, 0, w, h)
-    ctx.fillStyle = heroTheme.value.particleFill
-
-    const connectDistance = Math.max(60, Math.min(BASE_CONNECT_DISTANCE, Math.sqrt(w * h) / 8))
-
-    for (let i = 0; i < particles.length; i++) {
-      const particle = particles[i]
-      particle.x += particle.vx
-      particle.y += particle.vy
-
-      if (particle.x < 0) {
-        particle.x = 0
-        particle.vx *= -1
-      }
-      if (particle.x > w) {
-        particle.x = w
-        particle.vx *= -1
-      }
-      if (particle.y < 0) {
-        particle.y = 0
-        particle.vy *= -1
-      }
-      if (particle.y > h) {
-        particle.y = h
-        particle.vy *= -1
-      }
-
-      ctx.beginPath()
-      ctx.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2)
-      ctx.fill()
-
-      for (let j = i + 1; j < particles.length; j++) {
-        const connectedParticle = particles[j]
-        const dx = particle.x - connectedParticle.x
-        const dy = particle.y - connectedParticle.y
-        const distance = Math.hypot(dx, dy)
-
-        if (distance < connectDistance) {
-          const alpha = Math.max(0, 0.12 * (1 - distance / connectDistance))
-          if (alpha <= 0) continue
-          ctx.beginPath()
-          ctx.strokeStyle = `rgba(${heroTheme.value.particleStroke}, ${alpha})`
-          ctx.moveTo(particle.x, particle.y)
-          ctx.lineTo(connectedParticle.x, connectedParticle.y)
-          ctx.stroke()
-        }
-      }
-    }
-
-    animationFrameId = requestAnimationFrame(drawParticles)
-  }
-
-  window.addEventListener('resize', resize)
-  const ro = new ResizeObserver(() => resize())
-  ro.observe(canvas)
-
-  resize()
-
-  onUnmounted(() => {
-    window.removeEventListener('resize', resize)
-    ro.disconnect()
-    if (animationFrameId != null) cancelAnimationFrame(animationFrameId)
-  })
 })
 </script>
 
@@ -197,10 +74,9 @@ onMounted(() => {
       class="d-flex flex-column position-relative"
       role="region"
   >
-    <canvas
-        ref="canvasRef"
-        aria-hidden="true"
-        class="landing-canvas"
+    <ParticleCanvas
+        :particle-fill="heroTheme.particleFill"
+        :particle-stroke="heroTheme.particleStroke"
     />
 
     <v-toolbar aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
@@ -221,10 +97,20 @@ onMounted(() => {
               width="40"
           />
           <div class="d-flex flex-column">
-            <span class="text-title-medium text-sm-h6 font-weight-bold text-white lh-1">Almoxarifado UFC</span>
-            <span class="text-body-small text-sm-body-2 text-grey-lighten-1">Campus Quixadá</span>
+            <span :class="heroTheme.brandClass" class="text-title-medium text-sm-h6 font-weight-bold lh-1">Almoxarifado UFC</span>
+            <span :class="currentTheme === 'dark' ? 'text-grey-lighten-1' : 'text-grey'"
+                  class="text-body-small text-sm-body-2">Campus Quixadá</span>
           </div>
         </div>
+
+        <v-btn
+            :aria-label="currentTheme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'"
+            :class="heroTheme.themeButtonClass"
+            :icon="heroTheme.themeIcon"
+            density="comfortable"
+            variant="text"
+            @click="toggleTheme"
+        />
       </v-container>
     </v-toolbar>
 
@@ -323,14 +209,6 @@ onMounted(() => {
   pointer-events: none;
 }
 
-.landing-canvas {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
 
 .hero-panel {
   backdrop-filter: blur(14px);

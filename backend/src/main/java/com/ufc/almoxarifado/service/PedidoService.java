@@ -20,7 +20,6 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,7 +29,7 @@ public class PedidoService {
     private final EstoqueRepository estoqueRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public PedidoResponse create(PedidoRequest request, UUID solicitanteId) {
+    public PedidoResponse create(PedidoRequest request, Long solicitanteId) {
         Pedido entity = new Pedido();
         entity.setCodigoPedido(request.codigoPedido());
         applyRequest(entity, request, solicitanteId);
@@ -38,7 +37,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findAll(UUID userId) {
+    public List<PedidoResponse> findAll(Long userId) {
         if (userId != null) {
             return pedidoRepository.findBySolicitanteId(userId).stream().map(this::toResponse).toList();
         }
@@ -46,7 +45,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findApproved(UUID userId) {
+    public List<PedidoResponse> findApproved(Long userId) {
         List<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findApprovedByUserId(userId);
@@ -57,7 +56,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponse> findApprovedPaginated(UUID userId, Integer page, Integer size) {
+    public Page<PedidoResponse> findApprovedPaginated(Long userId, Integer page, Integer size) {
         Page<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findApprovedByUserIdPaginated(userId, PageRequest.of(page, size));
@@ -68,7 +67,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findPending(UUID userId) {
+    public List<PedidoResponse> findPending(Long userId) {
         List<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findPendingByUserId(userId);
@@ -79,7 +78,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponse> findPendingPaginated(UUID allowedUserId, Integer page, Integer size) {
+    public Page<PedidoResponse> findPendingPaginated(Long allowedUserId, Integer page, Integer size) {
         Page<Pedido> pedidos;
         if (allowedUserId != null) {
             pedidos = pedidoRepository.findPendingByUserIdPaginated(allowedUserId, PageRequest.of(page, size));
@@ -90,7 +89,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findActive(UUID userId) {
+    public List<PedidoResponse> findActive(Long userId) {
         List<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findActiveByUserId(userId);
@@ -101,7 +100,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponse> findActivePaginated(UUID userId, Integer page, Integer size) {
+    public Page<PedidoResponse> findActivePaginated(Long userId, Integer page, Integer size) {
         Page<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findActiveByUserIdPaginated(userId, PageRequest.of(page, size));
@@ -112,7 +111,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findReturned(UUID userId) {
+    public List<PedidoResponse> findReturned(Long userId) {
         List<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findReturnedByUserId(userId);
@@ -123,7 +122,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponse> findReturnedPaginated(UUID userId, Integer page, Integer size) {
+    public Page<PedidoResponse> findReturnedPaginated(Long userId, Integer page, Integer size) {
         Page<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findReturnedByUserIdPaginated(userId, PageRequest.of(page, size));
@@ -134,7 +133,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findRejected(UUID userId) {
+    public List<PedidoResponse> findRejected(Long userId) {
         List<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findRejectedByUserId(userId);
@@ -145,7 +144,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponse> findRejectedPaginated(UUID userId, Integer page, Integer size) {
+    public Page<PedidoResponse> findRejectedPaginated(Long userId, Integer page, Integer size) {
         Page<Pedido> pedidos;
         if (userId != null) {
             pedidos = pedidoRepository.findRejectedByUserIdPaginated(userId, PageRequest.of(page, size));
@@ -156,7 +155,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public List<PedidoResponse> findDelayed(UUID userId) {
+    public List<PedidoResponse> findDelayed(Long userId) {
         return findActive(userId).stream()
                 .filter(p -> {
                     if (p.dataAprovacao() == null) {
@@ -168,7 +167,7 @@ public class PedidoService {
     }
 
     @Transactional(readOnly = true)
-    public Page<PedidoResponse> findDelayedPaginated(UUID userId, Integer page, Integer size) {
+    public Page<PedidoResponse> findDelayedPaginated(Long userId, Integer page, Integer size) {
         LocalDateTime threshold = LocalDateTime.now().toLocalDate().atTime(18, 0);
         Page<Pedido> pedidos;
         if (userId != null) {
@@ -180,7 +179,7 @@ public class PedidoService {
     }
 
     @Transactional
-    public PedidoResponse approvePedido(UUID id, UUID aprovadorId) {
+    public PedidoResponse approvePedido(UUID id, Long aprovadorId) {
         Pedido entity = getEntity(id);
         entity.setAprovado(true);
 
@@ -199,7 +198,7 @@ public class PedidoService {
     }
 
     @Transactional
-    public PedidoResponse rejectPedido(UUID id, UUID finalizadorId) {
+    public PedidoResponse rejectPedido(UUID id, Long finalizadorId) {
         Pedido entity = getEntity(id);
         entity.setAprovado(false);
         entity.setDataAprovacao(LocalDateTime.now());
@@ -208,7 +207,7 @@ public class PedidoService {
     }
 
     @Transactional
-    public PedidoResponse returnPedido(UUID id, UUID finalizadorId) {
+    public PedidoResponse returnPedido(UUID id, Long finalizadorId) {
         Pedido entity = getEntity(id);
         entity.setFinalizado(true);
 
@@ -247,7 +246,7 @@ public class PedidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado para id: " + id));
     }
 
-    private void applyRequest(Pedido entity, PedidoRequest request, UUID solicitanteId) {
+    private void applyRequest(Pedido entity, PedidoRequest request, Long solicitanteId) {
         if (solicitanteId != null) {
             Usuario solicitante = usuarioRepository.findById(solicitanteId)
                     .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para id: " + solicitanteId));
@@ -292,7 +291,7 @@ public class PedidoService {
         }
     }
 
-    private Usuario getOptionalUser(UUID id) {
+    private Usuario getOptionalUser(Long id) {
         if (id == null) {
             return null;
         }
@@ -309,7 +308,7 @@ public class PedidoService {
                         item.getEstoque().getNome(),
                         item.getQuantidadeItem()
                 ))
-                .collect(Collectors.toList());
+                .toList();
 
         if (entity.getFinalizador() != null) {
             return new PedidoResponse(
@@ -390,16 +389,17 @@ public class PedidoService {
     private UsuarioResponse toUsuarioResponse(Usuario usuario) {
         return new UsuarioResponse(
                 usuario.getId(),
-                usuario.getUsuario(),
-                usuario.getMatricula(),
+                usuario.getUsername(),
                 usuario.getEmail(),
                 usuario.getNome(),
-                usuario.getSobrenome(),
+                usuario.getNomeSocial(),
+                usuario.getCpf(),
                 usuario.getCurso(),
+                usuario.getPapel(),
                 usuario.getFotoPerfil(),
-                usuario.getAcesso(),
-                usuario.getIsAtivada(),
-                usuario.getIsBloqueado()
+                usuario.getStatus(),
+                usuario.getBloqueado(),
+                usuario.getMatricula()
         );
     }
 }

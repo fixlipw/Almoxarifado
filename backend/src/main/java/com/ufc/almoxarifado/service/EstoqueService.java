@@ -4,10 +4,12 @@ import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
 import com.ufc.almoxarifado.dto.EstoqueRequest;
 import com.ufc.almoxarifado.dto.EstoqueResponse;
 import com.ufc.almoxarifado.entity.Estoque;
+import com.ufc.almoxarifado.exception.ReportGenerationException;
 import com.ufc.almoxarifado.exception.ResourceNotFoundException;
 import com.ufc.almoxarifado.repository.EstoqueRepository;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import freemarker.template.TemplateException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -15,15 +17,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.StringWriter;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -61,7 +60,7 @@ public class EstoqueService {
         if (Boolean.FALSE.equals(request.isAtivado()) && Boolean.TRUE.equals(entity.getIsAtivado())) {
             boolean hasActiveOrders = estoqueRepository.existsActiveOrdersByEstoqueId(id);
             if (hasActiveOrders) {
-                throw new IllegalStateException("Nao é possível atualizar este item, pois ele está associado a pedidos ativos.");
+                throw new IllegalStateException("não é possível atualizar este item, pois ele está associado a pedidos ativos.");
             }
         }
 
@@ -71,14 +70,14 @@ public class EstoqueService {
 
     public void delete(UUID id) {
         if (!estoqueRepository.existsById(id)) {
-            throw new ResourceNotFoundException("Estoque nao encontrado para id: " + id);
+            throw new ResourceNotFoundException("Estoque não encontrado para id: " + id);
         }
         estoqueRepository.deleteById(id);
     }
 
     public Estoque getEntity(UUID id) {
         return estoqueRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Estoque nao encontrado para id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Estoque não encontrado para id: " + id));
     }
 
     private void applyRequest(Estoque entity, EstoqueRequest request) {
@@ -104,35 +103,35 @@ public class EstoqueService {
 
     public byte[] generateItemReport(String format) {
         if (!"pdf".equalsIgnoreCase(format)) {
-            throw new IllegalArgumentException("Formato nao suportado: " + format);
+            throw new IllegalArgumentException("Formato não suportado: " + format);
         }
 
+        List<Map<String, Object>> itens = estoqueRepository.findAll().stream().sorted(
+                        (o1, o2) -> {
+                            if (o1.getNome() == null && o2.getNome() == null) return 0;
+                            if (o1.getNome() == null) return 1;
+                            if (o2.getNome() == null) return -1;
+                            return o1.getNome().compareToIgnoreCase(o2.getNome());
+                        })
+                .map(item -> {
+                    Map<String, Object> row = new HashMap<>();
+                    row.put("nome", item.getNome());
+                    row.put("quantidade", item.getQuantidade());
+                    row.put("quantidadeDisponivel", item.getQuantidadeDisponivel());
+                    row.put("tipo", item.getTipo() != null ? item.getTipo().name() : "");
+                    row.put("status", Boolean.TRUE.equals(item.getIsAtivado()) ? "Ativo" : "Inativo");
+                    return row;
+                })
+                .toList();
+
+        Map<String, Object> model = new HashMap<>();
+        model.put("titulo", "Relatório de Estoque");
+        model.put("geradoEm", REPORT_DATE_FORMAT.format(LocalDateTime.now()));
+        model.put("totalItens", itens.size());
+        model.put("itens", itens);
+        model.put("brasaoUfc", loadBrasaoDataUri());
+
         try {
-            List<Map<String, Object>> itens = estoqueRepository.findAll().stream().sorted(
-                    (o1, o2) -> {
-                        if (o1.getNome() == null && o2.getNome() == null) return 0;
-                        if (o1.getNome() == null) return 1;
-                        if (o2.getNome() == null) return -1;
-                        return o1.getNome().compareToIgnoreCase(o2.getNome());
-                    })
-                    .map(item -> {
-                        Map<String, Object> row = new HashMap<>();
-                        row.put("nome", item.getNome());
-                        row.put("quantidade", item.getQuantidade());
-                        row.put("quantidadeDisponivel", item.getQuantidadeDisponivel());
-                        row.put("tipo", item.getTipo() != null ? item.getTipo().name() : "");
-                        row.put("status", Boolean.TRUE.equals(item.getIsAtivado()) ? "Ativo" : "Inativo");
-                        return row;
-                    })
-                    .toList();
-
-            Map<String, Object> model = new HashMap<>();
-            model.put("titulo", "Relatório de Estoque");
-            model.put("geradoEm", REPORT_DATE_FORMAT.format(LocalDateTime.now()));
-            model.put("totalItens", itens.size());
-            model.put("itens", itens);
-            model.put("brasaoUfc", loadBrasaoDataUri());
-
             Template template = freemarkerConfiguration.getTemplate("relatorios/estoque.ftlh");
             String html;
             try (StringWriter writer = new StringWriter()) {
@@ -148,8 +147,8 @@ public class EstoqueService {
                 builder.run();
                 return outputStream.toByteArray();
             }
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar relatório de estoque: " + e.getMessage(), e);
+        } catch (IOException | TemplateException e) {
+            throw new ReportGenerationException("Erro ao gerar relatório de estoque", e);
         }
     }
 
@@ -157,14 +156,14 @@ public class EstoqueService {
         try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream(BRASAO_PATH);
              ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
             if (inputStream == null) {
-                throw new RuntimeException("Imagem do brasão nao encontrada em " + BRASAO_PATH);
+                throw new IllegalStateException("Imagem do brasão não encontrada em " + BRASAO_PATH);
             }
 
             inputStream.transferTo(outputStream);
             String base64 = Base64.getEncoder().encodeToString(outputStream.toByteArray());
             return "data:image/png;base64," + base64;
-        } catch (Exception e) {
-            throw new RuntimeException("Erro ao carregar imagem do brasão: " + e.getMessage(), e);
+        } catch (IOException e) {
+            throw new ReportGenerationException("Erro ao carregar imagem do brasão", e);
         }
     }
 }

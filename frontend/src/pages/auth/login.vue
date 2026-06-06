@@ -1,36 +1,26 @@
 <script lang="ts" setup>
-import { computed, onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 
 import InstitutionFooter from '@/components/common/InstitutionFooter.vue'
 import AppAlert from '@/components/ui/AppAlert.vue'
 import AppButton from '@/components/ui/AppButton.vue'
 import AppCard from '@/components/ui/AppCard.vue'
-import { useThemePreference } from '@/composables/useThemePreference'
-import { loadAuthSession } from '@/services/auth'
-import { loginApi } from '@/services/auth'
-import { useNotificationStore } from '@/stores/notifications'
-import { useAuthStore } from '@/stores/auth'
-import type { SigaaCredentials } from '@/types/auth'
-import type { LoginRequest } from '@/types/dtos'
-import { getLocalISOString } from '@/utils'
-import {useDisplay} from "vuetify";
+import ParticleCanvas from '@/components/ui/ParticleCanvas.vue'
+import {useThemePreference} from '@/composables/useThemePreference'
+import {useNotificationStore} from '@/stores/notifications'
+import {useAuthStore} from '@/stores/auth'
+import {useDisplay} from 'vuetify'
 
 const router = useRouter()
 const route = useRoute()
 const notifications = useNotificationStore()
 const authStore = useAuthStore()
-const { currentTheme, initializeTheme } = useThemePreference()
+const {currentTheme, initializeTheme, toggleTheme} = useThemePreference()
 
 const { smAndUp } = useDisplay()
 
-const formRef = ref()
 const isLoading = ref(false)
-const showPassword = ref(false)
-const credentials = ref<SigaaCredentials>({
-  login: '',
-  senha: '',
-})
 
 const heroTheme = computed(() => (
   currentTheme.value === 'dark'
@@ -41,6 +31,11 @@ const heroTheme = computed(() => (
         subtitleClass: 'auth-subtitle auth-subtitle--dark',
         pillClass: 'auth-pill auth-pill--dark',
         featureClass: 'auth-feature auth-feature--dark',
+        particleFill: 'rgba(255, 255, 255, 0.45)',
+        particleStroke: '255, 255, 255',
+        brandClass: 'text-white',
+        themeButtonClass: 'text-white',
+        themeIcon: 'mdi-weather-night',
       }
     : {
         shellClass: 'auth-shell auth-shell--light',
@@ -49,50 +44,25 @@ const heroTheme = computed(() => (
         subtitleClass: 'auth-subtitle auth-subtitle--light',
         pillClass: 'auth-pill auth-pill--light',
         featureClass: 'auth-feature auth-feature--light',
+        particleFill: 'rgba(15, 23, 42, 0.28)',
+        particleStroke: '15, 23, 42',
+        brandClass: 'text-black',
+        themeButtonClass: 'text-black',
+        themeIcon: 'mdi-weather-sunny',
       }
 ))
 
-const isCadastroConcluido = computed(() => route.query.cadastro === 'cadastro_ok')
-
-const loginRules = [
-  (value: string) => Boolean(value?.trim()) || 'Informe seu usuário ou email.',
-]
-
-const passwordRules = [
-  (value: string) => Boolean(value?.trim()) || 'Informe sua senha.',
-]
-
-function applyQueryPrefill() {
-  if (typeof route.query.login === 'string' && !credentials.value.login) {
-    credentials.value.login = route.query.login
-  }
-}
+const isCadastroConcluido = computed(() => route.query.cadastro === 'ok' || route.query.cadastro === 'cadastro_ok')
 
 function getErrorMessage(error: unknown) {
   return error instanceof Error ? error.message : 'Não foi possível realizar o acesso.'
 }
 
 async function handleLogin() {
-  const validation = await formRef.value?.validate?.()
-
-  if (validation && !validation.valid) {
-    return
-  }
-
   isLoading.value = true
 
   try {
-    const login = credentials.value.login.trim()
-    const senha = credentials.value.senha
-    const payload: LoginRequest = { login, senha }
-    const response = await loginApi(payload)
-    authStore.login({
-      usuario: response.usuario,
-      token: response.token,
-      authenticatedAt: getLocalISOString(),
-    })
-    notifications.success(`Bem-vindo, ${response.usuario.nome || response.usuario.usuario}!`)
-    await router.push('/dashboard')
+    await authStore.login(`${globalThis.window.location.origin}/dashboard`)
   } catch (error) {
     notifications.error(getErrorMessage(error))
   } finally {
@@ -102,22 +72,24 @@ async function handleLogin() {
 
 onMounted(() => {
   initializeTheme()
-  applyQueryPrefill()
-
-  const session = loadAuthSession()
-  if (session) {
-    void router.replace('/dashboard')
+  if (authStore.isAuthenticated) {
+    router.replace('/dashboard')
     return
   }
 
   if (isCadastroConcluido.value) {
-    notifications.success('Cadastro concluído com sucesso. Faça o login para continuar.')
+    notifications.success('Cadastro concluído com sucesso. Entre com sua conta institucional para continuar.')
   }
 })
 </script>
 
 <template>
   <v-sheet :class="heroTheme.shellClass" class="auth-page position-relative d-flex flex-column">
+    <ParticleCanvas
+        :particle-fill="heroTheme.particleFill"
+        :particle-stroke="heroTheme.particleStroke"
+    />
+
     <v-toolbar
       aria-label="Cabeçalho da página inicial com informações institucionais e acesso ao sistema"
       class="position-relative pt-4"
@@ -137,10 +109,22 @@ onMounted(() => {
             width="40"
           />
           <div v-if="smAndUp" class="d-flex flex-column">
-            <span class="text-title-medium text-sm-h6 font-weight-bold text-white lh-1">Almoxarifado UFC</span>
-            <span class="text-body-small text-sm-body-2 text-grey-lighten-1">Campus Quixadá</span>
+            <span :class="heroTheme.brandClass" class="text-title-medium text-sm-h6 font-weight-bold lh-1">Almoxarifado UFC</span>
+            <span :class="currentTheme === 'dark' ? 'text-grey-lighten-1' : 'text-grey'"
+                  class="text-body-small text-sm-body-2">Campus Quixadá</span>
           </div>
         </div>
+
+        <v-spacer/>
+
+        <v-btn
+            :aria-label="currentTheme === 'dark' ? 'Mudar para tema claro' : 'Mudar para tema escuro'"
+            :class="heroTheme.themeButtonClass + 'mr-4'"
+            :icon="heroTheme.themeIcon"
+            density="comfortable"
+            variant="text"
+            @click="toggleTheme"
+        />
 
         <AppButton :loading="isLoading" color="warning" variant="flat" to="/">
           Página Inicial
@@ -165,40 +149,19 @@ onMounted(() => {
             <AppAlert
               v-if="isCadastroConcluido"
               class="mt-5 mb-5"
-              description="Agora você pode entrar com seu usuário ou email e a senha cadastrada."
+              description="Seu cadastro foi concluído. Agora basta entrar com a conta institucional."
               title="Cadastro concluído"
               tone="success"
             />
 
-            <v-form ref="formRef" class="mt-4" @submit.prevent="handleLogin">
-              <v-text-field
-                v-model="credentials.login"
-                :rules="loginRules"
-                autocomplete="username"
-                class="mb-4"
-                density="comfortable"
-                label="Usuário ou email"
-                placeholder="Informe seu usuário ou email"
-                prepend-inner-icon="mdi-account-outline"
-                variant="outlined"
+            <div class="mt-4 d-flex flex-column ga-4">
+              <AppAlert
+                  description="Ao continuar, você será redirecionado para a tela de login."
+                  title="Login institucional"
+                  tone="info"
               />
 
-              <v-text-field
-                v-model="credentials.senha"
-                :append-inner-icon="showPassword ? 'mdi-eye-off-outline' : 'mdi-eye-outline'"
-                :rules="passwordRules"
-                :type="showPassword ? 'text' : 'password'"
-                autocomplete="current-password"
-                class="mb-3"
-                density="comfortable"
-                label="Senha"
-                placeholder="Digite sua senha"
-                prepend-inner-icon="mdi-lock-outline"
-                variant="outlined"
-                @click:append-inner="showPassword = !showPassword"
-              />
-
-              <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3 mt-2">
+              <div class="d-flex flex-column flex-sm-row justify-space-between align-start align-sm-center ga-3">
                 <v-btn
                   class="text-none px-0"
                   color="warning"
@@ -209,11 +172,11 @@ onMounted(() => {
                   Primeiro acesso? Registre-se
                 </v-btn>
 
-                <AppButton :loading="isLoading" color="warning" type="submit" variant="flat">
+                <AppButton :loading="isLoading" color="warning" variant="flat" @click="handleLogin">
                   Entrar
                 </AppButton>
               </div>
-            </v-form>
+            </div>
           </AppCard>
         </v-col>
       </v-row>

@@ -5,9 +5,9 @@ import java.util.UUID;
 
 public record HistoricoBloqueiosResponse(
         UUID id,
-        UUID usuarioId,
-        UUID administradorBloqueioId,
-        UUID administradorDesbloqueioId,
+        Long usuarioId,
+        Long administradorBloqueioId,
+        Long administradorDesbloqueioId,
         String motivoDesbloqueio,
         String motivoBloqueio,
         LocalDateTime dataBloqueio,

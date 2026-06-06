@@ -21,7 +21,7 @@ public class HistoricoBloqueiosService {
     private final HistoricoBloqueiosRepository historicoBloqueiosRepository;
     private final UsuarioRepository usuarioRepository;
 
-    public HistoricoBloqueiosResponse create(HistoricoBloqueiosRequest request, UUID adminId) {
+    public HistoricoBloqueiosResponse create(HistoricoBloqueiosRequest request, Long adminId) {
         HistoricoBloqueios entity = new HistoricoBloqueios();
         applyCreationRequest(entity, request, adminId);
         return toResponse(historicoBloqueiosRepository.save(entity));
@@ -35,7 +35,7 @@ public class HistoricoBloqueiosService {
         return toResponse(getEntity(id));
     }
 
-    public HistoricoBloqueiosResponse update(UUID id, HistoricoBloqueiosRequest request, UUID adminId) {
+    public HistoricoBloqueiosResponse update(UUID id, HistoricoBloqueiosRequest request, Long adminId) {
         HistoricoBloqueios entity = getEntity(id);
         applyUpdateRequest(entity, request, adminId);
         return toResponse(historicoBloqueiosRepository.save(entity));
@@ -43,22 +43,22 @@ public class HistoricoBloqueiosService {
 
     public void delete(UUID id) {
         if (!historicoBloqueiosRepository.existsById(id)) {
-            throw new ResourceNotFoundException("HistoricoBloqueios nao encontrado para id: " + id);
+            throw new ResourceNotFoundException("HistoricoBloqueios não encontrado para id: " + id);
         }
         historicoBloqueiosRepository.deleteById(id);
     }
 
     private HistoricoBloqueios getEntity(UUID id) {
         return historicoBloqueiosRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Histórico de bloqueios nao encontrado para id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Histórico de bloqueios não encontrado para id: " + id));
     }
 
-    private void applyCreationRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request, UUID adminId) {
+    private void applyCreationRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request, Long adminId) {
         Usuario usuario = usuarioRepository.findById(request.usuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado para id: " + request.usuarioId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario não encontrado para id: " + request.usuarioId()));
 
         Usuario administradorBloqueio = usuarioRepository.findById(adminId)
-                .orElseThrow(() -> new ResourceNotFoundException("Administrador de bloqueio nao encontrado para id: " + adminId));
+                .orElseThrow(() -> new ResourceNotFoundException("Administrador de bloqueio não encontrado para id: " + adminId));
 
         entity.setUsuario(usuario);
         entity.setAdministradorBloqueio(administradorBloqueio);
@@ -72,9 +72,9 @@ public class HistoricoBloqueiosService {
         }
     }
 
-    private void applyUpdateRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request, UUID adminId) {
+    private void applyUpdateRequest(HistoricoBloqueios entity, HistoricoBloqueiosRequest request, Long adminId) {
         Usuario usuario = usuarioRepository.findById(request.usuarioId())
-                .orElseThrow(() -> new ResourceNotFoundException("Usuario nao encontrado para id: " + request.usuarioId()));
+                .orElseThrow(() -> new ResourceNotFoundException("Usuario não encontrado para id: " + request.usuarioId()));
 
         entity.setUsuario(usuario);
         entity.setMotivoBloqueio(request.motivoBloqueio());
@@ -86,7 +86,7 @@ public class HistoricoBloqueiosService {
             entity.setMotivoDesbloqueio(request.motivoDesbloqueio());
             if (entity.getAdministradorDesbloqueio() == null) {
                 Usuario administradorDesbloqueio = usuarioRepository.findById(adminId)
-                        .orElseThrow(() -> new ResourceNotFoundException("Administrador de desbloqueio nao encontrado para id: " + adminId));
+                        .orElseThrow(() -> new ResourceNotFoundException("Administrador de desbloqueio não encontrado para id: " + adminId));
                 entity.setAdministradorDesbloqueio(administradorDesbloqueio);
             }
             if (entity.getDataDesbloqueio() == null) {

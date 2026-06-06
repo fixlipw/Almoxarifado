@@ -1,81 +1,142 @@
 package com.ufc.almoxarifado.exception;
 
+import jakarta.validation.ConstraintViolationException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.Instant;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.List;
 
+@Slf4j
 @RestControllerAdvice
 public class ApiExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleResourceNotFound(ResourceNotFoundException ex) {
-        return buildResponse(HttpStatus.NOT_FOUND, "Recurso nao encontrado", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleResourceNotFound(ResourceNotFoundException ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Recurso não encontrado", ex.getMessage(), null, ex);
+    }
+
+    @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
+    public ResponseEntity<ApiErrorResponse> handleNotFound(Exception ex) {
+        return buildResponse(HttpStatus.NOT_FOUND, "Recurso não encontrado", "O recurso solicitado não foi encontrado.", null, ex);
+    }
+
+    @ExceptionHandler(ReportGenerationException.class)
+    public ResponseEntity<ApiErrorResponse> handleReportGeneration(ReportGenerationException ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro ao gerar relatório", "Ocorreu um erro ao gerar o relatório. Tente novamente mais tarde.", null, ex);
     }
 
     @ExceptionHandler(ResponseStatusException.class)
-    public ResponseEntity<Map<String, Object>> handleResponseStatus(ResponseStatusException ex) {
-        return buildResponse(ex.getStatusCode(), "Erro de resposta",
-                ex.getReason() != null ? ex.getReason() : ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleResponseStatus(ResponseStatusException ex) {
+        String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
+        return buildResponse(ex.getStatusCode(), "Erro de resposta", message, null, ex);
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<Map<String, Object>> handleBadCredentials(BadCredentialsException ex) {
-        return buildResponse(HttpStatus.UNAUTHORIZED, "Credenciais invalidas", "Usuario ou senha invalidos.");
+    @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
+    public ResponseEntity<ApiErrorResponse> handleAuthentication(Exception ex) {
+        return buildResponse(HttpStatus.UNAUTHORIZED, "não autenticado", "Credenciais inválidas ou expiradas.", null, ex);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Map<String, Object>> handleAccessDenied(AccessDeniedException ex) {
-        return buildResponse(HttpStatus.FORBIDDEN, "Acesso negado", "Voce nao tem permissao para realizar esta acao.");
+    public ResponseEntity<ApiErrorResponse> handleAccessDenied(AccessDeniedException ex) {
+        return buildResponse(HttpStatus.FORBIDDEN, "Acesso negado", "Você não tem permissão para realizar esta ação.", null, ex);
+    }
+
+    @ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, ConstraintViolationException.class})
+    public ResponseEntity<ApiErrorResponse> handleValidation(Exception ex) {
+        List<String> details = switch (ex) {
+            case BindException bindException -> bindException.getBindingResult().getFieldErrors().stream()
+                    .map(err -> err.getField() + ": " + err.getDefaultMessage())
+                    .toList();
+            case ConstraintViolationException constraintViolationException ->
+                    constraintViolationException.getConstraintViolations().stream()
+                            .map(violation -> violation.getPropertyPath() + ": " + violation.getMessage())
+                            .toList();
+            default -> List.of();
+        };
+
+        return buildResponse(HttpStatus.BAD_REQUEST, "Erro de validação", "Um ou mais campos estão inválidos.", details, ex);
+    }
+
+    @ExceptionHandler({HttpMessageNotReadableException.class, MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class, IllegalArgumentException.class})
+    public ResponseEntity<ApiErrorResponse> handleBadRequest(Exception ex) {
+        String message = switch (ex) {
+            case HttpMessageNotReadableException _ -> "Corpo da requisição inválido ou ausente.";
+            case MissingServletRequestParameterException missing ->
+                    "Parâmetro obrigatório ausente: " + missing.getParameterName();
+            case MethodArgumentTypeMismatchException mismatch -> "Parâmetro inválido: " + mismatch.getName();
+            default -> ex.getMessage() != null ? ex.getMessage() : "Requisição inválida.";
+        };
+
+        return buildResponse(HttpStatus.BAD_REQUEST, "Requisição inválida", message, null, ex);
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ApiErrorResponse> handleUploadTooLarge(MaxUploadSizeExceededException ex) {
+        return buildResponse(HttpStatus.CONTENT_TOO_LARGE, "Arquivo muito grande", "O arquivo enviado excede o tamanho permitido.", null, ex);
     }
 
     @ExceptionHandler(DataIntegrityViolationException.class)
-    public ResponseEntity<Map<String, Object>> handleDataIntegrity(DataIntegrityViolationException ex) {
-        return buildResponse(HttpStatus.CONFLICT, "Erro de integridade dos dados",
-                "Erro de integridade de dados. Verifique as restricoes do banco de dados.");
-    }
-
-    @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, Object>> handleValidation(MethodArgumentNotValidException ex) {
-        String details = ex.getBindingResult()
-                .getFieldErrors()
-                .stream()
-                .map(err -> err.getField() + ": " + err.getDefaultMessage())
-                .collect(Collectors.joining("; "));
-
-        return buildResponse(HttpStatus.BAD_REQUEST, "Erro de validacao", details);
-    }
-
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleIllegalArgument(IllegalArgumentException ex) {
-        return buildResponse(HttpStatus.BAD_REQUEST, "Requisicao invalida", ex.getMessage());
+    public ResponseEntity<ApiErrorResponse> handleDataIntegrity(DataIntegrityViolationException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Erro de integridade dos dados", "Erro de integridade de dados. Verifique as restrições do banco de dados.", null, ex);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGenericException(Exception ex) {
-        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno de servidor",
-                "Ocorreu um erro inesperado no servidor.");
+    public ResponseEntity<ApiErrorResponse> handleGenericException(Exception ex) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Erro interno de servidor", "Ocorreu um erro inesperado no servidor.", null, ex);
     }
 
-    private ResponseEntity<Map<String, Object>> buildResponse(
-            org.springframework.http.HttpStatusCode status,
+    private ResponseEntity<ApiErrorResponse> buildResponse(
+            HttpStatusCode status,
             String error,
-            String message) {
+            String message,
+            List<String> details,
+            Exception ex) {
+        logException(status, error, message, ex);
         return ResponseEntity.status(status)
-                .body(Map.of(
-                        "timestamp", Instant.now().toString(),
-                        "status", status.value(),
-                        "error", error,
-                        "message", message
+                .body(new ApiErrorResponse(
+                        Instant.now().toString(),
+                        status.value(),
+                        error,
+                        message,
+                        details,
+                        resolvePath()
                 ));
+    }
+
+    private String resolvePath() {
+        var attributes = RequestContextHolder.getRequestAttributes();
+        if (attributes instanceof ServletRequestAttributes servletRequestAttributes) {
+            return servletRequestAttributes.getRequest().getRequestURI();
+        }
+        return null;
+    }
+
+    private void logException(HttpStatusCode status, String error, String message, Exception ex) {
+        if (status.value() >= 500) {
+            log.error("{} - {}", error, message, ex);
+            return;
+        }
+
+        log.warn("{} - {}", error, message, ex);
     }
 }

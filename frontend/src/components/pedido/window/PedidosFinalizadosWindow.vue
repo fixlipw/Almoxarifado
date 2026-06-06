@@ -3,14 +3,13 @@
 import AppPage from "@/components/ui/AppPage.vue";
 import {computed, onMounted, ref, watch} from "vue";
 import type {PedidoVisualProps} from "@/components/pedido/types.ts";
-import type { PedidoResponse } from '@/types/dtos'
+import type {PedidoResponse} from '@/types/dtos'
 import PedidoTable from '@/components/pedido/PedidoTable.vue'
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import {mapearParaPedidoVisual, mapearPedidoDetalhes} from "@/components/pedido/window/utils.ts";
 import {getPedidosFinalizados} from "@/services/pedidos.ts";
 import {useCartStore} from "@/stores/cart.ts";
-import {useAuthStore} from "@/stores/auth.ts";
 import {useDisplay} from "vuetify";
 import useNotificationStore from "@/stores/notifications.ts";
 
@@ -28,7 +27,6 @@ const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value))
 
 const rules = useNotificationStore()
 const cartStore = useCartStore()
-const authStore = useAuthStore()
 
 const pedidoDetalhesSelecionado = computed(() => {
   if (!pedidoSelecionado.value) return null
@@ -43,9 +41,7 @@ function abrirDetalhes(pedido: PedidoVisualProps) {
 async function carregarPedidos() {
   isLoading.value = true
   try {
-    const userId = authStore.userRole === 'ALUNO' ? authStore.session?.usuario?.id : undefined
     const data = await getPedidosFinalizados({
-      userId,
       page: currentPage.value - 1,
       size: pageSize.value,
     })

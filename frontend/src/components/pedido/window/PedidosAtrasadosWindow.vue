@@ -4,19 +4,19 @@ import AppPage from "@/components/ui/AppPage.vue";
 import ConfirmDialog from "@/components/common/ConfirmDialog.vue";
 import {computed, onMounted, ref, watch} from "vue";
 import type {PedidoVisualProps} from "@/components/pedido/types.ts";
-import type { PedidoResponse } from '@/types/dtos'
+import type {PedidoResponse} from '@/types/dtos'
 import PedidoTable from '@/components/pedido/PedidoTable.vue'
 import PedidoDetalhesDialog from "@/components/pedido/PedidoDetalhesDialog.vue";
 import PedidoCard from "@/components/pedido/PedidoCard.vue";
 import {mapearParaPedidoVisual, mapearPedidoDetalhes} from "@/components/pedido/window/utils.ts";
-function mapToVisual(apiPedido: PedidoResponse) {
-  return mapearParaPedidoVisual(apiPedido)
-}
 import {getPedidosAtrasados, returnPedido} from "@/services/pedidos.ts";
 import {useCartStore} from "@/stores/cart.ts";
 import {useNotificationStore} from "@/stores/notifications.ts";
-import {useAuthStore} from "@/stores/auth.ts";
 import {useDisplay} from "vuetify/framework";
+
+function mapToVisual(apiPedido: PedidoResponse) {
+  return mapearParaPedidoVisual(apiPedido)
+}
 
 const {mdAndUp} = useDisplay()
 const props = defineProps<{ viewMode?: string }>()
@@ -33,7 +33,6 @@ const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value))
 
 const cartStore = useCartStore()
 const rules = useNotificationStore()
-const authStore = useAuthStore()
 
 const pedidoDetalhesSelecionado = computed(() => {
   if (!pedidoSelecionado.value) return null
@@ -53,9 +52,7 @@ const mensagemConfirmacao = ref('')
 async function carregarPedidos() {
   isLoading.value = true
   try {
-    const userId = authStore.userRole === 'ALUNO' ? authStore.session?.usuario?.id : undefined
     const data = await getPedidosAtrasados({
-      userId,
       page: currentPage.value - 1,
       size: pageSize.value,
     })
@@ -96,12 +93,6 @@ function confirmarAcaoDetalhes(acao: 'approve' | 'reject' | 'return') {
 
 async function executarDevolucao() {
   if (!pedidoSelecionado.value) return
-  const userId = authStore.session?.usuario?.id
-  if (!userId) {
-    rules.error('Usuário não autenticado.')
-    return
-  }
-
   isAcaoLoading.value = true
   try {
     await returnPedido(pedidoSelecionado.value.id)
@@ -111,7 +102,7 @@ async function executarDevolucao() {
     dialogAberto.value = false
     pedidoSelecionado.value = null
 
-    window.location.reload()
+    globalThis.window.location.reload()
   } catch (e) {
     console.error('Erro ao efetuar devolução:', e)
     rules.error('Erro ao registrar a devolução.')
@@ -197,7 +188,3 @@ async function executarDevolucao() {
     />
   </AppPage>
 </template>
-
-<style scoped>
-
-</style>

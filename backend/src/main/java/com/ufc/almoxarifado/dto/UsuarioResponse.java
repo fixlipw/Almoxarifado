@@ -1,21 +1,21 @@
 package com.ufc.almoxarifado.dto;
 
-import com.ufc.almoxarifado.entity.RoleAcesso;
-
-import java.util.UUID;
+import com.ufc.almoxarifado.entity.Curso;
+import com.ufc.almoxarifado.entity.Papel;
 
 public record UsuarioResponse(
-        UUID id,
-        String usuario,
-        String matricula,
+        Long id,
+        String username,
         String email,
         String nome,
-        String sobrenome,
-        String curso,
+        String nomeSocial,
+        String cpf,
+        Curso curso,
+        Papel papel,
         String fotoPerfil,
-        RoleAcesso acesso,
-        Boolean isAtivada,
-        Boolean isBloqueado
+        Boolean status,
+        Boolean bloqueado,
+        String matricula
 ) {
 }
 

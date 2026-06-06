@@ -1,11 +1,11 @@
 package com.ufc.almoxarifado.service;
 
 import com.openhtmltopdf.pdfboxout.PdfRendererBuilder;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-
+import com.ufc.almoxarifado.exception.ReportGenerationException;
 import freemarker.template.Configuration;
 import freemarker.template.Template;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
 import java.io.StringWriter;
@@ -29,7 +29,7 @@ public class RelatorioService {
         }
 
         if (!"pdf".equalsIgnoreCase(format)) {
-            throw new IllegalArgumentException("Formato nao suportado: " + format);
+            throw new IllegalArgumentException("Formato não suportado: " + format);
         }
 
         try {
@@ -56,7 +56,7 @@ public class RelatorioService {
                 return outputStream.toByteArray();
             }
         } catch (Exception e) {
-            throw new RuntimeException("Erro ao gerar relatório: " + e.getMessage(), e);
+            throw new ReportGenerationException("Erro ao gerar relatório: " + e.getMessage(), e);
         }
     }
 }

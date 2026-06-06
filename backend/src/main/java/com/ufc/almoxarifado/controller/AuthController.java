@@ -1,14 +1,10 @@
 package com.ufc.almoxarifado.controller;
 
-import com.ufc.almoxarifado.dto.*;
-import com.ufc.almoxarifado.service.AuthService;
-import jakarta.annotation.security.PermitAll;
+import com.ufc.almoxarifado.service.UsuarioService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -17,35 +13,11 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final AuthService authService;
+    private final UsuarioService usuarioService;
 
-    @PostMapping("/validar-sigaa")
-    @PermitAll
-    public ResponseEntity<SigaaResponse> validarSigaa(
-            @RequestBody SigaaRequest request) {
-        return ResponseEntity.ok(authService.validarSigaa(request));
+    @GetMapping("/session-sync")
+    public ResponseEntity<Void> sessionSync() {
+        // Endpoint intencionalmente vazio; apenas dispara validação/sincronização no bootstrap do frontend.
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
-
-    @PostMapping("/registro")
-    @PermitAll
-    public ResponseEntity<?> register(
-            @RequestBody RegisterRequest request) {
-        authService.register(request);
-        return ResponseEntity.ok("Usuário registrado com sucesso. Verifique seu email para ativar a conta.");
-    }
-
-    @GetMapping("/ativar")
-    @PermitAll
-    public ResponseEntity<String> ativarConta(@RequestParam String token) {
-        authService.ativarConta(token);
-        return ResponseEntity.ok("Conta ativada com sucesso! Você já pode realizar o login.");
-    }
-
-    @PostMapping("/login")
-    @PermitAll
-    public ResponseEntity<LoginResponse> login(
-            @RequestBody LoginRequest request) {
-        return ResponseEntity.ok(authService.login(request));
-    }
-
 }

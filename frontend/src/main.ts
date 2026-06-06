@@ -5,11 +5,12 @@
  */
 
 // Composables
-import { createApp } from 'vue'
+import {createApp} from 'vue'
 
 // Plugins
-import { registerPlugins } from '@/plugins'
+import {registerPlugins} from '@/plugins'
 import router from '@/router'
+import {useAuthStore} from '@/stores/auth'
 
 // Components
 import App from './App.vue'
@@ -26,8 +27,10 @@ const app = createApp(App)
 registerPlugins(app)
 
 async function bootstrap () {
+    const authStore = useAuthStore()
+    await authStore.init()
   await router.isReady()
   app.mount('#app')
 }
 
-bootstrap()
+await bootstrap()

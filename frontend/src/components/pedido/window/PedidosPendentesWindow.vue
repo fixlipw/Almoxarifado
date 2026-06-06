@@ -12,7 +12,6 @@ import {approvePedido, deletePedido, getPedidosPendentes, rejectPedido} from "@/
 import {useCartStore} from "@/stores/cart.ts";
 import {useNotificationStore} from "@/stores/notifications.ts";
 import {useRouter} from "vue-router";
-import {useAuthStore} from "@/stores/auth.ts";
 import {useDisplay} from "vuetify";
 import PedidoTable from "@/components/pedido/PedidoTable.vue";
 
@@ -31,7 +30,6 @@ const totalPages = computed(() => Math.ceil(totalItems.value / pageSize.value))
 const cartStore = useCartStore()
 const router = useRouter()
 const notifications = useNotificationStore()
-const authStore = useAuthStore()
 
 const pedidoDetalhesSelecionado = computed(() => {
   if (!pedidoSelecionado.value) return null
@@ -52,9 +50,7 @@ const acaoPendente = ref<'approve' | 'reject' | null>(null)
 async function carregarPedidos() {
   isLoading.value = true
   try {
-    const userId = authStore.userRole === 'ALUNO' ? authStore.session?.usuario?.id : undefined
     const data = await getPedidosPendentes({
-      userId,
       page: currentPage.value - 1,
       size: pageSize.value,
     })
@@ -101,12 +97,6 @@ function confirmarAcaoDetalhes(acao: 'approve' | 'reject' | 'return') {
 
 async function executarAcao() {
   if (!pedidoSelecionado.value || !acaoPendente.value) return
-  const userId = authStore.session?.usuario?.id
-  if (!userId) {
-    notifications.error('Usuário não autenticado.')
-    return
-  }
-
   isAcaoLoading.value = true
   try {
     const isApprove = acaoPendente.value === 'approve'
@@ -123,7 +113,7 @@ async function executarAcao() {
     pedidoSelecionado.value = null
     acaoPendente.value = null
 
-    window.location.reload()
+    globalThis.window.location.reload()
   } catch (e) {
     console.error('Erro ao executar ação no pedido:', e)
     notifications.error('Ocorreu um erro ao processar a solicitação.')

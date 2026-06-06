@@ -2,20 +2,16 @@ package com.ufc.almoxarifado.controller;
 
 import com.ufc.almoxarifado.dto.UsuarioRequest;
 import com.ufc.almoxarifado.dto.UsuarioResponse;
-import com.ufc.almoxarifado.entity.Usuario;
+import com.ufc.almoxarifado.dto.UsuarioStatusRequest;
 import com.ufc.almoxarifado.service.UsuarioService;
-import com.ufc.almoxarifado.util.SecurityUtils;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/usuarios")
@@ -33,12 +29,7 @@ public class UsuarioController {
     @GetMapping("/{id}")
     @PreAuthorize("hasAnyRole('ADMIN', 'BOLSISTA')")
     public ResponseEntity<UsuarioResponse> findById(
-            @PathVariable UUID id,
-            @AuthenticationPrincipal Usuario loggedUser) {
-
-        if (!id.equals(loggedUser.getId()) && !SecurityUtils.hasAdminOrStaffAccess(loggedUser)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para visualizar os dados deste usuário.");
-        }
+            @PathVariable Long id) {
 
         return ResponseEntity.ok(usuarioService.findById(id));
     }
@@ -57,23 +48,31 @@ public class UsuarioController {
         return ResponseEntity.ok(usuarioService.findByEmail(email));
     }
 
+    @PostMapping
+    public ResponseEntity<UsuarioResponse> create(
+            @Valid @RequestBody UsuarioRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(usuarioService.create(request));
+    }
+
     @PutMapping("/{id}")
     public ResponseEntity<UsuarioResponse> update(
-            @PathVariable UUID id,
-            @Valid @RequestBody UsuarioRequest request,
-            @AuthenticationPrincipal Usuario loggedUser) {
-
-        if (!id.equals(loggedUser.getId()) && !SecurityUtils.hasAdminOrStaffAccess(loggedUser)) {
-            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você não tem permissão para alterar os dados deste usuário.");
-        }
-
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioRequest request) {
         return ResponseEntity.ok(usuarioService.update(id, request));
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UsuarioResponse> updateStatus(
+            @PathVariable Long id,
+            @Valid @RequestBody UsuarioStatusRequest request
+    ) {
+        return ResponseEntity.ok(usuarioService.updateStatus(id, request.ativo()));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> delete(
-            @PathVariable UUID id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         usuarioService.delete(id);
         return ResponseEntity.noContent().build();
     }

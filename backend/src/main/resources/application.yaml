@@ -1,30 +1,44 @@
 server:
   port: 8090
 
-sigaa:
-  base: http://almoxarifadoec.quixada.ufc.br:3000/sigaa
-
-api:
-  security:
-    token:
-        secret: bagr3SuhjwjEIbdD5Y+e94wuM60JGa/99TDzY6visSw=
-
 spring:
+
+  config:
+    import: "optional:file:.env[.properties], optional:file:../backend/.env[.properties], optional:file:../../.env[.properties]"
+
   application:
     name: almoxarifado_backend
 
-  profiles:
-    default: dev
 
   mvc:
     servlet:
       path: /api
+    throw-exception-if-no-handler-found: true
+
+  datasource:
+    driver-class-name: org.postgresql.Driver
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+    hikari:
+      maximum-pool-size: 2
 
   jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
     open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
 
-  liquibase:
-    change-log: classpath:db/changelog/db.changelog-master.yaml
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI}
+          jwk-set-uri: ${JWT_JWK_SET_URI}
 
   servlet:
     multipart:
@@ -33,10 +47,10 @@ spring:
       max-request-size: 6MB
 
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: desousafelipe10@gmail.com
-    password: oymv wnea gfne dbuc
+    host: ${EMAIL_HOST}
+    port: ${EMAIL_PORT}
+    username: ${EMAIL_ADDRESS}
+    password: ${EMAIL_PASSWORD}
     properties:
       mail:
         smtp:
@@ -44,7 +58,32 @@ spring:
           starttls:
             enable: true
           ssl:
-            trust: smtp.gmail.com
+            trust: ${EMAIL_HOST}
+
+keycloak:
+  root:
+    url: ${KEYCLOAK_ROOT_URL}
+
+  admin:
+    base-url: ${KEYCLOAK_ADMIN_BASE_URL}
+    realm: ${KEYCLOAK_ADMIN_REALM}
+    client-id: ${KEYCLOAK_ADMIN_CLIENT_ID}
+    client-secret: ${KEYCLOAK_ADMIN_CLIENT_SECRET}
+    roles-client-id: ${KEYCLOAK_ADMIN_ROLES_CLIENT_ID}
+    roles-client-uuid: ${KEYCLOAK_ADMIN_ROLES_CLIENT_UUID}
+    role-admin-id: ${KEYCLOAK_ADMIN_ROLE_ADMIN_ID}
+    role-bolsista-id: ${KEYCLOAK_ADMIN_ROLE_BOLSISTA_ID}
+    default-password: ${KEYCLOAK_ADMIN_DEFAULT_PASSWORD}
+
+  user:
+    client-id: ${KEYCLOAK_USER_CLIENT_ID}
+    client-secret: ${KEYCLOAK_USER_CLIENT_SECRET}
+
+jwt:
+  auth:
+    converter:
+      resource-id: ${JWT_RESOURCE_ID}
+      principle-attribute: ${JWT_PRINCIPLE_ATTRIBUTE}
 
 springdoc:
   swagger-ui:

@@ -1,10 +1,13 @@
-import { fileURLToPath, URL } from 'node:url'
+import {fileURLToPath, URL} from 'node:url'
 import Vue from '@vitejs/plugin-vue'
-import { defineConfig } from 'vite'
-import Vuetify, { transformAssetUrls } from 'vite-plugin-vuetify'
+import {defineConfig} from 'vite'
+import Vuetify, {transformAssetUrls} from 'vite-plugin-vuetify'
 
 // https://vitejs.dev/config/
+const repoRoot = fileURLToPath(new URL('..', import.meta.url))
+
 export default defineConfig({
+  envDir: repoRoot,
   plugins: [
     Vue({
       template: { transformAssetUrls },

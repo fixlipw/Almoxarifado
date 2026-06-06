@@ -15,6 +15,7 @@
     "@fontsource/poppins": "^5.2.7",
     "@mdi/font": "7.4.47",
     "@supabase/supabase-js": "^2.57.4",
+    "keycloak-js": "^26.2.4",
     "pinia": "^3.0.4",
     "vue": "^3.5.33",
     "vue-router": "^5.0.6",

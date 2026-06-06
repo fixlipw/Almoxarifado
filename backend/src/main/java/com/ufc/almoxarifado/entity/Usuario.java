@@ -1,14 +1,8 @@
 package com.ufc.almoxarifado.entity;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
-import java.util.Collection;
-import java.util.List;
-import java.util.UUID;
 
 @Entity
 @Getter
@@ -17,79 +11,46 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 @Table(name = "usuarios")
-public class Usuario implements UserDetails {
+public class Usuario {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Column(unique = true, nullable = false)
-    private String email;
-
-    @Column(unique = true, nullable = false)
-    private String usuario;
-
-    @Column(unique = true)
-    private String matricula;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(nullable = false, updatable = false)
+    private Long id;
 
     @Column(nullable = false)
-    private String senha;
-
     private String nome;
 
-    private String sobrenome;
+    @Column(name = "nome_social")
+    private String nomeSocial;
 
-    private String curso;
+    @Column(nullable = false, unique = true)
+    private String username;
 
-    private String fotoPerfil;
+    @Column(nullable = false, unique = true)
+    private String email;
+
+    @Column(nullable = false, unique = true)
+    private String cpf;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private RoleAcesso acesso;
+    private Papel papel;
 
-    private Boolean isAtivada = false;
+    @Column(nullable = false)
+    @JsonProperty("is_ativo")
+    private Boolean status;
 
-    private Boolean isBloqueado = false;
+    @JsonProperty("is_bloqueado")
+    private Boolean bloqueado;
 
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        if (this.acesso == RoleAcesso.ADMIN) {
-            return List.of(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        } else if (this.acesso == RoleAcesso.BOLSISTA) {
-            return List.of(new SimpleGrantedAuthority("ROLE_BOLSISTA"));
-        } else {
-            return List.of(new SimpleGrantedAuthority("ROLE_ALUNO"));
-        }
-    }
+    @Enumerated(EnumType.STRING)
+    @Column(updatable = false)
+    private Curso curso;
 
-    @Override
-    public String getPassword() {
-        return senha;
-    }
+    @Column(unique = true, updatable = false)
+    private String matricula;
 
-    @Override
-    public String getUsername() {
-        return usuario;
-    }
-
-    @Override
-    public boolean isAccountNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isAccountNonLocked() {
-        return !isBloqueado;
-    }
-
-    @Override
-    public boolean isCredentialsNonExpired() {
-        return true;
-    }
-
-    @Override
-    public boolean isEnabled() {
-        return isAtivada;
-    }
+    private String fotoPerfil;
 
 }

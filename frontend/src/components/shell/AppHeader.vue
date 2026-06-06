@@ -41,7 +41,7 @@
       <v-tooltip location="bottom">
         <template #activator="{ props }">
           <v-btn
-              :icon="theme.global.current.value.dark ? 'mdi-weather-night' : 'mdi-weather-sunny'"
+              :icon="currentTheme === 'dark' ? 'mdi-weather-night' : 'mdi-weather-sunny'"
               rounded="md"
               v-bind="props"
               variant="text"
@@ -94,7 +94,7 @@
           </v-chip>
         </template>
         <v-list density="compact" min-width="150">
-          <v-list-item prepend-icon="mdi-logout" @click="authStore.logout()">
+          <v-list-item prepend-icon="mdi-logout" @click="handleLogout">
             <v-list-item-title>Sair</v-list-item-title>
           </v-list-item>
         </v-list>
@@ -106,12 +106,12 @@
 <script lang="ts" setup>
 import type {NavItem, NavSection} from './types'
 import {computed, onMounted, ref, watch} from 'vue'
-import {useTheme} from 'vuetify'
 import AppButton from '@/components/ui/AppButton.vue'
+import {useThemePreference} from '@/composables/useThemePreference'
 import {useCartStore} from '@/stores/cart'
 import {useAuthStore} from '@/stores/auth'
 
-const theme = useTheme()
+const {currentTheme, initializeTheme, toggleTheme} = useThemePreference()
 const authStore = useAuthStore()
 
 const cart = useCartStore()
@@ -133,19 +133,11 @@ const formatRole = (role: string) => {
 }
 
 onMounted(() => {
-  const savedTheme = localStorage.getItem('almoxarifado-theme')
-  if (savedTheme) {
-    useTheme().change(savedTheme)
-  } else {
-    const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    useTheme().change(prefersDark ? 'dark' : 'light')
-  }
+  initializeTheme()
 })
 
-function toggleTheme() {
-  const nextTheme = theme.global.current.value.dark ? 'light' : 'dark'
-  theme.change(nextTheme)
-  localStorage.setItem('almoxarifado-theme', nextTheme)
+async function handleLogout() {
+  await authStore.logout(`${globalThis.window.location.origin}/auth/login`)
 }
 
 const props = defineProps<{

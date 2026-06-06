@@ -15,7 +15,7 @@ const emit = defineEmits<{
 
 function download(format: 'pdf' | 'excel') {
   const viewerUrl = `/relatorios/visualizar?key=${encodeURIComponent(props.keyName)}&format=${format}`
-  window.open(viewerUrl, '_blank')
+  globalThis.window.open(viewerUrl, '_blank')
   emit('download', { key: props.keyName, format, url: viewerUrl })
 }
 </script>

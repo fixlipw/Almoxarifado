@@ -35,21 +35,21 @@
 </template>
 
 <script lang="ts" setup>
-  import type { NavItem, NavSection } from './types'
-  import { ref, watch, computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
-  import { useDisplay } from 'vuetify'
-  import AppFooter from './AppFooter.vue'
-  import AppHeader from './AppHeader.vue'
-  import AppSidebar from './AppSidebar.vue'
-  import CartDialog from '@/components/estoque/CartDialog.vue'
-  import { createPedido } from '@/services/pedidos'
-  import { useCartStore } from '@/stores/cart'
-  import { useNotificationStore } from '@/stores/notifications'
-  import { useAuthStore } from '@/stores/auth'
-  import type {PedidoRequest} from "@/types/dtos.ts";
+import type {NavItem, NavSection} from './types'
+import {computed, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useDisplay} from 'vuetify'
+import AppFooter from './AppFooter.vue'
+import AppHeader from './AppHeader.vue'
+import AppSidebar from './AppSidebar.vue'
+import CartDialog from '@/components/estoque/CartDialog.vue'
+import {createPedido} from '@/services/pedidos'
+import {useCartStore} from '@/stores/cart'
+import {useNotificationStore} from '@/stores/notifications'
+import {useAuthStore} from '@/stores/auth'
+import type {PedidoRequest} from "@/types/dtos.ts";
 
-  const { mobile } = useDisplay()
+const {mobile} = useDisplay()
   const router = useRouter()
   const route = useRoute()
   const drawer = ref(false)
@@ -70,8 +70,10 @@
     ]
 
     if (isAdministrador.value) {
-      items.push({ label: 'Usuários', value: 'usuarios', icon: 'mdi-account-group-outline' })
-      items.push({ label: 'Relatórios', value: 'relatorios', icon: 'mdi-chart-box-outline' })
+      items.push(
+          {label: 'Usuários', value: 'usuarios', icon: 'mdi-account-group-outline'},
+          {label: 'Relatórios', value: 'relatorios', icon: 'mdi-chart-box-outline'}
+      )
     }
 
     return items
@@ -105,7 +107,7 @@
     try {
       if (cartStore.items.length === 0) return
 
-      if (!authStore.session?.usuario?.id) {
+      if (!authStore.isAuthenticated) {
         notifications.error('Sessão inválida. Por favor, faça login novamente.')
         return
       }

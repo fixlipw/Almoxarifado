@@ -21,64 +21,64 @@ public interface PedidoRepository extends JpaRepository<Pedido, UUID> {
     Page<Pedido> findApprovedPaginated(Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND p.solicitante.id = :userId")
-    List<Pedido> findApprovedByUserId(UUID userId);
+    List<Pedido> findApprovedByUserId(Long userId);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND p.solicitante.id = :userId")
-    Page<Pedido> findApprovedByUserIdPaginated(UUID userId, Pageable pageable);
+    Page<Pedido> findApprovedByUserIdPaginated(Long userId, Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NULL")
     List<Pedido> findPending();
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NULL AND p.solicitante.id = :userId")
-    List<Pedido> findPendingByUserId(UUID userId);
+    List<Pedido> findPendingByUserId(Long userId);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NULL")
     Page<Pedido> findPendingPaginated(Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NULL AND p.solicitante.id = :userId")
-    Page<Pedido> findPendingByUserIdPaginated(UUID userId, Pageable pageable);
+    Page<Pedido> findPendingByUserIdPaginated(Long userId, Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND (p.finalizado IS NULL OR p.finalizado = false)")
     List<Pedido> findActive();
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND (p.finalizado IS NULL OR p.finalizado = false) AND p.solicitante.id = :userId")
-    List<Pedido> findActiveByUserId(UUID userId);
+    List<Pedido> findActiveByUserId(Long userId);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND (p.finalizado IS NULL OR p.finalizado = false)")
     Page<Pedido> findActivePaginated(Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND (p.finalizado IS NULL OR p.finalizado = false) AND p.solicitante.id = :userId")
-    Page<Pedido> findActiveByUserIdPaginated(UUID userId, Pageable pageable);
+    Page<Pedido> findActiveByUserIdPaginated(Long userId, Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND p.finalizado = true")
     List<Pedido> findReturned();
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND p.finalizado = true AND p.solicitante.id = :userId")
-    List<Pedido> findReturnedByUserId(UUID userId);
+    List<Pedido> findReturnedByUserId(Long userId);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND p.finalizado = true")
     Page<Pedido> findReturnedPaginated(Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovado = true AND p.finalizado = true AND p.solicitante.id = :userId")
-    Page<Pedido> findReturnedByUserIdPaginated(UUID userId, Pageable pageable);
+    Page<Pedido> findReturnedByUserIdPaginated(Long userId, Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NOT NULL AND (p.aprovado IS NULL OR p.aprovado = false)")
     List<Pedido> findRejected();
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NOT NULL AND (p.aprovado IS NULL OR p.aprovado = false) AND p.solicitante.id = :userId")
-    List<Pedido> findRejectedByUserId(UUID userId);
+    List<Pedido> findRejectedByUserId(Long userId);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NOT NULL AND (p.aprovado IS NULL OR p.aprovado = false)")
     Page<Pedido> findRejectedPaginated(Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.aprovador IS NOT NULL AND (p.aprovado IS NULL OR p.aprovado = false) AND p.solicitante.id = :userId")
-    Page<Pedido> findRejectedByUserIdPaginated(UUID userId, Pageable pageable);
+    Page<Pedido> findRejectedByUserIdPaginated(Long userId, Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.dataAprovacao IS NOT NULL AND p.dataAprovacao < :threshold AND p.aprovado = true AND (p.finalizado IS NULL OR p.finalizado = false)")
     Page<Pedido> findDelayedPaginated(@Param("threshold") LocalDateTime threshold, Pageable pageable);
 
     @Query("SELECT p FROM Pedido p WHERE p.dataAprovacao IS NOT NULL AND p.dataAprovacao < :threshold AND p.aprovado = true AND (p.finalizado IS NULL OR p.finalizado = false) AND p.solicitante.id = :userId")
-    Page<Pedido> findDelayedByUserIdPaginated(UUID userId, @Param("threshold") LocalDateTime threshold, Pageable pageable);
+    Page<Pedido> findDelayedByUserIdPaginated(Long userId, @Param("threshold") LocalDateTime threshold, Pageable pageable);
 
-    List<Pedido> findBySolicitanteId(UUID userId);
+    List<Pedido> findBySolicitanteId(Long userId);
 }
