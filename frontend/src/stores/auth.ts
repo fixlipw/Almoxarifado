@@ -20,6 +20,7 @@ export const useAuthStore = defineStore('auth', () => {
     const userRole = ref<string>(getUserRole())
     const authenticated = ref<boolean>(isAuthenticatedService())
     const ready = ref(false)
+    let initPromise: Promise<void> | null = null
 
     const isAuthenticated = computed(() => authenticated.value)
 
@@ -32,9 +33,19 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function init() {
-        await initAuth()
-        syncAuthState()
-        ready.value = true
+        if (ready.value) return
+        if (initPromise) return initPromise
+
+        initPromise = initAuth()
+            .then(() => {
+                syncAuthState()
+            })
+            .finally(() => {
+                ready.value = true
+                initPromise = null
+            })
+
+        return initPromise
     }
 
     async function login(redirectUri?: string) {

@@ -1,64 +1,63 @@
-import type { Usuario } from '@/types/entities'
 import type {UsuarioResponse} from "@/types/dtos.ts";
 
 export interface SigaaCredentials {
-  login: string
-  senha: string
+    login: string
+    senha: string
 }
 
 export interface SigaaCadeira {
-  codigo: string
-  componente: string
-  carga_horaria: number
-  local: string
-  dias: string
-  horario: string
+    codigo: string
+    componente: string
+    carga_horaria: number
+    local: string
+    dias: string
+    horario: string
 }
 
 export interface SigaaAluno {
-  error: boolean
-  login: string
-  nome: string
-  foto: string
-  matricula: string
-  curso: string
-  nivel: string
-  status: string
-  entrada: string
-  semestre: string
-  cadeiras: SigaaCadeira[]
-  message?: string
+    error: boolean
+    login: string
+    nome: string
+    foto: string
+    matricula: string
+    curso: string
+    nivel: string
+    status: string
+    entrada: string
+    semestre: string
+    cadeiras: SigaaCadeira[]
+    message?: string
 }
 
 export interface RegistroComplementarForm {
-  usuario: string
-  email: string
-  senha: string
-  confirmarSenha: string
-  sobrenome: string
+    usuario: string
+    email: string
+    senha: string
+    confirmarSenha: string
+    sobrenome: string
 }
 
 export interface AuthSession {
-  usuario: UsuarioResponse
-  token?: string
-  sigaa?: SigaaAluno
-  authenticatedAt: string
+    usuario: UsuarioResponse
+    token?: string
+    sigaa?: SigaaAluno
+    authenticatedAt: string
 }
 
 export function hasSigaaAlunoError(aluno: SigaaAluno): boolean {
-  if (aluno.error) return true
+    if (aluno.error) return true
 
-  const camposObrigatorios = [
-    aluno.login,
-    aluno.nome,
-    aluno.foto,
-    aluno.matricula,
-    aluno.curso,
-    aluno.nivel,
-    aluno.status,
-    aluno.entrada,
-    aluno.semestre
-  ]
+    const camposObrigatorios = [
+        aluno.login,
+        aluno.nome,
+        aluno.foto,
+        aluno.matricula,
+        aluno.curso,
+        aluno.nivel,
+        aluno.status,
+        aluno.entrada,
+        aluno.semestre
+    ]
 
-  return camposObrigatorios.some(campo => !campo) || !Array.isArray(aluno.cadeiras)
+    return camposObrigatorios.some(campo => !campo) || !Array.isArray(aluno.cadeiras)
 }

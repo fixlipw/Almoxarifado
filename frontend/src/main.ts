@@ -1,36 +1,58 @@
-/**
- * main.ts
- *
- * Bootstraps Vuetify and other plugins then mounts the App`
- */
-
-// Composables
 import {createApp} from 'vue'
-
-// Plugins
-import {registerPlugins} from '@/plugins'
+import {createPinia} from 'pinia'
 import router from '@/router'
 import {useAuthStore} from '@/stores/auth'
-
-// Components
+import {ApiError} from '@/services/api'
 import App from './App.vue'
-
-// Styles
-import '@fontsource/poppins/300.css'
-import '@fontsource/poppins/400.css'
-import '@fontsource/poppins/500.css'
-import '@fontsource/poppins/600.css'
-import '@fontsource/poppins/700.css'
+import '@/styles/main.css'
 
 const app = createApp(App)
+app.use(createPinia())
+app.use(router)
 
-registerPlugins(app)
+app.config.errorHandler = (error, _instance, info) => {
+    console.error(`Erro não tratado no aplicativo (${info}).`, error)
+    if (router.currentRoute.value.name !== 'ServerError') {
+        void router.replace({name: 'ServerError'})
+    }
+}
 
-async function bootstrap () {
+globalThis.addEventListener('app:api-error', ((event: CustomEvent<ApiError | TypeError>) => {
+    const error = event.detail
+    const name = error instanceof TypeError
+        ? 'Offline'
+        : error.status === 401
+            ? 'Unauthorized'
+            : error.status === 403
+                ? 'Forbidden'
+                : error.status >= 500
+                    ? 'ServerError'
+                    : null
+
+    if (name && router.currentRoute.value.name !== name) {
+        void router.replace({
+            name,
+            query: error instanceof ApiError && error.message ? {message: error.message} : undefined,
+        })
+    }
+}) as EventListener)
+
+const AUTH_INIT_TIMEOUT_MS = 8_000
+
+async function bootstrap() {
     const authStore = useAuthStore()
-    await authStore.init()
-  await router.isReady()
-  app.mount('#app')
+    try {
+        await Promise.race([
+            authStore.init(),
+            new Promise<never>((_, reject) => {
+                setTimeout(() => reject(new Error('Tempo limite da autenticação excedido.')), AUTH_INIT_TIMEOUT_MS)
+            }),
+        ])
+    } catch (error) {
+        console.error('Não foi possível inicializar a autenticação institucional.', error)
+    }
+    await router.isReady()
+    app.mount('#app')
 }
 
 await bootstrap()

@@ -67,7 +67,8 @@ npm run build
 
 ## 💪 Support Vuetify Development
 
-This project uses Vuetify - an MIT licensed Open Source project. We are glad to welcome contributors and any support for ongoing development:
+This project uses Vuetify - an MIT licensed Open Source project. We are glad to welcome contributors and any support for
+ongoing development:
 
 - Contribute to Vuetify and ecosystem projects: https://github.com/vuetifyjs
 - Request enterprise support: https://support.vuetifyjs.com/

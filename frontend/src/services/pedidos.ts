@@ -1,5 +1,26 @@
 import {apiFetch} from '@/services/api'
-import type {PedidoRequest, PedidoResponse} from '@/types/dtos'
+import type {PageResponse, PedidoRequest, PedidoResponse} from '@/types/dtos'
+
+type PedidoListResponse = PedidoResponse[] | PageResponse<PedidoResponse>
+
+function normalizePedidos(response: PedidoListResponse): PedidoResponse[] {
+    return Array.isArray(response) ? response : response.content
+}
+
+async function getPedidosByStatus(endpoint: string, params?: {
+    userId?: string;
+    page?: number;
+    size?: number;
+}): Promise<PedidoResponse[]> {
+    const queryParams = new URLSearchParams()
+    if (params?.userId) queryParams.append('userId', params.userId)
+    if (params?.page !== undefined) queryParams.append('page', params.page.toString())
+    if (params?.size !== undefined) queryParams.append('size', params.size.toString())
+
+    const queryString = queryParams.toString()
+    const response = await apiFetch<PedidoListResponse>(`${endpoint}${queryString ? `?${queryString}` : ''}`)
+    return normalizePedidos(response)
+}
 
 export async function getPedidos(): Promise<PedidoResponse[]> {
     return await apiFetch<PedidoResponse[]>('/pedidos')
@@ -46,15 +67,7 @@ export async function getPedidosPendentes(params?: {
     page?: number;
     size?: number;
 }): Promise<PedidoResponse[]> {
-    const queryParams = new URLSearchParams()
-    if (params?.userId) queryParams.append('userId', params.userId)
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString())
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString())
-
-    const queryString = queryParams.toString()
-    const url = `/pedidos/pending${queryString ? `?${queryString}` : ''}`
-
-    return await apiFetch<PedidoResponse[]>(url)
+    return getPedidosByStatus('/pedidos/pending', params)
 }
 
 export async function getPedidosAtivos(params?: {
@@ -62,15 +75,7 @@ export async function getPedidosAtivos(params?: {
     page?: number;
     size?: number;
 }): Promise<PedidoResponse[]> {
-    const queryParams = new URLSearchParams()
-    if (params?.userId) queryParams.append('userId', params.userId)
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString())
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString())
-
-    const queryString = queryParams.toString()
-    const url = `/pedidos/active${queryString ? `?${queryString}` : ''}`
-
-    return await apiFetch<PedidoResponse[]>(url)
+    return getPedidosByStatus('/pedidos/active', params)
 }
 
 export async function getPedidosFinalizados(params?: {
@@ -78,15 +83,7 @@ export async function getPedidosFinalizados(params?: {
     page?: number;
     size?: number;
 }): Promise<PedidoResponse[]> {
-    const queryParams = new URLSearchParams()
-    if (params?.userId) queryParams.append('userId', params.userId)
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString())
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString())
-
-    const queryString = queryParams.toString()
-    const url = `/pedidos/returned${queryString ? `?${queryString}` : ''}`
-
-    return await apiFetch<PedidoResponse[]>(url)
+    return getPedidosByStatus('/pedidos/returned', params)
 }
 
 export async function getPedidosAtrasados(params?: {
@@ -94,13 +91,5 @@ export async function getPedidosAtrasados(params?: {
     page?: number;
     size?: number;
 }): Promise<PedidoResponse[]> {
-    const queryParams = new URLSearchParams()
-    if (params?.userId) queryParams.append('userId', params.userId)
-    if (params?.page !== undefined) queryParams.append('page', params.page.toString())
-    if (params?.size !== undefined) queryParams.append('size', params.size.toString())
-
-    const queryString = queryParams.toString()
-    const url = `/pedidos/delayed${queryString ? `?${queryString}` : ''}`
-
-    return await apiFetch<PedidoResponse[]>(url)
+    return getPedidosByStatus('/pedidos/delayed', params)
 }

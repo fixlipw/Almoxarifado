@@ -1,31 +1,35 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-import AppPage from '@/components/ui/AppPage.vue'
-import RelatorioCard from '@/components/relatorios/RelatorioCard.vue'
-
-const reports = ref([
-  {
-    key: 'estoque',
-    title: 'Estoque Completo',
-    subtitle: 'Relação de todos os itens do almoxarifado',
-    icon: 'mdi-archive',
-  },
-])
+<script lang="ts" setup>
+import {FileDown, FileSpreadsheet, FileText} from 'lucide-vue-next'
+import {Button} from '@/components/ui/button'
+import {Card, CardContent, CardDescription, CardHeader, CardTitle} from '@/components/ui/card'
 </script>
-
 <template>
-  <AppPage title="Relatórios" subtitle="Gere relatórios de empréstimos, devoluções e itens mais solicitados">
-    <v-row density="comfortable">
-      <template v-for="report in reports" :key="report.key">
-        <v-col cols="12" md="4">
-          <RelatorioCard
-            :key-name="report.key"
-            :title="report.title"
-            :subtitle="report.subtitle"
-            :icon="report.icon"
-          />
-        </v-col>
-      </template>
-    </v-row>
-  </AppPage>
+  <div class="space-y-6">
+    <div><p class="text-sm font-medium text-primary">Administração</p>
+      <h1 class="text-3xl font-bold tracking-tight">Relatórios</h1>
+      <p class="mt-1 text-sm text-muted-foreground">Exporte dados do almoxarifado para análise e prestação de
+        contas.</p></div>
+    <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      <Card>
+        <CardHeader><span class="mb-2 grid size-10 place-items-center rounded-lg bg-primary/10 text-primary"><FileDown/></span>
+          <CardTitle>Estoque completo</CardTitle>
+          <CardDescription>Relação atual de todos os itens cadastrados.</CardDescription>
+        </CardHeader>
+        <CardContent class="flex gap-2">
+          <Button as-child class="flex-1">
+            <RouterLink to="/relatorios/visualizar?key=estoque&format=pdf">
+              <FileText/>
+              PDF
+            </RouterLink>
+          </Button>
+          <Button as-child class="flex-1" variant="outline">
+            <RouterLink to="/relatorios/visualizar?key=estoque&format=excel">
+              <FileSpreadsheet/>
+              Excel
+            </RouterLink>
+          </Button>
+        </CardContent>
+      </Card>
+    </div>
+  </div>
 </template>
