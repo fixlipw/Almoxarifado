@@ -1,40 +1,88 @@
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
-import type { AuthSession } from '@/types/auth'
-import { saveAuthSession, loadAuthSession, clearAuthSession } from '@/services/auth'
-import router from '@/router'
+import {defineStore} from 'pinia'
+import {computed, ref} from 'vue'
+import {
+    getToken,
+    getUserId,
+    getUserName,
+    getUserRole,
+    initAuth,
+    isAuthenticated as isAuthenticatedService,
+    login as loginWithKeycloak,
+    logout as logoutWithKeycloak,
+    register as registerWithKeycloak,
+    updateToken,
+} from '@/services/auth'
 
 export const useAuthStore = defineStore('auth', () => {
-    const session = ref<AuthSession | null>(loadAuthSession())
+    const token = ref<string | null>(getToken())
+    const userId = ref<string>(getUserId())
+    const userName = ref<string>(getUserName())
+    const userRole = ref<string>(getUserRole())
+    const authenticated = ref<boolean>(isAuthenticatedService())
+    const ready = ref(false)
+    let initPromise: Promise<void> | null = null
 
-    const isAuthenticated = computed(() => session.value !== null)
-    const userRole = computed(() => session.value?.usuario?.acesso || '')
-    const userName = computed(() => {
-        if (session.value?.sigaa?.nome) {
-            return session.value.sigaa.nome.split(' ')[0]
-        }
-        return session.value?.usuario?.nome?.split(' ')[0] || ''
-    })
+    const isAuthenticated = computed(() => authenticated.value)
 
-    function login(newSession: AuthSession) {
-        session.value = newSession
-        saveAuthSession(newSession)
+    function syncAuthState() {
+        token.value = getToken()
+        userId.value = getUserId()
+        userName.value = getUserName()
+        userRole.value = getUserRole()
+        authenticated.value = isAuthenticatedService()
     }
 
-    function logout(redirect = true) {
-        session.value = null
-        clearAuthSession()
-        if (redirect) {
-            router.push('/auth/login')
-        }
+    async function init() {
+        if (ready.value) return
+        if (initPromise) return initPromise
+
+        initPromise = initAuth()
+            .then(() => {
+                syncAuthState()
+            })
+            .finally(() => {
+                ready.value = true
+                initPromise = null
+            })
+
+        return initPromise
+    }
+
+    async function login(redirectUri?: string) {
+        await loginWithKeycloak(redirectUri)
+    }
+
+    async function register(redirectUri?: string) {
+        await registerWithKeycloak(redirectUri)
+    }
+
+    async function refreshToken(minValidity = 30) {
+        const refreshed = await updateToken(minValidity)
+        syncAuthState()
+        return refreshed
+    }
+
+    async function logout(redirectUri?: string) {
+        await logoutWithKeycloak(redirectUri)
+        authenticated.value = false
+        token.value = null
+        userId.value = ''
+        userName.value = ''
+        userRole.value = ''
     }
 
     return {
-        session,
-        isAuthenticated,
-        userRole,
+        ready,
+        token,
+        userId,
         userName,
+        userRole,
+        isAuthenticated,
+        syncAuthState,
+        init,
         login,
+        register,
+        refreshToken,
         logout
     }
 })

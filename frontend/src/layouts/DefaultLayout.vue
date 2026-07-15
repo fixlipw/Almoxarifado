@@ -1,10 +1,10 @@
 <template>
   <AppShell>
-    <slot />
+    <slot/>
   </AppShell>
 </template>
 
-<script setup lang="ts">
-  import AppShell from '@/components/shell/AppShell.vue'
+<script lang="ts" setup>
+import AppShell from '../components/shell/AppShell.vue'
 </script>
 

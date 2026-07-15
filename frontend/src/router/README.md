@@ -1,7 +1,8 @@
 Router (optional)
 ===================
 
-This project template does not force a router dependency. If you want route-based navigation, install `vue-router` and create `src/router/index.ts`.
+This project template does not force a router dependency. If you want route-based navigation, install `vue-router` and
+create `src/router/index.ts`.
 
 Example quick-start:
 

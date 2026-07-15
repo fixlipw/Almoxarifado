@@ -1,355 +1,472 @@
-<script setup lang="ts">
-  import { computed, onMounted, ref } from 'vue'
-  import type { Estoque } from '@/types/entities'
-  import type { EstoqueEditDialogItem, EstoqueFormValues } from '@/components/estoque/types'
-  import AppPage from '@/components/ui/AppPage.vue'
-  import AppButton from '@/components/ui/AppButton.vue'
-  import AppSearchBar from '@/components/ui/AppSearchBar.vue'
-  import AppSelect from '@/components/ui/AppSelect.vue'
-  import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
-  import EstoqueEditDialog from '@/components/estoque/EstoqueEditDialog.vue'
-  import ItemCard from '@/components/estoque/ItemCard.vue'
-  import QuantityDialog from '@/components/estoque/QuantityDialog.vue'
-  import { createEstoque, getEstoques, updateEstoque } from '@/services/estoque'
-  import { useCartStore } from '@/stores/cart'
-  import { useAuthStore } from '@/stores/auth'
+<script lang="ts" setup>
+import {computed, onMounted, ref, watch} from 'vue'
+import {
+  Boxes,
+  ChevronsLeft,
+  ChevronsRight,
+  Loader2,
+  Lock,
+  PackagePlus,
+  Pencil,
+  Plus,
+  Search,
+  ShoppingCart,
+  Unlock
+} from 'lucide-vue-next'
+import {Button} from '@/components/ui/button'
+import {Badge} from '@/components/ui/badge'
+import {Card, CardContent} from '@/components/ui/card'
+import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle} from '@/components/ui/dialog'
+import {Input} from '@/components/ui/input'
+import {Label} from '@/components/ui/label'
+import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from '@/components/ui/select'
+import {Skeleton} from '@/components/ui/skeleton'
+import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
+import {Progress} from '@/components/ui/progress'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationFirst,
+  PaginationItem,
+  PaginationLast,
+  PaginationNext,
+  PaginationPrevious
+} from '@/components/ui/pagination'
+import {createEstoque, getEstoques, updateEstoque} from '@/services/estoque'
+import type {EstoqueRequest, EstoqueResponse} from '@/types/dtos'
+import {useAuthStore} from '@/stores/auth'
+import {useCartStore} from '@/stores/cart'
+import {useNotificationStore} from '@/stores/notifications'
 
-  const search = ref('')
-  const selectedType = ref('todos')
-  const selectedStatus = ref('todos')
-
-  const showQuantityModal = ref(false)
-  const showEditDialog = ref(false)
-  const showLockDialog = ref(false)
-  const items = ref<any[]>([])
-  const loading = ref(false)
-  const savingItem = ref(false)
-  const togglingLock = ref(false)
-  const selectedItemForQuantity = ref<any | undefined>()
-  const selectedItemForEdit = ref<EstoqueEditDialogItem | undefined>()
-  const selectedItemForLock = ref<any | undefined>()
-  const editMode = ref<'create' | 'edit'>('edit')
-  const snackbar = ref({
-    show: false,
-    text: '',
-    color: 'success',
-  })
-
-  const typeItems = [
-    { label: 'Todos os tipos', value: 'todos' },
-    { label: 'Componente', value: 'componente' },
-    { label: 'Equipamento', value: 'equipamento' },
-  ]
-
-  const statusItems = [
-    { label: 'Todos', value: 'todos' },
-    { label: 'Ativo', value: 'ativo' },
-    { label: 'Bloqueado', value: 'inativo' },
-  ]
-
-  function normalizeItem (item: Estoque) {
-    const isBlocked = item.is_ativado === false
-
-    return {
-      id: item.id,
-      title: item.nome || 'Sem nome',
-      description: '',
-      category: item.tipo === 'EQUIPAMENTO' ? 'Equipamento' : 'Componente',
-      total: item.quantidade,
-      available: item.quantidade,
-      status: isBlocked ? 'Bloqueado' : 'Ativo',
-      statusColor: isBlocked ? 'warning' : 'success',
-      icon: item.tipo === 'EQUIPAMENTO' ? 'mdi-desktop-tower' : 'mdi-chip',
-      iconColor: 'primary',
-      isBlocked,
-      raw: item,
-    }
+const auth = useAuthStore()
+const cart = useCartStore()
+const notifications = useNotificationStore()
+const items = ref<EstoqueResponse[]>([])
+const loading = ref(true)
+const search = ref('')
+const type = ref('todos')
+const status = ref('todos')
+const page = ref(0)
+const totalElements = ref(0)
+const pageSize = ref('10')
+const editorOpen = ref(false)
+const quantityOpen = ref(false)
+const saving = ref(false)
+const selected = ref<EstoqueResponse | null>(null)
+const quantity = ref(1)
+const form = ref<EstoqueRequest>({
+  nome: '',
+  quantidade: 1,
+  quantidadeDisponivel: 1,
+  tipo: 'COMPONENTE',
+  isAtivado: true
+})
+const canManage = computed(() => auth.userRole === 'ADMIN' || auth.userRole === 'BOLSISTA')
+const filtered = computed(() => items.value.filter(item => (type.value === 'todos' || item.tipo === type.value) && (status.value === 'todos' || (status.value === 'ativo') === (item.isAtivado !== false))))
+const paginationPage = computed({
+  get: () => page.value + 1,
+  set: value => {
+    page.value = value - 1
   }
+})
+const firstItem = computed(() => totalElements.value ? page.value * Number(pageSize.value) + 1 : 0)
+const lastItem = computed(() => Math.min((page.value + 1) * Number(pageSize.value), totalElements.value))
 
-  function showFeedback (text: string, color = 'success') {
-    snackbar.value = {
-      show: true,
-      text,
-      color,
-    }
-  }
-
-  async function loadItems () {
-    loading.value = true
-    try {
-      const data = await getEstoques()
-      items.value = (data || []).map(normalizeItem)
-    } catch (err) {
-      console.error('Erro carregando estoques', err)
-      showFeedback('Nao foi possivel carregar o estoque.', 'error')
-    } finally {
-      loading.value = false
-    }
-  }
-
-  onMounted(loadItems)
-
-  const itemsFiltrados = computed(() => {
-    const q = (search.value || '').trim().toLowerCase()
-
-    return items.value.filter(item => {
-      if (selectedType.value !== 'todos') {
-        const wanted = selectedType.value === 'componente' ? 'Componente' : 'Equipamento'
-        if (item.category !== wanted) return false
-      }
-
-      if (selectedStatus.value !== 'todos') {
-        const wantActive = selectedStatus.value === 'ativo'
-        if ((item.status === 'Ativo') !== wantActive) return false
-      }
-
-      if (!q) return true
-      return (item.title || '').toLowerCase().includes(q) || (item.description || '').toLowerCase().includes(q)
+async function load() {
+  loading.value = true
+  try {
+    const data = await getEstoques({
+      page: page.value,
+      size: Number(pageSize.value),
+      search: search.value.trim() || undefined
     })
+    items.value = data.content
+    totalElements.value = data.totalElements
+  } catch {
+    notifications.error('Não foi possível carregar o estoque.')
+  } finally {
+    loading.value = false
+  }
+}
+
+let timer: ReturnType<typeof setTimeout>
+watch(search, () => {
+  clearTimeout(timer);
+  timer = setTimeout(() => {
+    page.value = 0;
+    load()
+  }, 350)
+})
+watch(page, load)
+watch(pageSize, () => {
+  if (page.value === 0) load()
+  else page.value = 0
+})
+onMounted(load)
+
+function availabilityPercentage(item: EstoqueResponse) {
+  if (item.quantidade <= 0) return 0
+  return Math.min(100, Math.max(0, Math.round(item.quantidadeDisponivel / item.quantidade * 100)))
+}
+
+function availabilityTone(item: EstoqueResponse) {
+  const percentage = availabilityPercentage(item)
+  if (percentage === 0) return '[&>div]:bg-destructive'
+  if (percentage <= 25) return '[&>div]:bg-amber-500'
+  return '[&>div]:bg-emerald-500'
+}
+
+function openCreate() {
+  selected.value = null
+  form.value = {nome: '', quantidade: 1, quantidadeDisponivel: 1, tipo: 'COMPONENTE', isAtivado: true}
+  editorOpen.value = true
+}
+
+function openEdit(item: EstoqueResponse) {
+  selected.value = item
+  form.value = {
+    nome: item.nome,
+    quantidade: item.quantidade,
+    quantidadeDisponivel: item.quantidadeDisponivel,
+    tipo: item.tipo,
+    isAtivado: item.isAtivado !== false
+  }
+  editorOpen.value = true
+}
+
+async function save() {
+  if (!form.value.nome.trim() || Number(form.value.quantidade) < 1) return notifications.warning('Informe nome e quantidade válidos.')
+  saving.value = true
+  try {
+    const payload = {
+      ...form.value,
+      nome: form.value.nome.trim(),
+      quantidade: Number(form.value.quantidade),
+      quantidadeDisponivel: Number(form.value.quantidadeDisponivel)
+    }
+    if (selected.value) await updateEstoque(selected.value.id, payload)
+    else await createEstoque(payload)
+    notifications.success(selected.value ? 'Item atualizado.' : 'Item criado.')
+    editorOpen.value = false
+    await load()
+  } catch {
+    notifications.error('Não foi possível salvar o item.')
+  } finally {
+    saving.value = false
+  }
+}
+
+async function toggle(item: EstoqueResponse) {
+  try {
+    await updateEstoque(item.id, {
+      nome: item.nome,
+      quantidade: item.quantidade,
+      quantidadeDisponivel: item.quantidadeDisponivel,
+      tipo: item.tipo,
+      isAtivado: item.isAtivado === false
+    })
+    notifications.success(item.isAtivado === false ? 'Item desbloqueado.' : 'Item bloqueado.')
+    await load()
+  } catch {
+    notifications.error('Não foi possível alterar o item.')
+  }
+}
+
+function openQuantity(item: EstoqueResponse) {
+  selected.value = item;
+  quantity.value = 1;
+  quantityOpen.value = true
+}
+
+function addToCart() {
+  if (!selected.value) return
+  cart.addItem({
+    id: selected.value.id,
+    title: selected.value.nome,
+    category: selected.value.tipo === 'EQUIPAMENTO' ? 'Equipamento' : 'Componente',
+    available: selected.value.quantidadeDisponivel,
+    quantity: Number(quantity.value)
   })
-
-  function openQuantity (item: any) {
-    if (item.isBlocked) {
-      showFeedback('Este item esta bloqueado e nao pode ser solicitado.', 'warning')
-      return
-    }
-
-    selectedItemForQuantity.value = item
-    showQuantityModal.value = true
-  }
-
-  const cartStore = useCartStore()
-
-  function handleQuantityConfirm (quantity: number) {
-    if (selectedItemForQuantity.value) {
-      cartStore.addItem({
-        id: selectedItemForQuantity.value.id,
-        title: selectedItemForQuantity.value.title,
-        category: selectedItemForQuantity.value.category,
-        available: selectedItemForQuantity.value.available,
-        quantity,
-        icon: selectedItemForQuantity.value.icon,
-        iconColor: selectedItemForQuantity.value.iconColor,
-      })
-    }
-
-    showQuantityModal.value = false
-    selectedItemForQuantity.value = undefined
-  }
-
-  function openCreateDialog () {
-    editMode.value = 'create'
-    selectedItemForEdit.value = undefined
-    showEditDialog.value = true
-  }
-
-  function openEditDialog (item: any) {
-    editMode.value = 'edit'
-    selectedItemForEdit.value = {
-      id: item.id,
-      nome: item.raw.nome,
-      quantidade: item.raw.quantidade,
-      tipo: item.raw.tipo,
-      is_ativado: item.raw.is_ativado,
-      ativo: item.raw.is_ativado !== false,
-    }
-    showEditDialog.value = true
-  }
-
-  function openLockDialog (item: any) {
-    selectedItemForLock.value = item
-    showLockDialog.value = true
-  }
-
-  function upsertItem (estoque: Estoque) {
-    const normalized = normalizeItem(estoque)
-    const existingIndex = items.value.findIndex(item => item.id === estoque.id)
-
-    if (existingIndex >= 0) {
-      items.value.splice(existingIndex, 1, normalized)
-      return
-    }
-
-    items.value.unshift(normalized)
-  }
-
-  async function handleSaveItem (payload: EstoqueFormValues) {
-    savingItem.value = true
-
-    try {
-      const { ativo, ...restPayload } = payload
-
-      if (editMode.value === 'create') {
-        const created = await createEstoque({
-          id: crypto.randomUUID(),
-          ...restPayload,
-          is_ativado: ativo,
-        })
-        upsertItem(created)
-        showFeedback('Item criado com sucesso.')
-      } else if (selectedItemForEdit.value) {
-        const updated = await updateEstoque(selectedItemForEdit.value.id, {
-          ...restPayload,
-          is_ativado: ativo,
-        })
-        upsertItem(updated)
-        showFeedback('Item atualizado com sucesso.')
-      }
-
-      showEditDialog.value = false
-      selectedItemForEdit.value = undefined
-    } catch (err) {
-      console.error('Erro ao salvar item', err)
-      showFeedback('Nao foi possível salvar o item.', 'error')
-    } finally {
-      savingItem.value = false
-    }
-  }
-
-  async function handleToggleLock () {
-    if (!selectedItemForLock.value) return
-
-    togglingLock.value = true
-    try {
-      const raw = selectedItemForLock.value.raw as Estoque
-      const updated = await updateEstoque(selectedItemForLock.value.id, {
-        nome: raw.nome,
-        quantidade: raw.quantidade,
-        tipo: raw.tipo,
-        is_ativado: raw.is_ativado === false,
-      })
-
-      upsertItem(updated)
-      showFeedback(updated.is_ativado === false ? 'Item bloqueado com sucesso.' : 'Item desbloqueado com sucesso.')
-      showLockDialog.value = false
-      selectedItemForLock.value = undefined
-    } catch (err) {
-      console.error('Erro ao alterar bloqueio do item', err)
-      showFeedback('Nao foi possivel alterar o bloqueio do item.', 'error')
-    } finally {
-      togglingLock.value = false
-    }
-  }
-
-  const authStore = useAuthStore()
-  const isAdministrador = computed(() => authStore.userRole === 'ADMIN' || authStore.userRole === 'BOLSISTA')
+  quantityOpen.value = false
+  notifications.success('Item adicionado ao carrinho.')
+}
 </script>
 
 <template>
-  <AppPage
-    empty-text="Ajuste os filtros ou tente uma nova busca."
-    empty-title="Nenhum item encontrado"
-    icon="mdi-package-variant-closed-remove"
-    :is-empty="!loading && itemsFiltrados.length === 0"
-    :loading="loading"
-    subtitle="Consulte itens disponiveis e detalhes de estoque"
-    title="Estoque"
-  >
-    <template v-if="isAdministrador" #actions>
-      <AppButton
-        class="text-none"
-        color="primary"
-        prepend-icon="mdi-plus"
-        rounded="md"
-        variant="flat"
-        @click="openCreateDialog"
-      >
-        Novo Item
-      </AppButton>
+  <div class="space-y-6">
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div><p class="text-sm font-medium text-primary">Catálogo</p>
+        <h1 class="text-3xl font-bold tracking-tight">Estoque</h1>
+        <p class="mt-1 text-sm text-muted-foreground">Consulte a disponibilidade e solicite materiais.</p></div>
+      <Button v-if="canManage" @click="openCreate">
+        <Plus/>
+        Novo item
+      </Button>
+    </div>
+    <Card>
+      <CardContent class="grid gap-3 p-4 md:grid-cols-[1fr_12rem_12rem]">
+        <div class="relative">
+          <Search class="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"/>
+          <Input v-model="search" class="pl-9" placeholder="Buscar por nome..."/></div>
+        <Select v-model="type">
+          <SelectTrigger>
+            <SelectValue placeholder="Todos os tipos"/>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="todos">Todos os tipos</SelectItem>
+            <SelectItem value="COMPONENTE">Componentes</SelectItem>
+            <SelectItem value="EQUIPAMENTO">Equipamentos</SelectItem>
+          </SelectContent>
+        </Select><Select v-model="status">
+        <SelectTrigger>
+          <SelectValue placeholder="Todos os status"/>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="todos">Todos os status</SelectItem>
+          <SelectItem value="ativo">Ativos</SelectItem>
+          <SelectItem value="bloqueado">Bloqueados</SelectItem>
+        </SelectContent>
+      </Select></CardContent>
+    </Card>
+    <div v-if="loading" class="space-y-3">
+      <Skeleton v-for="n in 5" :key="n" class="h-12 w-full"/>
+    </div>
+    <template v-else-if="filtered.length">
+      <!-- Desktop Table View -->
+      <Card class="hidden sm:block overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Item</TableHead>
+              <TableHead class="hidden md:table-cell">Tipo</TableHead>
+              <TableHead>Disponibilidade</TableHead>
+              <TableHead class="hidden sm:table-cell">Status</TableHead>
+              <TableHead class="text-right">Ações</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            <TableRow v-for="item in filtered" :key="item.id">
+              <TableCell>
+                <div class="flex items-center gap-3 min-w-0">
+                  <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary"><Boxes
+                      class="size-4"/></span>
+                  <span :title="item.nome" class="font-medium truncate">{{ item.nome }}</span>
+                </div>
+              </TableCell>
+              <TableCell class="hidden md:table-cell text-muted-foreground">{{
+                  item.tipo === 'EQUIPAMENTO' ? 'Equipamento' : 'Componente'
+                }}
+              </TableCell>
+              <TableCell>
+                <div class="w-auto sm:min-w-36 space-y-2">
+                  <div class="flex items-center justify-between gap-3 text-xs">
+                    <span><strong class="text-sm">{{ item.quantidadeDisponivel }}</strong><span
+                        class="text-muted-foreground"> / {{ item.quantidade }}</span></span>
+                    <span class="font-medium text-muted-foreground hidden sm:block">{{
+                        availabilityPercentage(item)
+                      }}%</span>
+                  </div>
+                  <Progress :aria-label="`${item.quantidadeDisponivel} de ${item.quantidade} itens disponíveis`"
+                            :model-value="availabilityPercentage(item)"
+                            class="hidden sm:block"/>
+                </div>
+              </TableCell>
+              <TableCell class="hidden sm:table-cell">
+                <Badge :variant="item.isAtivado === false ? 'destructive' : 'secondary'">
+                  {{ item.isAtivado === false ? 'Bloqueado' : 'Ativo' }}
+                </Badge>
+              </TableCell>
+              <TableCell>
+                <div class="flex justify-end gap-1">
+                  <Button v-if="item.isAtivado !== false && item.quantidadeDisponivel > 0" class="px-2 sm:px-3" size="sm"
+                          variant="outline" @click="openQuantity(item)">
+                    <ShoppingCart/>
+                    <span class="hidden sm:inline">Solicitar</span>
+                  </Button>
+                  <Button v-if="canManage" aria-label="Editar item" size="icon-sm" variant="ghost"
+                          @click="openEdit(item)">
+                    <Pencil/>
+                  </Button>
+                  <Button v-if="canManage" :aria-label="item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item'"
+                          size="icon-sm"
+                          variant="ghost"
+                          @click="toggle(item)">
+                    <component :is="item.isAtivado === false ? Unlock : Lock"/>
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+          </TableBody>
+        </Table>
+      </Card>
+
+      <!-- Mobile Cards View -->
+      <div class="grid gap-4 sm:hidden">
+        <Card v-for="item in filtered" :key="item.id" class="p-4 space-y-3 hover:border-primary/40 transition-colors">
+          <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-3 min-w-0">
+              <span class="grid size-9 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary">
+                <Boxes class="size-4"/>
+              </span>
+              <span :title="item.nome" class="font-medium truncate text-sm">{{ item.nome }}</span>
+            </div>
+            <Badge :variant="item.isAtivado === false ? 'destructive' : 'secondary'"
+                   class="shrink-0 text-[10px] px-1.5 py-0.5">
+              {{ item.isAtivado === false ? 'Bloqueado' : 'Ativo' }}
+            </Badge>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2 text-xs border-t border-b py-2 my-2">
+            <div>
+              <p class="text-muted-foreground font-medium">Tipo</p>
+              <p class="text-foreground font-semibold">
+                {{ item.tipo === 'EQUIPAMENTO' ? 'Equipamento' : 'Componente' }}
+              </p>
+            </div>
+            <div>
+              <p class="text-muted-foreground font-medium">Disponibilidade</p>
+              <p class="text-foreground font-semibold">
+                <strong class="text-sm">{{ item.quantidadeDisponivel }}</strong> / {{ item.quantidade }}
+                <span class="text-muted-foreground text-[10px] ml-1">({{ availabilityPercentage(item) }}%)</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center justify-end gap-1.5 pt-2 border-t">
+            <Button v-if="item.isAtivado !== false && item.quantidadeDisponivel > 0" class="h-8 px-2" size="sm"
+                    variant="outline"
+                    @click="openQuantity(item)">
+              <ShoppingCart class="size-4 mr-1"/>
+              Solicitar
+            </Button>
+            <template v-if="canManage">
+              <Button aria-label="Editar item" class="h-8 w-8 text-primary hover:bg-primary/5 dark:hover:bg-primary/10" size="icon-sm"
+                      variant="ghost" @click="openEdit(item)">
+                <Pencil class="size-4"/>
+              </Button>
+              <Button :aria-label="item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item'"
+                      :class="item.isAtivado === false ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20' : 'text-destructive hover:bg-destructive/10'"
+                      class="h-8 w-8"
+                      size="icon-sm"
+                      variant="ghost"
+                      @click="toggle(item)">
+                <component :is="item.isAtivado === false ? Unlock : Lock" class="size-4"/>
+              </Button>
+            </template>
+          </div>
+        </Card>
+      </div>
     </template>
+    <Card v-else class="grid min-h-64 place-items-center text-center text-muted-foreground">
+      <div class="p-5">
+        <Boxes class="mx-auto mb-3 size-10"/>
+        <p class="font-medium text-foreground">Nenhum item encontrado</p>
+        <p class="text-sm">Ajuste os filtros ou tente outra busca.</p>
+      </div>
+    </Card>
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex flex-col gap-3 text-sm text-muted-foreground sm:flex-row sm:items-center">
+        <span>Exibindo {{ firstItem }}–{{ lastItem }} de {{ totalElements }} itens</span>
+        <div class="flex items-center gap-2">
+          <span>Itens por página</span>
+          <Select v-model="pageSize">
+            <SelectTrigger class="h-8 w-20">
+              <SelectValue/>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="10">10</SelectItem>
+              <SelectItem value="20">20</SelectItem>
+              <SelectItem value="50">50</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+      <Pagination v-model:page="paginationPage" :items-per-page="Number(pageSize)" :sibling-count="1"
+                  :total="totalElements" class="mx-0 w-auto justify-start lg:justify-end" show-edges>
+        <PaginationContent v-slot="{ items: pages }">
+          <PaginationFirst aria-label="Primeira página" title="Primeira página">
+            <ChevronsLeft/>
+            <span class="hidden sm:block">Primeira</span>
+          </PaginationFirst>
+          <PaginationPrevious aria-label="Página anterior">
+            <span class="hidden sm:block">Anterior</span>
+          </PaginationPrevious>
+          <template v-for="(paginationItem, index) in pages" :key="index">
+            <PaginationItem v-if="paginationItem.type === 'page'"
+                            :is-active="paginationItem.value === paginationPage"
+                            :value="paginationItem.value">
+              {{ paginationItem.value }}
+            </PaginationItem>
+            <PaginationEllipsis v-else/>
+          </template>
+          <PaginationNext aria-label="Próxima página">
+            <span class="hidden sm:block">Próxima</span>
+          </PaginationNext>
+          <PaginationLast aria-label="Última página" title="Última página">
+            <span class="hidden sm:block">Última</span>
+            <ChevronsRight/>
+          </PaginationLast>
+        </PaginationContent>
+      </Pagination>
+    </div>
 
-    <v-row class="mb-6" density="comfortable">
-      <v-col cols="12" md="6">
-        <AppSearchBar
-          v-model="search"
-          clearable
-          hide-details
-          placeholder="Buscar por nome..."
-        />
-      </v-col>
-
-      <v-col cols="12" md="3" sm="6">
-        <AppSelect
-          v-model="selectedType"
-          :clearable="false"
-          hide-details
-          item-title="label"
-          item-value="value"
-          :items="typeItems"
-        />
-      </v-col>
-
-      <v-col cols="12" md="3" sm="6">
-        <AppSelect
-          v-model="selectedStatus"
-          :clearable="false"
-          hide-details
-          item-title="label"
-          item-value="value"
-          :items="statusItems"
-        />
-      </v-col>
-    </v-row>
-
-    <v-row class="mb-6" density="comfortable">
-      <v-col
-        v-for="item in itemsFiltrados"
-        :key="item.id"
-        cols="12"
-        lg="3"
-        md="4"
-        sm="6"
-        xl="2"
-      >
-        <ItemCard
-          :available="item.available"
-          :category="item.category"
-          :icon="item.icon"
-          :icon-color="item.iconColor"
-          :is-blocked="item.isBlocked"
-          :status="item.status"
-          :status-color="item.statusColor"
-          :title="item.title"
-          :total="item.total"
-          @edit="openEditDialog(item)"
-          @request-quantity="openQuantity(item)"
-          @toggle-lock="openLockDialog(item)"
-        />
-      </v-col>
-    </v-row>
-
-    <QuantityDialog
-      v-model="showQuantityModal"
-      :item="selectedItemForQuantity"
-      @confirm="handleQuantityConfirm"
-    />
-
-    <EstoqueEditDialog
-      v-model="showEditDialog"
-      :is-loading="savingItem"
-      :item="selectedItemForEdit"
-      :mode="editMode"
-      @submit="handleSaveItem"
-    />
-
-    <ConfirmDialog
-      v-model="showLockDialog"
-      :confirm-text="selectedItemForLock?.isBlocked ? 'Desbloquear' : 'Bloquear'"
-      :is-loading="togglingLock"
-      :message="selectedItemForLock?.isBlocked
-        ? `Deseja desbloquear o item ${selectedItemForLock?.title}?`
-        : `Deseja bloquear o item ${selectedItemForLock?.title}?`"
-      :title="selectedItemForLock?.isBlocked ? 'Desbloquear item' : 'Bloquear item'"
-      @confirm="handleToggleLock"
-    />
-
-    <v-snackbar
-      v-model="snackbar.show"
-      :color="snackbar.color"
-      location="top right"
-      timeout="3000"
-    >
-      {{ snackbar.text }}
-    </v-snackbar>
-  </AppPage>
+    <Dialog v-model:open="quantityOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Adicionar ao carrinho</DialogTitle>
+          <DialogDescription>Escolha a quantidade de {{ selected?.nome }}.</DialogDescription>
+        </DialogHeader>
+        <div class="space-y-2"><Label for="quantity">Quantidade</Label><Input id="quantity" v-model="quantity"
+                                                                              :max="selected?.quantidadeDisponivel"
+                                                                              min="1"
+                                                                              type="number"/>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="quantityOpen = false">Cancelar</Button>
+          <Button @click="addToCart">
+            <ShoppingCart/>
+            Adicionar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+    <Dialog v-model:open="editorOpen">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>{{ selected ? 'Editar item' : 'Novo item' }}</DialogTitle>
+          <DialogDescription>Dados de inventário são validados novamente pelo servidor.</DialogDescription>
+        </DialogHeader>
+        <div class="grid gap-4 py-2">
+          <div class="space-y-2"><Label for="name">Nome</Label><Input id="name" v-model="form.nome" maxlength="120"/>
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <div class="space-y-2"><Label for="total">Quantidade total</Label><Input id="total"
+                                                                                     v-model="form.quantidade"
+                                                                                     min="1" type="number"/></div>
+            <div class="space-y-2"><Label for="available">Disponível</Label><Input id="available"
+                                                                                   v-model="form.quantidadeDisponivel"
+                                                                                   min="0" type="number"/></div>
+          </div>
+          <div class="space-y-2"><Label>Tipo</Label><Select v-model="form.tipo">
+            <SelectTrigger>
+              <SelectValue/>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="COMPONENTE">Componente</SelectItem>
+              <SelectItem value="EQUIPAMENTO">Equipamento</SelectItem>
+            </SelectContent>
+          </Select></div>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" @click="editorOpen = false">Cancelar</Button>
+          <Button :disabled="saving" @click="save">
+            <Loader2 v-if="saving" class="animate-spin"/>
+            <PackagePlus v-else/>
+            Salvar
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </div>
 </template>

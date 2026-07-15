@@ -1,65 +1,55 @@
-import { supabase } from '@/plugins/supabase'
-import type { Usuario, UUID } from '@/types/entities'
+import {apiFetch} from '@/services/api'
+import type {UsuarioRequest, UsuarioResponse} from '@/types/dtos'
 
-export async function getUsuarios (): Promise<Usuario[]> {
-  const { data, error } = await supabase.from('usuarios').select('*')
-  if (error) throw error
-  return data as Usuario[]
+export async function getUsuarios(): Promise<UsuarioResponse[]> {
+    return await apiFetch<UsuarioResponse[]>('/usuarios')
 }
 
-export async function getUsuarioById (id: UUID): Promise<Usuario | null> {
-  const { data, error } = await supabase.from('usuarios').select('*').eq('id', id).maybeSingle()
-  if (error) throw error
-  return data as Usuario | null
+export async function getUsuarioById(id: string): Promise<UsuarioResponse | null> {
+    return await apiFetch<UsuarioResponse>(`/usuarios/${id}`)
 }
 
-export async function getUsuarioByUsername (username: string): Promise<Usuario | null> {
-  const { data, error } = await supabase.from('usuarios').select('*').eq('usuario', username).maybeSingle()
-  if (error) throw error
-  return data as Usuario | null
+export async function getUsuarioByUsername(username: string): Promise<UsuarioResponse | null> {
+    return await apiFetch<UsuarioResponse>(`/usuarios/matricula/${username}`)
 }
 
-export async function getUsuarioByLoginOrEmail (loginOrEmail: string): Promise<Usuario | null> {
-  const valorInformado = loginOrEmail.trim()
+export async function getUsuarioByLoginOrEmail(loginOrEmail: string): Promise<UsuarioResponse | null> {
+    const valorInformado = loginOrEmail.trim()
+    if (!valorInformado) {
+        return null
+    }
 
-  if (!valorInformado) {
-    return null
-  }
-
-  const usuarioPorLogin = await getUsuarioByUsername(valorInformado)
-  if (usuarioPorLogin) {
-    return usuarioPorLogin
-  }
-
-  const email = valorInformado.includes('@') ? valorInformado.toLowerCase() : valorInformado
-  return getUsuarioByEmail(email)
+    const email = valorInformado.includes('@') ? valorInformado.toLowerCase() : valorInformado
+    if (email.includes('@')) {
+        return getUsuarioByEmail(email)
+    }
+    return getUsuarioByUsername(valorInformado)
 }
 
-export async function getUsuarioByMatricula (matricula: string): Promise<Usuario | null> {
-  const { data, error } = await supabase.from('usuarios').select('*').eq('matricula', matricula).maybeSingle()
-  if (error) throw error
-  return data as Usuario | null
+export async function getUsuarioByMatricula(matricula: string): Promise<UsuarioResponse | null> {
+    return await apiFetch<UsuarioResponse>(`/usuarios/matricula/${matricula}`)
 }
 
-export async function getUsuarioByEmail (email: string): Promise<Usuario | null> {
-  const { data, error } = await supabase.from('usuarios').select('*').eq('email', email).maybeSingle()
-  if (error) throw error
-  return data as Usuario | null
+export async function getUsuarioByEmail(email: string): Promise<UsuarioResponse | null> {
+    return await apiFetch<UsuarioResponse>(`/usuarios/email/${email}`)
 }
 
-export async function createUsuario (payload: Partial<Usuario>): Promise<Usuario> {
-  const { data, error } = await supabase.from('usuarios').insert(payload).select().single()
-  if (error) throw error
-  return data as Usuario
+export async function createUsuario(payload: UsuarioRequest): Promise<UsuarioResponse> {
+    return await apiFetch<UsuarioResponse>('/usuarios', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    })
 }
 
-export async function updateUsuario (id: UUID, payload: Partial<Usuario>): Promise<Usuario> {
-  const { data, error } = await supabase.from('usuarios').update(payload).eq('id', id).select().single()
-  if (error) throw error
-  return data as Usuario
+export async function updateUsuario(id: string, payload: UsuarioRequest): Promise<UsuarioResponse> {
+    return await apiFetch<UsuarioResponse>(`/usuarios/${id}`, {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(payload)
+    })
 }
 
-export async function deleteUsuario (id: UUID): Promise<void> {
-  const { error } = await supabase.from('usuarios').delete().eq('id', id)
-  if (error) throw error
+export async function deleteUsuario(id: string): Promise<void> {
+    await apiFetch<void>(`/usuarios/${id}`, {method: 'DELETE'})
 }

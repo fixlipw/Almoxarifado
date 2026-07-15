@@ -1,150 +1,210 @@
-<template>
-  <v-app>
-    <AppHeader
-      :active-section="activeSection"
-      :drawer="drawer"
-      :mobile="mobile"
-      :nav-items="navItems"
-      @open-cart="showCartDialog = true"
-      @select-section="selectSection"
-      @toggle-menu="drawer = !drawer"
-    />
-
-    <AppSidebar
-      v-model:drawer="drawer"
-      :active-section="activeSection"
-      :mobile="mobile"
-      :nav-items="navItems"
-      @select-section="selectSection"
-    />
-
-    <v-main class="app-main">
-      <v-container class="py-6" fluid>
-        <slot />
-      </v-container>
-    </v-main>
-
-    <CartDialog
-      v-model="showCartDialog"
-      @checkout="handleCheckout"
-      @update-loan="handleUpdateLoan"
-    />
-
-    <AppFooter />
-  </v-app>
-</template>
-
 <script lang="ts" setup>
-  import type { NavItem, NavSection } from './types'
-  import { ref, watch, computed } from 'vue'
-  import { useRoute, useRouter } from 'vue-router'
-  import { useDisplay } from 'vuetify'
-  import AppFooter from './AppFooter.vue'
-  import AppHeader from './AppHeader.vue'
-  import AppSidebar from './AppSidebar.vue'
-  import CartDialog from '@/components/estoque/CartDialog.vue'
-  import { createPedido } from '@/services/pedidos'
-  import { createItemPedido } from '@/services/itensPedido'
-  import { useCartStore } from '@/stores/cart'
-  import { useNotificationStore } from '@/stores/notifications'
-  import { useAuthStore } from '@/stores/auth'
-  import { getLocalISOString } from '@/utils'
+import {computed, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {
+  BarChart3,
+  Boxes,
+  ChevronDown,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  Menu,
+  Moon,
+  Package,
+  Settings,
+  ShoppingCart,
+  Sun,
+  UserCircle2,
+  UserRound,
+  X
+} from 'lucide-vue-next'
+import {Button} from '@/components/ui/button'
+import {Badge} from '@/components/ui/badge'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import {Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle} from '@/components/ui/sheet'
+import {Separator} from '@/components/ui/separator'
+import {useAuthStore} from '@/stores/auth'
+import {useCartStore} from '@/stores/cart'
+import {useNotificationStore} from '@/stores/notifications'
+import {createPedido} from '@/services/pedidos'
+import {useThemePreference} from '@/composables/useThemePreference'
 
-  const { mobile } = useDisplay()
-  const router = useRouter()
-  const route = useRoute()
-  const drawer = ref(false)
-  const showCartDialog = ref(false)
-  const activeSection = ref<NavSection>('dashboard')
-  const cartStore = useCartStore()
-  const authStore = useAuthStore()
+const route = useRoute()
+const router = useRouter()
+const auth = useAuthStore()
+const cart = useCartStore()
+const notifications = useNotificationStore()
+const menuOpen = ref(false)
+const cartOpen = ref(false)
+const submitting = ref(false)
+const theme = useThemePreference()
 
-  const isAdministrador = computed(() => authStore.userRole === 'ADMIN')
+const nav = computed(() => [
+  {label: 'Visão geral', to: '/dashboard', icon: LayoutDashboard},
+  {label: 'Estoque', to: '/estoque', icon: Boxes},
+  {label: 'Pedidos', to: '/pedidos', icon: ClipboardList},
+  ...(auth.userRole === 'ADMIN' ? [{label: 'Relatórios', to: '/relatorios', icon: BarChart3}] : []),
+])
 
-  const navItems = computed<NavItem[]>(() => {
-    const items: NavItem[] = [
-      { label: 'Dashboard', value: 'dashboard', icon: 'mdi-view-dashboard-outline' },
-      { label: 'Estoque', value: 'estoque', icon: 'mdi-cube-outline' },
-      { label: 'Pedidos', value: 'pedidos', icon: 'mdi-clipboard-text-outline' },
-    ]
+function toggleTheme() {
+  theme.toggleMode()
+}
 
-    if (isAdministrador.value) {
-      items.push({ label: 'Usuários', value: 'usuarios', icon: 'mdi-account-group-outline' })
-      items.push({ label: 'Relatórios', value: 'relatorios', icon: 'mdi-chart-box-outline' })
-    }
-
-    return items
-  })
-
-  watch(mobile, () => {
-    if (!mobile.value) {
-      drawer.value = false
-    }
-  })
-
-  watch(route, newRoute => {
-    const path = newRoute.path.split('/')[1] || 'dashboard'
-    activeSection.value = path as NavSection
-  }, { immediate: true })
-
-  const notifications = useNotificationStore()
-
-  function selectSection (section: NavSection) {
-    activeSection.value = section
-    drawer.value = false
-
-    if (section === 'dashboard') {
-      router.push('/dashboard')
-    } else {
-      router.push(`/${section}`)
-    }
+async function checkout() {
+  if (!cart.items.length || submitting.value) return
+  submitting.value = true
+  try {
+    await createPedido({
+      codigoPedido: crypto.randomUUID(),
+      itens: cart.items.map(item => ({estoqueId: item.id, quantidadeItem: item.quantity})),
+    })
+    cart.clearCart()
+    cartOpen.value = false
+    notifications.success('Pedido enviado com sucesso.')
+  } catch {
+    notifications.error('Não foi possível enviar o pedido.')
+  } finally {
+    submitting.value = false
   }
+}
 
-  async function handleCheckout () {
-    try {
-      if (cartStore.items.length === 0) return
+function logout() {
+  auth.logout(globalThis.location.origin)
+}
 
-      if (!authStore.session?.usuario?.id) {
-        notifications.error('Sessão inválida. Por favor, faça login novamente.')
-        return
-      }
+function goToProfile() {
+  router.push('/perfil')
+}
 
-      const novoPedido = await createPedido({
-        id: crypto.randomUUID(),
-        solicitante_id: authStore.session.usuario.id,
-        codigo_pedido: `PED-${Date.now().toString().slice(-6)}`,
-        data_solicitacao: getLocalISOString(),
-      })
-
-      for (const item of cartStore.items) {
-        await createItemPedido({
-          id: crypto.randomUUID(),
-          pedido_id: novoPedido.id,
-          estoque_id: item.id,
-          quantidade_item: item.quantity,
-        })
-      }
-
-      cartStore.clearCart()
-      cartStore.setCheckout(true)
-      showCartDialog.value = false
-      notifications.success('Pedido finalizado com sucesso!')
-
-    } catch (error) {
-      console.error('Erro ao finalizar pedido:', error)
-      notifications.error('Não foi possível finalizar o pedido no momento.')
-    }
-  }
-
-  async function handleUpdateLoan () {
-    cartStore.clearCart()
-    showCartDialog.value = false
-    notifications.success('Pedido atualizado com sucesso!')
-  }
+function goToSettings() {
+  router.push('/configuracoes')
+}
 </script>
 
-<style scoped>
-.app-main {
-  min-height: calc(100vh - 72px - 72px);
-}
-</style>
+<template>
+  <div class="min-h-screen bg-background">
+    <header class="sticky top-0 z-40 border-b bg-background/90 backdrop-blur-xl">
+      <div class="mx-auto flex h-16 max-w-7xl items-center gap-3 px-4 sm:px-6">
+        <Button aria-label="Abrir menu" class="md:hidden" size="icon" variant="ghost" @click="menuOpen = !menuOpen">
+          <component :is="menuOpen ? X : Menu"/>
+        </Button>
+        <RouterLink class="flex items-center gap-3" to="/dashboard">
+          <span class="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground"><Package
+              class="size-5"/></span>
+          <span class="hidden leading-tight sm:block"><strong class="block text-sm">Almoxarifado UFC</strong><small
+              class="text-muted-foreground">Campus Quixadá</small></span>
+        </RouterLink>
+        <nav class="ml-5 hidden items-center gap-1 md:flex">
+          <RouterLink v-for="item in nav" :key="item.to"
+                      :class="{ 'bg-accent text-accent-foreground': route.path.startsWith(item.to) }"
+                      :to="item.to"
+                      class="flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition hover:bg-accent hover:text-accent-foreground">
+            <component :is="item.icon" class="size-4"/>
+            {{ item.label }}
+          </RouterLink>
+        </nav>
+        <div class="ml-auto flex items-center gap-1">
+          <Button :aria-label="theme.isDark.value ? 'Ativar tema claro' : 'Ativar tema escuro'" size="icon"
+                  variant="ghost"
+                  @click="toggleTheme">
+            <component :is="theme.isDark.value ? Sun : Moon"/>
+          </Button>
+          <Button aria-label="Abrir carrinho" class="relative" size="icon" variant="ghost" @click="cartOpen = true">
+            <ShoppingCart/>
+            <Badge v-if="cart.count" class="absolute -right-1 -top-1 h-5 min-w-5 justify-center px-1 text-[10px]">
+              {{ cart.count }}
+            </Badge>
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <Button aria-label="Abrir menu do usuário" class="gap-2 px-3" variant="ghost">
+                <UserRound class="size-4 text-muted-foreground"/>
+                <span class="hidden max-w-32 flex-col items-start leading-tight lg:flex">
+                  <span class="truncate text-xs font-medium">{{ auth.userName }}</span>
+                  <span class="text-[10px] text-muted-foreground">{{ auth.userRole }}</span>
+                </span>
+                <ChevronDown class="size-4 text-muted-foreground"/>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" class="w-56">
+              <DropdownMenuLabel>
+                <div class="flex flex-col gap-0.5">
+                  <span class="truncate text-sm font-medium">{{ auth.userName }}</span>
+                  <span class="text-xs font-normal text-muted-foreground">{{ auth.userRole }}</span>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator/>
+              <DropdownMenuItem class="gap-2" @click="goToProfile">
+                <UserCircle2 class="size-4"/>
+                Meu perfil
+              </DropdownMenuItem>
+              <DropdownMenuItem class="gap-2" @click="goToSettings">
+                <Settings class="size-4"/>
+                Configurações
+              </DropdownMenuItem>
+              <DropdownMenuSeparator/>
+              <DropdownMenuItem class="gap-2 text-destructive focus:text-destructive" @click="logout">
+                <LogOut class="size-4"/>
+                Sair
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+      </div>
+      <nav v-if="menuOpen" class="border-t p-3 md:hidden">
+        <RouterLink v-for="item in nav" :key="item.to" :to="item.to"
+                    class="flex items-center gap-3 rounded-md px-3 py-3 text-sm font-medium hover:bg-accent"
+                    @click="menuOpen = false">
+          <component :is="item.icon" class="size-4"/>
+          {{ item.label }}
+        </RouterLink>
+      </nav>
+    </header>
+    <main class="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <slot/>
+    </main>
+
+    <Sheet v-model:open="cartOpen">
+      <SheetContent class="flex flex-col">
+        <SheetHeader>
+          <SheetTitle>Carrinho de solicitação</SheetTitle>
+          <SheetDescription>Revise quantidades antes de enviar.</SheetDescription>
+        </SheetHeader>
+        <div v-if="cart.items.length" class="flex-1 space-y-3 overflow-auto py-5">
+          <div v-for="item in cart.items" :key="item.id" class="rounded-lg border p-3">
+            <div class="flex items-start justify-between gap-3">
+              <div><p class="font-medium">{{ item.title }}</p>
+                <p class="text-xs text-muted-foreground">{{ item.category }}</p></div>
+              <Button size="sm" variant="ghost" @click="cart.removeItem(item.id)">Remover</Button>
+            </div>
+            <div class="mt-3 flex items-center gap-2">
+              <Button size="icon-sm" variant="outline" @click="cart.updateQuantity(item.id, item.quantity - 1)">-
+              </Button>
+              <span class="w-8 text-center text-sm font-medium">{{ item.quantity }}</span>
+              <Button size="icon-sm" variant="outline" @click="cart.updateQuantity(item.id, item.quantity + 1)">+
+              </Button>
+              <span class="ml-auto text-xs text-muted-foreground">{{ item.available }} disponíveis</span>
+            </div>
+          </div>
+        </div>
+        <div v-else class="grid flex-1 place-items-center text-center text-sm text-muted-foreground">
+          <div>
+            <ShoppingCart class="mx-auto mb-3 size-8"/>
+            Seu carrinho está vazio.
+          </div>
+        </div>
+        <Separator/>
+        <Button :disabled="cart.isEmpty || submitting" class="mt-4 w-full" @click="checkout">
+          {{ submitting ? 'Enviando...' : 'Enviar pedido' }}
+        </Button>
+      </SheetContent>
+    </Sheet>
+  </div>
+</template>
