@@ -118,6 +118,6 @@ public class DashboardService {
             return 0;
         }
         double percentage = item.quantidadeDisponivel() * 100.0 / item.quantidade();
-        return (int) Math.max(0, Math.min(100, Math.round(percentage)));
+        return Math.clamp(Math.round(percentage), 0, 100);
     }
 }
