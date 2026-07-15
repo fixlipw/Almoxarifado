@@ -12,6 +12,7 @@
             padding: 40px 0;
             color: #0f172a;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
@@ -21,6 +22,7 @@
             box-shadow: 0 20px 60px rgba(15, 23, 42, 0.12);
             overflow: hidden;
         }
+
         .header {
             background: linear-gradient(135deg, #0f172a, #1e293b);
             padding: 40px 20px;
@@ -28,6 +30,7 @@
             color: #ffffff;
             border-bottom: 3px solid #10b981;
         }
+
         .header h1 {
             margin: 0;
             font-size: 24px;
@@ -35,13 +38,16 @@
             line-height: 1.3;
             letter-spacing: 1px;
         }
+
         .header h1 span {
             color: #10b981;
         }
+
         .content {
             padding: 40px 30px;
             line-height: 1.6;
         }
+
         .content h2 {
             color: #0f172a;
             font-size: 1.25rem;
@@ -49,6 +55,7 @@
             margin-top: 0;
             margin-bottom: 20px;
         }
+
         .info-box {
             background-color: #f8fafc;
             padding: 20px;
@@ -57,10 +64,12 @@
             border: 1px solid #e2e8f0;
             border-left: 4px solid #10b981;
         }
+
         .button-container {
             text-align: center;
             margin: 35px 0;
         }
+
         .button {
             background-color: #2563eb;
             color: #ffffff !important;
@@ -72,9 +81,11 @@
             transition: background-color 0.3s;
             box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
         }
+
         .button:hover {
             background-color: #1d4ed8;
         }
+
         .footer {
             background-color: #f8fafc;
             padding: 20px;
@@ -86,33 +97,33 @@
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>Relatório <span>do Sistema</span></h1>
+<div class="container">
+    <div class="header">
+        <h1>Relatório <span>do Sistema</span></h1>
+    </div>
+
+    <div class="content">
+        <h2>Olá, ${nome}!</h2>
+        <p>Seu relatório solicitado sobre <strong>${tipoRelatorio}</strong> está pronto.</p>
+
+        <div class="info-box">
+            <strong>Período:</strong> ${periodo}<br>
+            <strong>Gerado em:</strong> ${dataGeracao}
         </div>
 
-        <div class="content">
-            <h2>Olá, ${nome}!</h2>
-            <p>Seu relatório solicitado sobre <strong>${tipoRelatorio}</strong> está pronto.</p>
+        <p>O arquivo do relatório encontra-se em anexo a este e-mail.</p>
 
-            <div class="info-box">
-                <strong>Período:</strong> ${periodo}<br>
-                <strong>Gerado em:</strong> ${dataGeracao}
-            </div>
+        <p>Você também pode acessar mais detalhes diretamente no sistema acessando o botão abaixo.</p>
 
-            <p>O arquivo do relatório encontra-se em anexo a este e-mail.</p>
-
-            <p>Você também pode acessar mais detalhes diretamente no sistema acessando o botão abaixo.</p>
-
-            <div class="button-container">
-                <a href="${linkSistema}" class="button">Acessar Sistema</a>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>&copy; ${.now?string("yyyy")} Sistema de Almoxarifado Institucional. Todos os direitos reservados.</p>
-            <p>Este é um e-mail automático, por favor, não responda.</p>
+        <div class="button-container">
+            <a href="${linkSistema}" class="button">Acessar Sistema</a>
         </div>
     </div>
+
+    <div class="footer">
+        <p>&copy; ${.now?string("yyyy")} Sistema de Almoxarifado Institucional. Todos os direitos reservados.</p>
+        <p>Este é um e-mail automático, por favor, não responda.</p>
+    </div>
+</div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 package com.ufc.almoxarifado.usuario.internal;
 
-import com.ufc.almoxarifado.usuario.Papel;
 import com.ufc.almoxarifado.usuario.Usuario;
+import org.jspecify.annotations.NonNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -13,26 +13,24 @@ import java.util.Optional;
 public interface UsuarioRepository extends JpaRepository<Usuario, Long>, JpaSpecificationExecutor<Usuario> {
 
     @Override
-    Page<Usuario> findAll(Specification<Usuario> spec, Pageable pageable);
+    @NonNull
+    Page<Usuario> findAll(@NonNull Specification<Usuario> spec, @NonNull Pageable pageable);
 
     @Override
-    Optional<Usuario> findById(Long id);
+    @NonNull
+    Optional<Usuario> findById(@NonNull Long id);
 
     boolean existsByUsernameIgnoreCase(String username);
 
-    boolean existsByUsernameIgnoreCaseAndIdNot(String username, Long id);
+    boolean existsByUsernameIgnoreCaseAndIdNot(String username, @NonNull Long id);
 
     boolean existsByEmailIgnoreCase(String email);
 
-    boolean existsByEmailIgnoreCaseAndIdNot(String email, Long id);
+    boolean existsByEmailIgnoreCaseAndIdNot(String email, @NonNull Long id);
 
     boolean existsByCpf(String cpf);
 
     boolean existsByCpfAndIdNot(String cpf, Long id);
-
-    Long countByPapel(Papel papel);
-
-    long countByStatus(Boolean status);
 
     Optional<Usuario> findByEmailIgnoreCase(String email);
 

@@ -173,6 +173,6 @@ public class PedidoController {
     }
 
     private int normalizedSize(Integer size) {
-        return size == null ? 10 : Math.max(1, Math.min(size, 100));
+        return size == null ? 10 : Math.clamp(size, 1, 100);
     }
 }

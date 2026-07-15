@@ -10,6 +10,7 @@
         .page-break {
             page-break-after: always;
         }
+
         tr {
             page-break-inside: avoid;
         }

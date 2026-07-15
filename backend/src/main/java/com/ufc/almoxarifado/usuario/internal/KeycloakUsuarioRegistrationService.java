@@ -112,6 +112,7 @@ public class KeycloakUsuarioRegistrationService {
         syncUserRole(userId, usuario.getPapel(), token);
     }
 
+    @SuppressWarnings("unused")
     public void syncRole(Usuario usuario) {
         validateConfig();
         String token = getAdminAccessToken();

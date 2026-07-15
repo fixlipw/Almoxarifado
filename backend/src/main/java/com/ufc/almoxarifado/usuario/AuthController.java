@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class AuthController {
 
-    private final UsuarioService usuarioService;
     private final AuthenticatedUsuarioSyncService authenticatedUsuarioSyncService;
 
     @GetMapping("/session-sync")
