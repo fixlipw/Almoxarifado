@@ -1,6 +1,5 @@
 package com.ufc.almoxarifado.config;
 
-import com.ufc.almoxarifado.security.AuthenticatedUsuarioSyncService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,7 +18,6 @@ import java.util.*;
 public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationToken> {
 
     private static final String CLAIM_ROLES = "roles";
-    private final AuthenticatedUsuarioSyncService authenticatedUsuarioSyncService;
 
     @Value("${jwt.auth.converter.resource-id}")
     private String resourceId;
@@ -46,12 +44,6 @@ public class JwtAuthConverter implements Converter<Jwt, AbstractAuthenticationTo
         tokenRoles.stream()
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.toUpperCase()))
                 .forEach(authorities::add);
-
-        try {
-            authenticatedUsuarioSyncService.syncFromJwt(source, new ArrayList<>(tokenRoles));
-        } catch (Exception ex) {
-            log.warn("Falha ao sincronizar usuário autenticado com base no token do Keycloak", ex);
-        }
 
         return new JwtAuthenticationToken(source, authorities);
     }

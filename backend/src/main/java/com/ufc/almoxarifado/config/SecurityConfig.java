@@ -27,8 +27,9 @@ public class SecurityConfig {
     private String frontendOrigin;
 
     @Bean
-    protected ObjectMapper objectMapper() {
-        return new ObjectMapper();
+    public ObjectMapper objectMapper() {
+        return new ObjectMapper()
+                .registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
     }
 
     @Bean

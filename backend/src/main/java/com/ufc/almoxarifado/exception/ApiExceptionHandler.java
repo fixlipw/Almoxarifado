@@ -35,6 +35,21 @@ public class ApiExceptionHandler {
         return buildResponse(HttpStatus.NOT_FOUND, "Recurso não encontrado", ex.getMessage(), null, ex);
     }
 
+    @ExceptionHandler(InsufficientStockException.class)
+    public ResponseEntity<ApiErrorResponse> handleInsufficientStock(InsufficientStockException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Estoque insuficiente", ex.getMessage(), null, ex);
+    }
+
+    @ExceptionHandler(DuplicateFieldException.class)
+    public ResponseEntity<ApiErrorResponse> handleDuplicateField(DuplicateFieldException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflito de dados", ex.getMessage(), null, ex);
+    }
+
+    @ExceptionHandler(SelfActionException.class)
+    public ResponseEntity<ApiErrorResponse> handleSelfAction(SelfActionException ex) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "Ação não permitida", ex.getMessage(), null, ex);
+    }
+
     @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})
     public ResponseEntity<ApiErrorResponse> handleNotFound(Exception ex) {
         return buildResponse(HttpStatus.NOT_FOUND, "Recurso não encontrado", "O recurso solicitado não foi encontrado.", null, ex);
@@ -80,7 +95,7 @@ public class ApiExceptionHandler {
     @ExceptionHandler({HttpMessageNotReadableException.class, MissingServletRequestParameterException.class, MethodArgumentTypeMismatchException.class, IllegalArgumentException.class})
     public ResponseEntity<ApiErrorResponse> handleBadRequest(Exception ex) {
         String message = switch (ex) {
-            case HttpMessageNotReadableException _ -> "Corpo da requisição inválido ou ausente.";
+            case HttpMessageNotReadableException readableEx -> "Corpo da requisição inválido ou ausente.";
             case MissingServletRequestParameterException missing ->
                     "Parâmetro obrigatório ausente: " + missing.getParameterName();
             case MethodArgumentTypeMismatchException mismatch -> "Parâmetro inválido: " + mismatch.getName();
