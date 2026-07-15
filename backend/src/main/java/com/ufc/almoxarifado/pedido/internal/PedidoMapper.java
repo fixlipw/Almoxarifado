@@ -41,8 +41,7 @@ public class PedidoMapper {
                 entity.getDataAprovacao(),
                 entity.getDataFinalizado(),
                 entity.getDataAtualizacao(),
-                entity.getAprovado(),
-                entity.getFinalizado(),
+                entity.getStatus(),
                 entity.getEmprestimoEspecial(),
                 entity.getHash()
         );

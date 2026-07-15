@@ -127,19 +127,18 @@ export interface UsuarioResponse {
     isBloqueado?: boolean
 }
 
-export interface PedidoRequest {
+export interface CriarPedidoRequest {
     codigoPedido: string
     feedback?: string
     itens: ItemPedidoRequest[]
-    dataSolicitacao?: string
-    dataAprovacao?: string
-    dataFinalizado?: string
-    dataAtualizacao?: string
-    aprovado?: boolean
-    finalizado?: boolean
-    emprestimoEspecial?: boolean
-    hash?: string
 }
+
+export interface AtualizarPedidoRequest {
+    feedback?: string
+    itens: ItemPedidoRequest[]
+}
+
+export type StatusPedido = 'PENDENTE' | 'APROVADO' | 'REJEITADO' | 'FINALIZADO' | 'CANCELADO'
 
 export interface PedidoResponse {
     id: string
@@ -153,8 +152,7 @@ export interface PedidoResponse {
     dataAprovacao?: string
     dataFinalizado?: string
     dataAtualizacao?: string
-    aprovado?: boolean
-    finalizado?: boolean
+    status: StatusPedido
     emprestimoEspecial?: boolean
     hash?: string
 }

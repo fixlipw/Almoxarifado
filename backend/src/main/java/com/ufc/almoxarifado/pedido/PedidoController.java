@@ -23,7 +23,7 @@ public class PedidoController {
 
     @PostMapping
     public ResponseEntity<PedidoResponse> create(
-            @Valid @RequestBody PedidoRequest request,
+            @Valid @RequestBody CriarPedidoRequest request,
             Authentication authentication) {
         Long currentUserId = authSecurityService.getCurrentUserId(authentication);
         return ResponseEntity.status(HttpStatus.CREATED).body(pedidoService.create(request, currentUserId));
@@ -133,8 +133,19 @@ public class PedidoController {
     @PutMapping("/{id}")
     public ResponseEntity<PedidoResponse> update(
             @PathVariable UUID id,
-            @Valid @RequestBody PedidoRequest request) {
-        return ResponseEntity.ok(pedidoService.update(id, request));
+            @Valid @RequestBody AtualizarPedidoRequest request,
+            Authentication authentication) {
+        Long current = authSecurityService.getCurrentUserId(authentication);
+        boolean staffAccess = authSecurityService.hasAdminOrStaffAccess(authentication);
+        return ResponseEntity.ok(pedidoService.update(id, request, current, staffAccess));
+    }
+
+    @PatchMapping("/{id}/emprestimo-especial")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<PedidoResponse> updateEmprestimoEspecial(
+            @PathVariable UUID id,
+            @Valid @RequestBody EmprestimoEspecialRequest request) {
+        return ResponseEntity.ok(pedidoService.updateEmprestimoEspecial(id, request.emprestimoEspecial()));
     }
 
     @PutMapping("/{id}/approve")

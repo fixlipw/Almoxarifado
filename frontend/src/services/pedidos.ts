@@ -1,5 +1,5 @@
 import {apiFetch} from '@/services/api'
-import type {PageResponse, PedidoRequest, PedidoResponse} from '@/types/dtos'
+import type {AtualizarPedidoRequest, CriarPedidoRequest, PageResponse, PedidoResponse} from '@/types/dtos'
 
 type PedidoListResponse = PedidoResponse[] | PageResponse<PedidoResponse>
 
@@ -30,7 +30,7 @@ export async function getPedidoById(id: string): Promise<PedidoResponse | null> 
     return await apiFetch<PedidoResponse>(`/pedidos/${id}`)
 }
 
-export async function createPedido(payload: PedidoRequest): Promise<PedidoResponse> {
+export async function createPedido(payload: CriarPedidoRequest): Promise<PedidoResponse> {
     return await apiFetch<PedidoResponse>('/pedidos', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
@@ -38,11 +38,19 @@ export async function createPedido(payload: PedidoRequest): Promise<PedidoRespon
     })
 }
 
-export async function updatePedido(id: string, payload: PedidoRequest): Promise<PedidoResponse> {
+export async function updatePedido(id: string, payload: AtualizarPedidoRequest): Promise<PedidoResponse> {
     return await apiFetch<PedidoResponse>(`/pedidos/${id}`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(payload)
+    })
+}
+
+export async function updateEmprestimoEspecial(id: string, emprestimoEspecial: boolean): Promise<PedidoResponse> {
+    return await apiFetch<PedidoResponse>(`/pedidos/${id}/emprestimo-especial`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({emprestimoEspecial})
     })
 }
 

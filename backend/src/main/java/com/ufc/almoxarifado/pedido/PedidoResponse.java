@@ -18,8 +18,7 @@ public record PedidoResponse(
         LocalDateTime dataAprovacao,
         LocalDateTime dataFinalizado,
         LocalDateTime dataAtualizacao,
-        Boolean aprovado,
-        Boolean finalizado,
+        StatusPedido status,
         Boolean emprestimoEspecial,
         String hash
 ) {

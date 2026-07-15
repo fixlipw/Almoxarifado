@@ -3,6 +3,7 @@ package com.ufc.almoxarifado.exception;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -48,6 +49,16 @@ public class ApiExceptionHandler {
     @ExceptionHandler(SelfActionException.class)
     public ResponseEntity<ApiErrorResponse> handleSelfAction(SelfActionException ex) {
         return buildResponse(HttpStatus.BAD_REQUEST, "Ação não permitida", ex.getMessage(), null, ex);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiErrorResponse> handleIllegalState(IllegalStateException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Estado inválido", ex.getMessage(), null, ex);
+    }
+
+    @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+    public ResponseEntity<ApiErrorResponse> handleOptimisticLock(ObjectOptimisticLockingFailureException ex) {
+        return buildResponse(HttpStatus.CONFLICT, "Conflito de atualização", "O recurso foi alterado por outra operação. Atualize os dados e tente novamente.", null, ex);
     }
 
     @ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})

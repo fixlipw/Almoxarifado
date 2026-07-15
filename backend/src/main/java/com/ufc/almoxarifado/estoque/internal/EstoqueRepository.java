@@ -13,9 +13,7 @@ public interface EstoqueRepository extends JpaRepository<Estoque, UUID> {
                     FROM Pedido p
                     JOIN p.itens i
                     WHERE i.estoque.id = :estoqueId
-                      AND p.aprovado = true
-                      AND (p.finalizado IS NULL OR p.finalizado = false)
+                      AND p.status = StatusPedido.APROVADO
             """)
     boolean existsActiveOrdersByEstoqueId(UUID id);
 }
-

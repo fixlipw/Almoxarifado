@@ -28,10 +28,13 @@ public class PedidoService {
     private final UsuarioService usuarioService;
     private final PedidoMapper pedidoMapper;
 
-    public PedidoResponse create(PedidoRequest request, Long solicitanteId) {
+    @Transactional
+    public PedidoResponse create(CriarPedidoRequest request, Long solicitanteId) {
         Pedido entity = new Pedido();
         entity.setCodigoPedido(request.codigoPedido());
-        applyRequest(entity, request, solicitanteId);
+        entity.setSolicitante(usuarioService.getEntity(solicitanteId));
+        entity.setDataSolicitacao(LocalDateTime.now());
+        applyEditableFields(entity, request);
         return pedidoMapper.toResponse(pedidoRepository.save(entity));
     }
 
@@ -180,7 +183,10 @@ public class PedidoService {
     @Transactional
     public PedidoResponse approvePedido(UUID id, Long aprovadorId) {
         Pedido entity = getEntity(id);
-        entity.setAprovado(true);
+        if (entity.getStatus() != StatusPedido.PENDENTE) {
+            throw new IllegalStateException("Somente pedidos pendentes podem ser aprovados.");
+        }
+        entity.setStatus(StatusPedido.APROVADO);
 
         for (ItemPedido item : entity.getItens()) {
             estoqueService.deductStock(item.getEstoque().getId(), item.getQuantidadeItem());
@@ -194,7 +200,10 @@ public class PedidoService {
     @Transactional
     public PedidoResponse rejectPedido(UUID id, Long finalizadorId) {
         Pedido entity = getEntity(id);
-        entity.setAprovado(false);
+        if (entity.getStatus() != StatusPedido.PENDENTE) {
+            throw new IllegalStateException("Somente pedidos pendentes podem ser rejeitados.");
+        }
+        entity.setStatus(StatusPedido.REJEITADO);
         entity.setDataAprovacao(LocalDateTime.now());
         entity.setAprovador(getOptionalUser(finalizadorId));
         return pedidoMapper.toResponse(pedidoRepository.save(entity));
@@ -203,7 +212,10 @@ public class PedidoService {
     @Transactional
     public PedidoResponse returnPedido(UUID id, Long finalizadorId) {
         Pedido entity = getEntity(id);
-        entity.setFinalizado(true);
+        if (entity.getStatus() != StatusPedido.APROVADO) {
+            throw new IllegalStateException("Somente pedidos aprovados e ainda não finalizados podem ser devolvidos.");
+        }
+        entity.setStatus(StatusPedido.FINALIZADO);
 
         for (ItemPedido item : entity.getItens()) {
             estoqueService.replenishStock(item.getEstoque().getId(), item.getQuantidadeItem());
@@ -219,9 +231,18 @@ public class PedidoService {
         return pedidoMapper.toResponse(getEntity(id));
     }
 
-    public PedidoResponse update(UUID id, PedidoRequest request) {
+    @Transactional
+    public PedidoResponse update(UUID id, AtualizarPedidoRequest request, Long actorId, boolean staffAccess) {
         Pedido entity = getEntity(id);
-        applyRequest(entity, request, entity.getSolicitante() != null ? entity.getSolicitante().getId() : null);
+        boolean owner = entity.getSolicitante() != null && entity.getSolicitante().getId().equals(actorId);
+        if (!staffAccess && !owner) {
+            throw new org.springframework.security.access.AccessDeniedException("Você não tem permissão para alterar este pedido.");
+        }
+        if (entity.getStatus() != StatusPedido.PENDENTE) {
+            throw new IllegalStateException("Somente pedidos pendentes podem ser alterados.");
+        }
+        applyEditableFields(entity, request);
+        entity.setDataAtualizacao(LocalDateTime.now());
         return pedidoMapper.toResponse(pedidoRepository.save(entity));
     }
 
@@ -238,47 +259,37 @@ public class PedidoService {
                 .orElseThrow(() -> new ResourceNotFoundException("Pedido não encontrado para id: " + id));
     }
 
-    private void applyRequest(Pedido entity, PedidoRequest request, Long solicitanteId) {
-        if (solicitanteId != null) {
-            Usuario solicitante = usuarioService.getEntity(solicitanteId);
-            entity.setSolicitante(solicitante);
-        }
-
+    private void applyEditableFields(Pedido entity, CriarPedidoRequest request) {
         entity.setFeedback(request.feedback());
+        replaceItems(entity, request.itens());
+    }
 
-        if (entity.getDataSolicitacao() == null) {
-            if (request.dataSolicitacao() != null) {
-                entity.setDataSolicitacao(request.dataSolicitacao());
-            } else {
-                entity.setDataSolicitacao(LocalDateTime.now());
-            }
-        }
-        entity.setDataAprovacao(request.dataAprovacao());
-        entity.setDataFinalizado(request.dataFinalizado());
-        entity.setDataAtualizacao(request.dataAtualizacao());
+    private void applyEditableFields(Pedido entity, AtualizarPedidoRequest request) {
+        entity.setFeedback(request.feedback());
+        replaceItems(entity, request.itens());
+    }
 
-        if (request.aprovado() != null) {
-            entity.setAprovado(request.aprovado());
+    private void replaceItems(Pedido entity, List<ItemPedidoRequest> itens) {
+        entity.getItens().clear();
+        for (ItemPedidoRequest itemReq : itens) {
+            Estoque estoque = estoqueService.getEntity(itemReq.estoqueId());
+            ItemPedido itemPedido = new ItemPedido();
+            itemPedido.setPedido(entity);
+            itemPedido.setEstoque(estoque);
+            itemPedido.setQuantidadeItem(itemReq.quantidadeItem());
+            entity.getItens().add(itemPedido);
         }
-        if (request.finalizado() != null) {
-            entity.setFinalizado(request.finalizado());
-        }
-        if (request.emprestimoEspecial() != null) {
-            entity.setEmprestimoEspecial(request.emprestimoEspecial());
-        }
-        entity.setHash(request.hash());
+    }
 
-        if (request.itens() != null) {
-            entity.getItens().clear();
-            for (ItemPedidoRequest itemReq : request.itens()) {
-                Estoque estoque = estoqueService.getEntity(itemReq.estoqueId());
-                ItemPedido itemPedido = new ItemPedido();
-                itemPedido.setPedido(entity);
-                itemPedido.setEstoque(estoque);
-                itemPedido.setQuantidadeItem(itemReq.quantidadeItem());
-                entity.getItens().add(itemPedido);
-            }
+    @Transactional
+    public PedidoResponse updateEmprestimoEspecial(UUID id, boolean emprestimoEspecial) {
+        Pedido entity = getEntity(id);
+        if (entity.getStatus() != StatusPedido.PENDENTE) {
+            throw new IllegalStateException("Somente pedidos pendentes podem ser classificados como empréstimo especial.");
         }
+        entity.setEmprestimoEspecial(emprestimoEspecial);
+        entity.setDataAtualizacao(LocalDateTime.now());
+        return pedidoMapper.toResponse(pedidoRepository.save(entity));
     }
 
     private Usuario getOptionalUser(Long id) {

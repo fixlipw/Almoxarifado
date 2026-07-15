@@ -1,6 +1,7 @@
 package com.ufc.almoxarifado.pedido.internal;
 
 import com.ufc.almoxarifado.usuario.Usuario;
+import com.ufc.almoxarifado.pedido.StatusPedido;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -23,6 +24,9 @@ public class Pedido {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
+
+    @Version
+    private Long version;
 
     @Column(unique = true, nullable = false, updatable = false)
     private String codigoPedido;
@@ -57,10 +61,9 @@ public class Pedido {
     private LocalDateTime dataAtualizacao;
 
     @Builder.Default
-    private Boolean aprovado = false;
-
-    @Builder.Default
-    private Boolean finalizado = false;
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private StatusPedido status = StatusPedido.PENDENTE;
 
     @Builder.Default
     private Boolean emprestimoEspecial = false;

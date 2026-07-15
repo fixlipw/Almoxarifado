@@ -19,9 +19,8 @@ export interface Usuario {
 
 export interface Pedido {
     id: UUID
-    aprovado?: boolean | null
+    status: 'PENDENTE' | 'APROVADO' | 'REJEITADO' | 'FINALIZADO' | 'CANCELADO'
     emprestimo_especial?: boolean | null
-    finalizado?: boolean | null
     data_aprovacao?: string | null
     data_atualizacao?: string | null
     data_finalizado?: string | null
