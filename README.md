@@ -6,8 +6,42 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-3178C6?style=flat-square&logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-15-4169E1?style=flat-square&logo=postgresql&logoColor=white)
 
-Sistema moderno e completo para gestão de almoxarifado, desenvolvido como um monorepo contendo uma API REST robusta (
+Sistema moderno para gestão de almoxarifado, desenvolvido como um monorepo contendo uma API REST robusta (
 Spring Boot) e uma interface de usuário dinâmica (Vue.js).
+
+## 🗺️ Estado das funcionalidades
+
+### 🚧 Em desenvolvimento
+
+- Página de gerenciamento de usuários, com acesso exclusivo para administradores.
+- Chat de comunicação entre usuários e a equipe do almoxarifado.
+
+### 🔧 Pode ser melhorado
+
+- Ampliar a página de perfil com e-mail, matrícula, curso, foto e situação da conta.
+- Adicionar mais preferências à página de configurações, além dos temas da interface.
+- Incluir filtros por período, nome e status nos relatórios.
+- Disponibilizar novos relatórios, como pedidos atrasados, empréstimos ativos, usuários bloqueados e itens mais
+  solicitados.
+- Permitir a edição ou o cancelamento de pedidos que ainda estejam pendentes.
+- Registrar rejeições com justificativa e permitir devoluções parciais ou renovação de empréstimos.
+- Enriquecer o cadastro do estoque com localização, patrimônio, número de série, estado de conservação e quantidade
+  mínima.
+
+### 📋 Por fazer
+
+- Implementar a exportação dos relatórios para Excel, atualmente disponível na interface apenas como opção visual.
+- Criar uma central de notificações persistentes para aprovações, rejeições, atrasos e alertas de estoque baixo.
+- Criar uma trilha de auditoria para alterações em usuários, pedidos e itens.
+- Aumentar a cobertura de testes automatizados no backend e adicionar testes ao frontend.
+- Revisar e testar as permissões de alunos, bolsistas e administradores em todos os fluxos.
+
+### 💡 Planejado
+
+- Reserva de itens indisponíveis com fila de espera e aviso de reposição.
+- Leitura de QR Code ou código de barras para retirada, conferência e devolução de itens.
+- Dashboard configurável, com filtros por período, novos indicadores e gráficos.
+- Envio de notificações por e-mail conforme as preferências de cada usuário.
 
 ## 🖥️ Interface do Sistema
 
