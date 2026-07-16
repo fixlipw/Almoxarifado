@@ -15,7 +15,7 @@ Spring Boot) e uma interface de usuário dinâmica (Vue.js).
 
 - **Java 25**
 - **Spring Boot 4.0.4**
-- **Spring Modulith** (Arquitetura modular focada em domínios)
+- **Arquitetura em camadas** (`controller`, `service`, `repository`, `model`, `dto` e `mapper`)
 - **Spring Security & OAuth2 (Keycloak)** para autenticação e autorização
 - **Spring Data JPA** com banco de dados **PostgreSQL**
 - Versionamento do banco via changelogs em `db/changelog`
@@ -47,6 +47,16 @@ O projeto adota uma abordagem *monorepo*, separando claramente o cliente e o ser
 - `/backend/`: Contém toda a lógica de negócio, API REST, geração de relatórios e configurações do Spring Boot.
 - `/frontend/`: Aplicação web construída em Vue.js para interação do usuário.
 - `docker-compose.yaml`: Facilita a subida de dependências locais (como PostgreSQL, Keycloak, etc).
+
+O backend utiliza uma estrutura convencional em camadas sob `com.ufc.almoxarifado`:
+
+- `controller`: endpoints REST e tratamento das requisições HTTP.
+- `service`: regras de negócio e integrações da aplicação.
+- `repository`: acesso aos dados com Spring Data JPA.
+- `model`: entidades e enumerações de domínio.
+- `dto`: contratos de entrada e saída da API.
+- `mapper`: conversão entre entidades e DTOs.
+- `config` e `exception`: configurações transversais e tratamento de erros.
 
 ---
 

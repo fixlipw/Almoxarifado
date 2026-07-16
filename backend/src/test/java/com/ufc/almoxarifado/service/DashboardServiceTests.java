@@ -1,13 +1,11 @@
 package com.ufc.almoxarifado.service;
 
-import com.ufc.almoxarifado.dashboard.DashboardResponse;
-import com.ufc.almoxarifado.dashboard.DashboardService;
-import com.ufc.almoxarifado.estoque.EstoqueResponse;
-import com.ufc.almoxarifado.estoque.EstoqueService;
-import com.ufc.almoxarifado.estoque.TipoEstoque;
-import com.ufc.almoxarifado.pedido.ItemPedidoResponse;
-import com.ufc.almoxarifado.pedido.PedidoResponse;
-import com.ufc.almoxarifado.pedido.PedidoService;
+import com.ufc.almoxarifado.dto.response.DashboardResponse;
+import com.ufc.almoxarifado.dto.response.EstoqueResponse;
+import com.ufc.almoxarifado.model.TipoEstoque;
+import com.ufc.almoxarifado.model.StatusPedido;
+import com.ufc.almoxarifado.dto.response.ItemPedidoResponse;
+import com.ufc.almoxarifado.dto.response.PedidoResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -119,8 +117,7 @@ class DashboardServiceTests {
                 date,
                 null,
                 date,
-                true,
-                false,
+                StatusPedido.APROVADO,
                 false,
                 null
         );

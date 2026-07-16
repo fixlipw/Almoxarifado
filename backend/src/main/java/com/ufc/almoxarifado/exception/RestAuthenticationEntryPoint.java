@@ -1,9 +1,9 @@
 package com.ufc.almoxarifado.exception;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.AuthenticationEntryPoint;
@@ -20,21 +20,21 @@ public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
     }
 
     @Override
-    public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException authException)
-            throws IOException, ServletException {
-        writeError(request, response, HttpStatus.UNAUTHORIZED, "não autenticado", "Credenciais inválidas ou expiradas.");
+    public void commence(@NonNull HttpServletRequest request, @NonNull HttpServletResponse response, @NonNull AuthenticationException authException)
+            throws IOException {
+        writeError(request, response);
     }
 
-    private void writeError(HttpServletRequest request, HttpServletResponse response, HttpStatus status, String error, String message) throws IOException {
-        response.setStatus(status.value());
+    private void writeError(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        response.setStatus(HttpStatus.UNAUTHORIZED.value());
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
 
         ApiErrorResponse body = new ApiErrorResponse(
                 java.time.Instant.now().toString(),
-                status.value(),
-                error,
-                message,
+                HttpStatus.UNAUTHORIZED.value(),
+                "não autenticado",
+                "Credenciais inválidas ou expiradas.",
                 List.of(),
                 request.getRequestURI()
         );

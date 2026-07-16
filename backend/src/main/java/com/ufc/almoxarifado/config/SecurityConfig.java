@@ -1,7 +1,7 @@
 package com.ufc.almoxarifado.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ufc.almoxarifado.exception.RestAccessDeniedHandler;
+import com.ufc.almoxarifado.exception.handler.RestAccessDeniedHandler;
 import com.ufc.almoxarifado.exception.RestAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
