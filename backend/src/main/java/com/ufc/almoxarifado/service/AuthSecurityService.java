@@ -19,58 +19,51 @@ import java.util.Optional;
 public class AuthSecurityService {
 
     private final UsuarioRepository usuarioRepository;
+    private final AuthenticatedUsuarioSyncService authenticatedUsuarioSyncService;
 
     public Long getCurrentUserId(Authentication authentication) {
-        if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
-            return null;
-        }
-
-        String email = jwt.getClaimAsString("email");
-        if (email != null && !email.isBlank()) {
-            return usuarioRepository.findByEmailIgnoreCase(email)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para email: " + email))
-                    .getId();
-        }
-
-        String username = jwt.getClaimAsString("preferred_username");
-        if (username != null && !username.isBlank()) {
-            return usuarioRepository.findByUsernameIgnoreCase(username)
-                    .orElseThrow(() -> new ResourceNotFoundException("Usuário não encontrado para username: " + username))
-                    .getId();
-        }
-
-        throw new ResourceNotFoundException("Usuário autenticado não possui email nem username no token.");
+        return resolveUsuario(authentication).getId();
     }
 
     public Usuario getUsuarioLogado() {
-        var authentication = SecurityContextHolder.getContext().getAuthentication();
+        return resolveUsuario(SecurityContextHolder.getContext().getAuthentication());
+    }
+
+    private Usuario resolveUsuario(Authentication authentication) {
         if (authentication == null || !(authentication.getPrincipal() instanceof Jwt jwt)) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Usuário não autenticado.");
         }
 
-        String email = jwt.getClaimAsString("email");
-        if (email != null && !email.isBlank()) {
+        authenticatedUsuarioSyncService.syncFromJwt(jwt);
+
+        String email = trimToNull(jwt.getClaimAsString("email"));
+        if (email != null) {
             Optional<Usuario> usuarioPorEmail = usuarioRepository.findByEmailIgnoreCase(email);
             if (usuarioPorEmail.isPresent()) {
                 return usuarioPorEmail.get();
             }
         }
 
-        String username = jwt.getClaimAsString("preferred_username");
-        if (username != null && !username.isBlank()) {
+        String username = trimToNull(jwt.getClaimAsString("preferred_username"));
+        if (username != null) {
             Optional<Usuario> usuarioPorUsername = usuarioRepository.findByUsernameIgnoreCase(username);
             if (usuarioPorUsername.isPresent()) {
                 return usuarioPorUsername.get();
             }
         }
 
-        if (email == null || email.isBlank()) {
+        if (email == null && username == null) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                    "Token do usuário não possui e-mail.");
+                    "Token do usuário não possui e-mail nem username.");
         }
 
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-                "Usuário não sincronizado no sistema.");
+        throw new ResourceNotFoundException("Não foi possível sincronizar o usuário autenticado no sistema.");
+    }
+
+    private String trimToNull(String value) {
+        if (value == null) return null;
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 
 
