@@ -13,27 +13,27 @@ Spring Boot) e uma interface de usuário dinâmica (Vue.js).
 
 ### Visão geral
 
-![Painel com a visão geral do sistema de almoxarifado](docs/imagens/Imagem%201%20-%20Vis%C3%A3o%20Geral.png)
+![Painel com a visão geral do sistema de almoxarifado](docs/imagens/admin/Imagem%201%20-%20Vis%C3%A3o%20Geral.png)
 
 ### Estoque
 
-![Tela de gerenciamento do estoque](docs/imagens/Imagem%202%20-%20Estoque.png)
+![Tela de gerenciamento do estoque](docs/imagens/admin/Imagem%202%20-%20Estoque.png)
 
 ### Pedidos
 
-![Tela de gerenciamento de pedidos](docs/imagens/Imagem%203%20-%20Pedidos.png)
+![Tela de gerenciamento de pedidos](docs/imagens/admin/Imagem%203%20-%20Pedidos.png)
 
 ### Relatórios
 
-![Tela de relatórios](docs/imagens/Imagem%204%20-%20Relat%C3%B3rios.png)
+![Tela de relatórios](docs/imagens/admin/Imagem%204%20-%20Relat%C3%B3rios.png)
 
 ### Perfil
 
-![Tela de perfil do usuário](docs/imagens/Imagem%205%20-%20Perfil.png)
+![Tela de perfil do usuário](docs/imagens/admin/Imagem%205%20-%20Perfil.png)
 
 ### Configurações
 
-![Tela de configurações do sistema](docs/imagens/Imagem%206%20-%20Configura%C3%A7%C3%B5es.png)
+![Tela de configurações do sistema](docs/imagens/admin/Imagem%206%20-%20Configura%C3%A7%C3%B5es.png)
 
 ## 🚀 Tecnologias
 
