@@ -9,6 +9,32 @@
 Sistema moderno e completo para gestão de almoxarifado, desenvolvido como um monorepo contendo uma API REST robusta (
 Spring Boot) e uma interface de usuário dinâmica (Vue.js).
 
+## 🖥️ Interface do Sistema
+
+### Visão geral
+
+![Painel com a visão geral do sistema de almoxarifado](docs/imagens/Imagem%201%20-%20Vis%C3%A3o%20Geral.png)
+
+### Estoque
+
+![Tela de gerenciamento do estoque](docs/imagens/Imagem%202%20-%20Estoque.png)
+
+### Pedidos
+
+![Tela de gerenciamento de pedidos](docs/imagens/Imagem%203%20-%20Pedidos.png)
+
+### Relatórios
+
+![Tela de relatórios](docs/imagens/Imagem%204%20-%20Relat%C3%B3rios.png)
+
+### Perfil
+
+![Tela de perfil do usuário](docs/imagens/Imagem%205%20-%20Perfil.png)
+
+### Configurações
+
+![Tela de configurações do sistema](docs/imagens/Imagem%206%20-%20Configura%C3%A7%C3%B5es.png)
+
 ## 🚀 Tecnologias
 
 ### ⚙️ Backend
@@ -71,6 +97,19 @@ Certifique-se de ter as seguintes ferramentas instaladas na sua máquina:
 - **Docker** e **Docker Compose**
 - **Maven** (Opcional, o projeto inclui o wrapper `mvnw`)
 
+### 🔐 Variáveis de ambiente
+
+Crie os arquivos de configuração a partir dos exemplos versionados:
+
+```bash
+cp .env.example .env
+cp frontend/.env.example frontend/.env
+```
+
+O `.env` da raiz configura o Docker Compose e o backend. O arquivo `frontend/.env` contém as variáveis expostas ao
+Vite. Revise os valores dos dois arquivos, principalmente as credenciais e os identificadores do Keycloak, antes de
+iniciar as aplicações. Os arquivos `.env` reais não devem ser versionados.
+
 ### 1️⃣ Inicializando a Infraestrutura (Banco de Dados)
 
 O projeto depende do PostgreSQL. Para iniciar o banco de dados via Docker:
@@ -80,16 +119,6 @@ docker-compose up -d
 ```
 
 ### 2️⃣ Executando o Backend
-
-É necessário configurar as variáveis de ambiente em um arquivo `.env` (na raiz do projeto ou em `backend/`).
-*Exemplo de variáveis esperadas:*
-
-```env
-DB_URL=jdbc:postgresql://localhost:5432/almoxarifado
-DB_USERNAME=postgres
-DB_PASSWORD=sua_senha
-JWT_ISSUER_URI=http://localhost:8080/realms/almoxarifado
-```
 
 Para rodar a aplicação:
 
