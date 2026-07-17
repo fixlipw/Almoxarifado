@@ -4,6 +4,8 @@ import com.ufc.almoxarifado.model.Estoque;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 
+import org.springframework.data.repository.query.Param;
+
 import java.util.UUID;
 
 public interface EstoqueRepository extends JpaRepository<Estoque, UUID> {
@@ -15,5 +17,5 @@ public interface EstoqueRepository extends JpaRepository<Estoque, UUID> {
                     WHERE i.estoque.id = :estoqueId
                       AND p.status = StatusPedido.APROVADO
             """)
-    boolean existsActiveOrdersByEstoqueId(UUID id);
+    boolean existsActiveOrdersByEstoqueId(@Param("estoqueId") UUID id);
 }
