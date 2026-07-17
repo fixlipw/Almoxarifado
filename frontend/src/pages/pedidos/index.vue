@@ -20,6 +20,7 @@ import {Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, Di
 import {Skeleton} from '@/components/ui/skeleton'
 import {Table, TableBody, TableCell, TableHead, TableHeader, TableRow} from '@/components/ui/table'
 import {Tabs, TabsList, TabsTrigger} from '@/components/ui/tabs'
+import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip'
 import {
   approvePedido,
   deletePedido,
@@ -228,28 +229,53 @@ async function executeAction() {
               </TableCell>
               <TableCell>
                 <div class="flex justify-end gap-1">
-                  <Button :aria-label="`Ver detalhes do pedido ${pedido.codigoPedido}`" size="icon-sm" variant="ghost"
-                          @click="openDetails(pedido)">
-                    <Eye/>
-                  </Button>
+                  <Tooltip>
+                    <TooltipTrigger as-child>
+                      <Button :aria-label="`Ver detalhes do pedido ${pedido.codigoPedido}`" size="icon-sm" variant="ghost"
+                              @click="openDetails(pedido)">
+                        <Eye/>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Ver detalhes</TooltipContent>
+                  </Tooltip>
                   <template v-if="canManage">
-                    <Button v-if="tab === 'pendentes'" aria-label="Rejeitar pedido" size="icon-sm" variant="ghost"
-                            @click="requestAction(pedido, 'reject')">
-                      <X class="text-destructive"/>
-                    </Button>
-                    <Button v-if="tab === 'pendentes'" aria-label="Aprovar pedido" size="icon-sm" variant="ghost"
-                            @click="requestAction(pedido, 'approve')">
-                      <Check class="text-emerald-600"/>
-                    </Button>
-                    <Button v-if="tab === 'ativos' || tab === 'atrasados'" aria-label="Registrar devolução"
-                            size="icon-sm"
-                            variant="ghost" @click="requestAction(pedido, 'return')">
-                      <RotateCcw class="text-sky-600"/>
-                    </Button>
-                    <Button aria-label="Excluir pedido" size="icon-sm" variant="ghost"
-                            @click="requestAction(pedido, 'delete')">
-                      <Trash2 class="text-destructive"/>
-                    </Button>
+                    <Tooltip v-if="tab === 'pendentes'">
+                      <TooltipTrigger as-child>
+                        <Button aria-label="Rejeitar pedido" size="icon-sm" variant="ghost"
+                                @click="requestAction(pedido, 'reject')">
+                          <X class="text-destructive"/>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Rejeitar pedido</TooltipContent>
+                    </Tooltip>
+                    <Tooltip v-if="tab === 'pendentes'">
+                      <TooltipTrigger as-child>
+                        <Button aria-label="Aprovar pedido" size="icon-sm" variant="ghost"
+                                @click="requestAction(pedido, 'approve')">
+                          <Check class="text-emerald-600"/>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Aprovar pedido</TooltipContent>
+                    </Tooltip>
+                    <Tooltip v-if="tab === 'ativos' || tab === 'atrasados'">
+                      <TooltipTrigger as-child>
+                        <Button aria-label="Registrar devolução"
+                                size="icon-sm"
+                                variant="ghost" @click="requestAction(pedido, 'return')">
+                          <RotateCcw class="text-sky-600"/>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Registrar devolução</TooltipContent>
+                    </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger as-child>
+                        <Button aria-label="Excluir pedido" size="icon-sm" variant="ghost"
+                                @click="requestAction(pedido, 'delete')">
+                          <Trash2 class="text-destructive"/>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Excluir pedido</TooltipContent>
+                    </Tooltip>
                   </template>
                 </div>
               </TableCell>
@@ -301,11 +327,16 @@ async function executeAction() {
               Detalhes
             </Button>
             <template v-if="canManage">
-              <Button v-if="tab === 'pendentes'" aria-label="Rejeitar pedido" class="h-8 w-8 text-destructive hover:bg-destructive/10" size="icon-sm"
-                      variant="ghost"
-                      @click="requestAction(pedido, 'reject')">
-                <X class="size-4"/>
-              </Button>
+              <Tooltip v-if="tab === 'pendentes'">
+                <TooltipTrigger as-child>
+                  <Button aria-label="Rejeitar pedido" class="h-8 w-8 text-destructive hover:bg-destructive/10" size="icon-sm"
+                          variant="ghost"
+                          @click="requestAction(pedido, 'reject')">
+                    <X class="size-4"/>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Rejeitar pedido</TooltipContent>
+              </Tooltip>
               <Button v-if="tab === 'pendentes'" aria-label="Aprovar pedido" class="h-8 px-2 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20" size="sm"
                       variant="ghost"
                       @click="requestAction(pedido, 'approve')">
@@ -318,11 +349,16 @@ async function executeAction() {
                 <RotateCcw class="size-4 mr-1"/>
                 Devolver
               </Button>
-              <Button aria-label="Excluir pedido" class="h-8 w-8 text-destructive hover:bg-destructive/10" size="icon-sm"
-                      variant="ghost"
-                      @click="requestAction(pedido, 'delete')">
-                <Trash2 class="size-4"/>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button aria-label="Excluir pedido" class="h-8 w-8 text-destructive hover:bg-destructive/10" size="icon-sm"
+                          variant="ghost"
+                          @click="requestAction(pedido, 'delete')">
+                    <Trash2 class="size-4"/>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Excluir pedido</TooltipContent>
+              </Tooltip>
             </template>
           </div>
         </Card>

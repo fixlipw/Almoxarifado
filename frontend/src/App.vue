@@ -1,5 +1,6 @@
 <template>
-  <component :is="layout">
+  <TooltipProvider>
+    <component :is="layout">
     <router-view/>
     <div class="fixed right-4 top-4 z-[100] flex w-[min(24rem,calc(100vw-2rem))] flex-col gap-2">
       <div
@@ -16,7 +17,8 @@
         </button>
       </div>
     </div>
-  </component>
+    </component>
+  </TooltipProvider>
 </template>
 
 <script lang="ts" setup>
@@ -26,6 +28,7 @@ import {AlertCircle, CheckCircle2, Info, TriangleAlert, X} from 'lucide-vue-next
 import LayoutBlank from '@/layouts/BlankLayout.vue'
 import LayoutDefault from '@/layouts/DefaultLayout.vue'
 import {type Notification, useNotificationStore} from '@/stores/notifications'
+import {TooltipProvider} from '@/components/ui/tooltip'
 
 const route = useRoute()
 const layout = computed(() => route.meta.layout === 'blank' ? LayoutBlank : LayoutDefault)

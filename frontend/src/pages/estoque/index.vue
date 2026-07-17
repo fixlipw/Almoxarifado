@@ -34,6 +34,7 @@ import {
   PaginationPrevious
 } from '@/components/ui/pagination'
 import {createEstoque, getEstoques, updateEstoque} from '@/services/estoque'
+import {Tooltip, TooltipContent, TooltipTrigger} from '@/components/ui/tooltip'
 import type {EstoqueRequest, EstoqueResponse} from '@/types/dtos'
 import {useAuthStore} from '@/stores/auth'
 import {useCartStore} from '@/stores/cart'
@@ -284,16 +285,26 @@ function addToCart() {
                     <ShoppingCart/>
                     <span class="hidden sm:inline">Solicitar</span>
                   </Button>
-                  <Button v-if="canManage" aria-label="Editar item" size="icon-sm" variant="ghost"
-                          @click="openEdit(item)">
-                    <Pencil/>
-                  </Button>
-                  <Button v-if="canManage" :aria-label="item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item'"
-                          size="icon-sm"
-                          variant="ghost"
-                          @click="toggle(item)">
-                    <component :is="item.isAtivado === false ? Unlock : Lock"/>
-                  </Button>
+                  <Tooltip v-if="canManage">
+                    <TooltipTrigger as-child>
+                      <Button aria-label="Editar item" size="icon-sm" variant="ghost"
+                              @click="openEdit(item)">
+                        <Pencil/>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Editar item</TooltipContent>
+                  </Tooltip>
+                  <Tooltip v-if="canManage">
+                    <TooltipTrigger as-child>
+                      <Button :aria-label="item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item'"
+                              size="icon-sm"
+                              variant="ghost"
+                              @click="toggle(item)">
+                        <component :is="item.isAtivado === false ? Unlock : Lock"/>
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>{{ item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item' }}</TooltipContent>
+                  </Tooltip>
                 </div>
               </TableCell>
             </TableRow>
@@ -341,18 +352,28 @@ function addToCart() {
               Solicitar
             </Button>
             <template v-if="canManage">
-              <Button aria-label="Editar item" class="h-8 w-8 text-primary hover:bg-primary/5 dark:hover:bg-primary/10" size="icon-sm"
-                      variant="ghost" @click="openEdit(item)">
-                <Pencil class="size-4"/>
-              </Button>
-              <Button :aria-label="item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item'"
-                      :class="item.isAtivado === false ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20' : 'text-destructive hover:bg-destructive/10'"
-                      class="h-8 w-8"
-                      size="icon-sm"
-                      variant="ghost"
-                      @click="toggle(item)">
-                <component :is="item.isAtivado === false ? Unlock : Lock" class="size-4"/>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button aria-label="Editar item" class="h-8 w-8 text-primary hover:bg-primary/5 dark:hover:bg-primary/10" size="icon-sm"
+                          variant="ghost" @click="openEdit(item)">
+                    <Pencil class="size-4"/>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Editar item</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger as-child>
+                  <Button :aria-label="item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item'"
+                          :class="item.isAtivado === false ? 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-950/20' : 'text-destructive hover:bg-destructive/10'"
+                          class="h-8 w-8"
+                          size="icon-sm"
+                          variant="ghost"
+                          @click="toggle(item)">
+                    <component :is="item.isAtivado === false ? Unlock : Lock" class="size-4"/>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>{{ item.isAtivado === false ? 'Desbloquear item' : 'Bloquear item' }}</TooltipContent>
+              </Tooltip>
             </template>
           </div>
         </Card>
