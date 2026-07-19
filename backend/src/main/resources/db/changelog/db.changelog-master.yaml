@@ -1,4 +1,6 @@
 databaseChangeLog:
   - include:
-      file: db/changelog/001-baseline.yaml
+      file: db/changelog/001-baseline.sql
+  - include:
+      file: db/changelog/002-importacao-dump-legado.sql
 
