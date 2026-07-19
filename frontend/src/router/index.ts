@@ -14,6 +14,7 @@ import DashboardPage from '@/pages/dashboard/index.vue'
 import EstoquePage from '@/pages/estoque/index.vue'
 import PedidosPage from '@/pages/pedidos/index.vue'
 import RelatoriosPage from '@/pages/relatorios/index.vue'
+import UsuariosPage from '@/pages/usuarios/index.vue'
 import RelatoriosViewPage from '@/pages/relatorios/view/index.vue'
 import PerfilPage from '@/pages/perfil/index.vue'
 import ConfiguracoesPage from '@/pages/configuracoes/index.vue'
@@ -41,6 +42,12 @@ const routes = [
         path: '/pedidos',
         component: PedidosPage,
         name: 'Pedidos',
+    },
+    {
+        path: '/usuarios',
+        component: UsuariosPage,
+        name: 'Usuarios',
+        meta: {roles: ['ADMIN']},
     },
     {
         path: '/relatorios',

@@ -16,6 +16,7 @@ import {
   Sun,
   UserCircle2,
   UserRound,
+  Users,
   X
 } from 'lucide-vue-next'
 import {Button} from '@/components/ui/button'
@@ -50,6 +51,7 @@ const nav = computed(() => [
   {label: 'Visão geral', to: '/dashboard', icon: LayoutDashboard},
   {label: 'Estoque', to: '/estoque', icon: Boxes},
   {label: 'Pedidos', to: '/pedidos', icon: ClipboardList},
+  ...(auth.userRole === 'ADMIN' ? [{label: 'Usuários', to: '/usuarios', icon: Users}] : []),
   ...(auth.userRole === 'ADMIN' ? [{label: 'Relatórios', to: '/relatorios', icon: BarChart3}] : []),
 ])
 

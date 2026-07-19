@@ -53,3 +53,11 @@ export async function updateUsuario(id: string, payload: UsuarioRequest): Promis
 export async function deleteUsuario(id: string): Promise<void> {
     await apiFetch<void>(`/usuarios/${id}`, {method: 'DELETE'})
 }
+
+export async function updateUsuarioStatus(id: string, ativo: boolean): Promise<UsuarioResponse> {
+    return await apiFetch<UsuarioResponse>(`/usuarios/${id}/status`, {
+        method: 'PATCH',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ativo})
+    })
+}

@@ -102,29 +102,32 @@ export interface ItemPedidoResponse {
 }
 
 export interface UsuarioRequest {
-    matricula?: string
-    senha: string
-    nome?: string
-    sobrenome?: string
-    curso?: string
+    username: string
+    email: string
+    nome: string
+    nomeSocial?: string
+    cpf: string
+    curso: string
+    papel: RoleAcesso
     fotoPerfil?: string
-    acesso: RoleAcesso
-    isAtivada?: boolean
-    isBloqueado?: boolean
+    status: boolean
+    bloqueado: boolean
+    matricula?: string
 }
 
 export interface UsuarioResponse {
     id: string
-    usuario?: string,
-    email?: string
+    username: string
+    email: string
     matricula?: string
-    nome?: string
-    sobrenome?: string
-    curso?: string
+    nome: string
+    nomeSocial?: string
+    cpf: string
+    curso: string
     fotoPerfil?: string
-    acesso: RoleAcesso
-    isAtivada?: boolean
-    isBloqueado?: boolean
+    papel: RoleAcesso
+    status: boolean
+    bloqueado: boolean
 }
 
 export interface CriarPedidoRequest {
