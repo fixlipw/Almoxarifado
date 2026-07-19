@@ -25,12 +25,19 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
     show-sql: true
     open-in-view: false
     properties:
       hibernate:
         format_sql: true
+        default_schema: ${DB_SCHEMA}
+
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    parameters:
+      appSchema: ${DB_SCHEMA}
 
   security:
     oauth2:

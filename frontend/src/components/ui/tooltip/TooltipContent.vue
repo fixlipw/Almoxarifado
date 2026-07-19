@@ -11,6 +11,17 @@ defineOptions({
 
 const props = withDefaults(defineProps<TooltipContentProps & { class?: HTMLAttributes["class"] }>(), {
   sideOffset: 4,
+  side: 'top',
+  align: 'center',
+  avoidCollisions: true,
+  collisionBoundary: () => [],
+  collisionPadding: 0,
+  arrowPadding: 0,
+  sticky: 'partial',
+  hideWhenDetached: false,
+  updatePositionStrategy: 'optimized',
+  positionStrategy: 'absolute',
+  alignOffset: 0,
 })
 
 const emits = defineEmits<TooltipContentEmits>()
