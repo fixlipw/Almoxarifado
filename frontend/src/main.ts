@@ -5,6 +5,7 @@ import {useAuthStore} from '@/stores/auth'
 import {ApiError} from '@/services/api'
 import App from './App.vue'
 import '@/styles/main.css'
+import '@/styles/themes.css'
 
 const app = createApp(App)
 app.use(createPinia())
